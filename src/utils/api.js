@@ -1,0 +1,81 @@
+import axios from "axios";
+
+/**
+ * Resolve Backend Base URL
+ * Uses Vite environment variable first, then sensible local/prod fallbacks.
+ */
+const resolveBaseUrl = () => {
+  const envUrl = import.meta.env.VITE_API_URL?.replace(/\/$/, "");
+
+  if (envUrl) return envUrl;
+
+  if (import.meta.env.DEV) {
+    return "http://localhost:3000";
+  }
+
+  if (typeof window !== "undefined") {
+    return window.location.origin;
+  }
+
+  return "";
+};
+
+const BASE_URL = resolveBaseUrl();
+
+/**
+ * Create Axios Instance
+ */
+const API = axios.create({
+  baseURL: `${BASE_URL}/api`,
+  withCredentials: true, // Enables sending cookies (if using httpOnly auth)
+  timeout: 15000, // Prevents hanging requests
+  headers: {
+    "Content-Type": "application/json",
+  },
+});
+
+
+
+/**
+ * REQUEST INTERCEPTOR
+ * Attaches JWT token and custom headers automatically.
+ */
+API.interceptors.request.use(
+  (config) => {
+    const token = localStorage.getItem("token");
+
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`;
+    }
+
+
+    return config;
+  },
+  (error) => {
+    return Promise.reject(error);
+  }
+);
+
+/**
+ * RESPONSE INTERCEPTOR
+ * Centralized error handling.
+ */
+API.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    // Handle Unauthorized globally
+    if (error.response?.status === 401) {
+      console.warn("Unauthorized. Redirecting to login...");
+      localStorage.removeItem("token");
+      // Optionally redirect:
+      // window.location.href = "/login";
+    }
+
+    // Log other errors (optional)
+    console.error("API Error:", error.response || error.message);
+
+    return Promise.reject(error);
+  }
+);
+
+export default API;
