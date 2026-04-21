@@ -1,46 +1,68 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Plus } from 'lucide-react';
 import DynamicTable from '../../../common/DynamicTable';
-import { companyFormVariant } from '../../../utils/profileFormConfigs';
+import { getAllCpmpanies } from '../../../services/admin/adminServices';
 
-const Company = () => {
+const Company = ({ module }) => {
     const navigate = useNavigate();
+    const [companies, setCompanies] = useState([]);
+    const [isLoading, setIsLoading] = useState(true);
     const [search, setSearch] = useState('');
     const [currentPage, setCurrentPage] = useState(1);
 
-    // Sample data matching your screenshot
-    const companies = [
-        { id: '01', name: 'Solaris Energy', industry: 'Renewable Energy', contact: 'Kavita', mobile: '9223344556', mail: 'contact@solarisenergy.com', location: 'Jaipur', status: 'active' },
-        { id: '02', name: 'GreenTech Solutions', industry: 'Environmental', contact: 'Maya', mobile: '9876543210', mail: 'contact@greentech.com', location: 'Chennai', status: 'active' },
-        { id: '03', name: 'EduSmart', industry: 'Education', contact: 'Ravi', mobile: '9123456789', mail: 'info@edusmart.edu', location: 'Bangalore', status: 'inactive' },
-        { id: '04', name: 'HealthPlus', industry: 'Healthcare', contact: 'Anjali', mobile: '9988776655', mail: 'support@healthplus.com', location: 'Hyderabad', status: 'active' },
-        { id: '05', name: 'FinServe', industry: 'Finance', contact: 'Suresh', mobile: '9001234567', mail: 'hello@finserve.com', location: 'Mumbai', status: 'inactive' },
-    ];
+    useEffect(() => {
+        fetchCompanies();
+    }, []);
 
-    const filteredRows = companies.filter((item) =>
-        item.name.toLowerCase().includes(search.toLowerCase())
-    );
+    const fetchCompanies = async () => {
+        try {
+            setIsLoading(true);
+            const response = await getAllCpmpanies();
+            if (response.success) {
+                const mappedData = (response.data || []).map(item => ({
+                    ...item,
+                    id: item._id
+                }));
+                setCompanies(mappedData);
+            }
+        } catch (error) {
+            console.error("Failed to fetch companies:", error);
+        } finally {
+            setIsLoading(false);
+        }
+    };
 
     const handleSearch = (value) => {
         setSearch(value);
         setCurrentPage(1);
     };
 
+    const filteredRows = companies.filter((item) =>
+        item.companyName.toLowerCase().includes(search.toLowerCase()) ||
+        item.email.toLowerCase().includes(search.toLowerCase()) ||
+        item.contactPersonName.toLowerCase().includes(search.toLowerCase())
+    );
+
     const columns = [
-        { title: '#', dataIndex: 'id', key: 'id' },
-        { title: 'Company Name', dataIndex: 'name', key: 'name' },
-        { title: 'Industry', dataIndex: 'industry', key: 'industry' },
-        { title: 'Contact Person', dataIndex: 'contact', key: 'contact' },
-        { title: 'Mobile Number', dataIndex: 'mobile', key: 'mobile' },
-        { title: 'Mail Id', dataIndex: 'mail', key: 'mail' },
-        { title: 'Location', dataIndex: 'location', key: 'location' },
+        { 
+            title: '#', 
+            dataIndex: 'index', 
+            key: 'index',
+            render: (_text, _record, index) => index + 1
+        },
+        { title: 'Company Name', dataIndex: 'companyName', key: 'companyName' },
+        { title: 'Industry', dataIndex: 'companyType', key: 'companyType' },
+        { title: 'Contact Person', dataIndex: 'contactPersonName', key: 'contactPersonName' },
+        { title: 'Mobile Number', dataIndex: 'phone', key: 'phone' },
+        { title: 'Mail Id', dataIndex: 'email', key: 'email' },
+        { title: 'Location', dataIndex: 'city', key: 'city' },
         {
             title: 'Status',
-            dataIndex: 'status',
-            key: 'status',
+            dataIndex: 'isActive',
+            key: 'isActive',
             render: (value) => {
-                const isActive = String(value).toLowerCase() === 'active';
+                const isActive = value === true;
                 return (
                     <span
                         className={`inline-flex items-center gap-2 px-3 py-1 rounded-full text-[14px] font-semibold ${isActive ? 'bg-[#E6F8EE] text-[#23A55A]' : 'bg-[#F1F5F9] text-[#64748B]'}`}
@@ -55,31 +77,29 @@ const Company = () => {
 
     return (
         <div className="animate-in fade-in duration-500">
-
             <DynamicTable
                 columns={columns}
                 dataSource={filteredRows}
-                rowKey="id"
+                rowKey="_id"
+                isLoading={isLoading}
                 showSearch={true}
                 onSearch={handleSearch}
-                searchPlaceholder="Search ..."
+                searchPlaceholder="Search company, email, contact..."
                 showAddButton={true}
                 addButtonLabel="Add company"
                 addButtonIcon={<Plus size={18} />}
-                onAdd={() =>
-                    navigate('/admin/add-form', {
-                        state: { formType: 'company', formVariant: companyFormVariant },
-                    })
-                }
+                onAdd={() => navigate(`/${module}/company-form`)}
                 showPagination={true}
                 currentPage={currentPage}
                 pageSize={10}
                 onPageChange={setCurrentPage}
-                onRowClick={() => navigate('/admin/company-profile')}
+
+                onRowClick={(record) => navigate(`/${module}/company-profile/${record.id}`)}
             />
         </div>
     );
 };
+
 
 
 

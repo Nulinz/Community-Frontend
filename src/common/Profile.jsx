@@ -54,6 +54,8 @@ const GlobalAISummit = () => {
         { title: 'Mail id', dataIndex: 'mail', key: 'mail' },
         { title: 'Location', dataIndex: 'location', key: 'location' },
     ];
+
+    
     const postImages = [
         'https://images.unsplash.com/photo-1521791136064-7986c2920216?auto=format&fit=crop&w=600&q=80',
         'https://images.unsplash.com/photo-1552664730-d307ca884978?auto=format&fit=crop&w=600&q=80',

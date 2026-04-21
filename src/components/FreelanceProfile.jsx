@@ -1,20 +1,20 @@
 import React, { useEffect, useState } from 'react';
 import { assets } from '../assets/assets';
-import AppliedListSection from './AppliedListSection';
 import { useNavigate, useParams } from 'react-router-dom';
 import { toast } from 'react-toastify';
-import { getInternshipById, toggleInternshipStatus } from '../services/admin/adminServices';
+import { getFreelanceById, toggleFreelanceStatus } from '../services/admin/adminServices';
+import AppliedListSection from '../common/AppliedListSection';
 
-const JobsProfile = ({ module = 'admin' }) => {
+const FreelanceProfile = ({ module = 'admin' }) => {
   const [activeTab, setActiveTab] = useState('overview');
-  const [internship, setInternship] = useState(null);
+  const [freelance, setFreelance] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isTogglingStatus, setIsTogglingStatus] = useState(false);
   const { id } = useParams();
   const navigate = useNavigate();
 
   useEffect(() => {
-    const fetchInternship = async () => {
+    const fetchFreelance = async () => {
       if (!id) {
         setIsLoading(false);
         return;
@@ -22,17 +22,17 @@ const JobsProfile = ({ module = 'admin' }) => {
 
       try {
         setIsLoading(true);
-        const response = await getInternshipById(id);
-        setInternship(response?.data || null);
+        const response = await getFreelanceById(id);
+        setFreelance(response?.data || null);
       } catch (error) {
-        toast.error(error?.response?.data?.message || 'Failed to load internship profile');
-        setInternship(null);
+        toast.error(error?.response?.data?.message || 'Failed to load freelance profile');
+        setFreelance(null);
       } finally {
         setIsLoading(false);
       }
     };
 
-    fetchInternship();
+    fetchFreelance();
   }, [id]);
 
   const formatDate = (value) => {
@@ -42,10 +42,12 @@ const JobsProfile = ({ module = 'admin' }) => {
     return date.toLocaleDateString('en-GB');
   };
 
-  const statusLabel = internship?.isActive ? 'Active' : 'Inactive';
-  const statusIsActive = internship?.isActive;
-  const responsibilities = Array.isArray(internship?.responsibilities) ? internship.responsibilities : [];
-  const eligibility = Array.isArray(internship?.eligibility) ? internship.eligibility : [];
+  const statusLabel = freelance?.isActive ? 'Active' : 'Inactive';
+  const statusIsActive = freelance?.isActive;
+  const projectNeeds = Array.isArray(freelance?.projectNeeds) ? freelance.projectNeeds : [];
+  const eligibility = Array.isArray(freelance?.eligibility) ? freelance.eligibility : [];
+  const security = Array.isArray(freelance?.security) ? freelance.security : [];
+  const referenceWebsite = Array.isArray(freelance?.referenceWebsite) ? freelance.referenceWebsite : [];
   const fallbackList = ['-'];
 
   const appliedListHeading = [
@@ -80,15 +82,15 @@ const JobsProfile = ({ module = 'admin' }) => {
   );
 
   const handleToggleStatus = async () => {
-    if (!internship?._id || isTogglingStatus) return;
+    if (!freelance?._id || isTogglingStatus) return;
 
     try {
       setIsTogglingStatus(true);
-      const response = await toggleInternshipStatus(internship._id);
-      setInternship(response?.data || internship);
-      toast.success(response?.message || 'Internship status updated');
+      const response = await toggleFreelanceStatus(freelance._id);
+      setFreelance(response?.data || freelance);
+      toast.success(response?.message || 'Freelance status updated');
     } catch (error) {
-      toast.error(error?.response?.data?.message || 'Failed to update internship status');
+      toast.error(error?.response?.data?.message || 'Failed to update freelance status');
     } finally {
       setIsTogglingStatus(false);
     }
@@ -104,17 +106,17 @@ const JobsProfile = ({ module = 'admin' }) => {
     );
   }
 
-  if (!internship) {
+  if (!freelance) {
     return (
       <div className="bg-[#f8f9fa] min-h-screen">
         <section className="bg-white rounded-[16px] md:rounded-[24px] border border-gray-200 p-6 shadow-sm space-y-4">
-          <p className="text-secondary">Internship details not found.</p>
+          <p className="text-secondary">Freelance details not found.</p>
           <button
             type="button"
-            onClick={() => navigate(`/${module}/jobs/internship`)}
+            onClick={() => navigate(`/${module}/jobs/freelance`)}
             className="bg-[#0095ff] text-white px-6 py-2 rounded font-bold"
           >
-            Back to Internship List
+            Back to Freelance List
           </button>
         </section>
       </div>
@@ -133,7 +135,7 @@ const JobsProfile = ({ module = 'admin' }) => {
             <div className="space-y-1">
               <div className="flex flex-wrap items-center gap-3">
                 <h1 className="font-semibold text-[18px] leading-none tracking-normal text-primary">
-                  {internship.jobTitle || '-'}
+                  {freelance.jobTitle || '-'}
                 </h1>
                 <span className={`inline-flex items-center gap-2 px-3 py-1 rounded-full text-[12px] font-semibold ${
                   statusIsActive ? 'bg-[#E6F8EE] text-[#23A55A]' : 'bg-[#F1F5F9] text-[#64748B]'
@@ -142,29 +144,29 @@ const JobsProfile = ({ module = 'admin' }) => {
                   {statusLabel}
                 </span>
               </div>
-              <p className="font-jakarta font-semibold text-[16px] text-secondary">{internship.companyName || '-'}</p>
-              <p className="font-jakarta font-medium text-[14px] text-[#344054]">{internship.mode || '-'}</p>
+              <p className="font-jakarta font-semibold text-[16px] text-secondary">{freelance.companyName || '-'}</p>
+              <p className="font-jakarta font-medium text-[14px] text-[#344054]">{freelance.mode || '-'}</p>
               <p className="font-jakarta font-medium text-[14px] text-[#344054]">
-                {internship.totalOpenings ?? 0} Openings
+                {freelance.totalOpenings ?? 0} Openings
               </p>
-              <p className="font-jakarta font-medium text-[14px] text-[#344054]">Rs {internship.salary ?? 0}</p>
+              <p className="font-jakarta font-medium text-[14px] text-[#344054]">Rs {freelance.salary ?? 0}</p>
             </div>
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 w-full xl:w-auto">
             <div className="rounded-[18px] bg-[linear-gradient(119.97deg,_#006098_0%,_#00C1FD_100%)] text-white p-4 md:p-5 min-h-[100px] md:min-h-[130px] flex flex-col justify-center sm:min-w-[150px]">
               <p className="uppercase tracking-[1px] text-[10px] md:text-[11px] font-bold mb-3">Total Openings</p>
-              <p className="text-[28px] md:text-[40px] leading-none font-bold">{internship.totalOpenings ?? 0}</p>
+              <p className="text-[28px] md:text-[40px] leading-none font-bold">{freelance.totalOpenings ?? 0}</p>
             </div>
 
             <div className="rounded-[18px] bg-white border border-gray-200 text-[#0C5F94] p-4 md:p-5 min-h-[100px] md:min-h-[130px] flex flex-col justify-center sm:min-w-[150px]">
-              <p className="uppercase tracking-[1px] text-[10px] md:text-[11px] font-bold mb-3 text-[#7D89A0]">Intern Start Date</p>
-              <p className="text-[18px] md:text-[26px] leading-none font-bold">{formatDate(internship.internStartDate)}</p>
+              <p className="uppercase tracking-[1px] text-[10px] md:text-[11px] font-bold mb-3 text-[#7D89A0]">Job Start Date</p>
+              <p className="text-[18px] md:text-[26px] leading-none font-bold">{formatDate(freelance.jobStartDate)}</p>
             </div>
 
             <div className="rounded-[18px] bg-white border border-gray-200 text-[#0C5F94] p-4 md:p-5 min-h-[100px] md:min-h-[130px] flex flex-col justify-center sm:min-w-[150px]">
               <p className="uppercase tracking-[1px] text-[10px] md:text-[11px] font-bold mb-3 text-[#7D89A0]">Application Deadline</p>
-              <p className="text-[18px] md:text-[26px] leading-none font-bold">{formatDate(internship.applicationDeadline)}</p>
+              <p className="text-[18px] md:text-[26px] leading-none font-bold">{formatDate(freelance.applicationDeadline)}</p>
             </div>
           </div>
         </div>
@@ -204,7 +206,7 @@ const JobsProfile = ({ module = 'admin' }) => {
             </button>
             <button
               type="button"
-              onClick={() => navigate(`/${module}/jobs/internship-form`, { state: { editData: internship } })}
+              onClick={() => navigate(`/${module}/jobs/freelance-form`, { state: { editData: freelance } })}
               className="inline-flex items-center gap-2 bg-white border border-[#D0D5DD] text-[#344054] px-6 py-2.5 rounded-full text-[15px] font-medium hover:bg-gray-50 transition-colors"
             >
               <img src={assets.edit} alt="Edit" className="w-5 h-5 object-contain" />
@@ -215,18 +217,18 @@ const JobsProfile = ({ module = 'admin' }) => {
 
         {activeTab === 'overview' ? (
           <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-4">
-            <ListCard title="Responsibilities" items={responsibilities.length ? responsibilities : fallbackList} />
-            <ListCard title="Eligibility Criteria" items={eligibility.length ? eligibility : fallbackList} />
-            <ListCard title="Skill" items={responsibilities.length ? responsibilities : fallbackList} />
+            <ListCard title="Project Needs" items={projectNeeds.length ? projectNeeds : fallbackList} />
+            <ListCard title="Eligibility" items={eligibility.length ? eligibility : fallbackList} />
+            <ListCard title="Security" items={security.length ? security : fallbackList} />
 
-            <ListCard title="Skill Development Benefits" items={eligibility.length ? eligibility : fallbackList} />
-            <ListCard title="Supported Learning Recourse" items={responsibilities.length ? responsibilities : fallbackList} />
-            <TextCard title="Description" text={internship.description || '-'} />
+            <ListCard title="Reference Website" items={referenceWebsite.length ? referenceWebsite : fallbackList} />
+            <TextCard title="Learning" text={freelance.learning || '-'} />
+            <TextCard title="Description" text={freelance.description || '-'} />
 
             <div className="xl:col-span-2">
-              <TextCard title="Learning" text={internship.description || '-'} />
+              <TextCard title="Duration" text={freelance.duration || '-'} />
             </div>
-            <TextCard title="Certificate Availability" text={internship.certificateAvailability || '-'} />
+            <TextCard title="Certificate Availability" text={freelance.certificateAvailability || '-'} />
           </div>
         ) : (
           <AppliedListSection data={appliedListData} heading={appliedListHeading} />
@@ -236,4 +238,4 @@ const JobsProfile = ({ module = 'admin' }) => {
   );
 };
 
-export default JobsProfile;
+export default FreelanceProfile;

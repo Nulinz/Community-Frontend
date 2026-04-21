@@ -10,7 +10,7 @@ const resolveBaseUrl = () => {
   if (envUrl) return envUrl;
 
   if (import.meta.env.DEV) {
-    return "http://localhost:3000";
+    return "http://localhost:5000";
   }
 
   if (typeof window !== "undefined") {
@@ -27,7 +27,7 @@ const BASE_URL = resolveBaseUrl();
  */
 const API = axios.create({
   baseURL: `${BASE_URL}/api`,
-  withCredentials: true, // Enables sending cookies (if using httpOnly auth)
+  withCredentials: false, // JWT is sent via Authorization header, not cookies
   timeout: 15000, // Prevents hanging requests
   headers: {
     "Content-Type": "application/json",

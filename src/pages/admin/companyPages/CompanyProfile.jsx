@@ -1,11 +1,16 @@
-﻿import React, { useRef, useState } from 'react';
-import { BriefcaseBusiness, Clock3, LockKeyhole, MapPin, Plus, SquarePen, Upload, X } from 'lucide-react';
+import React, { useRef, useState, useEffect } from 'react';
+import { useParams, useNavigate } from 'react-router-dom';
+import { BriefcaseBusiness, Clock3, LockKeyhole, MapPin, Plus, SquarePen, Upload, X, Loader2 } from 'lucide-react';
 import { assets } from '../../../assets/assets';
 import DynamicTable from '../../../common/DynamicTable';
+import { getCompanyById, addCompanyPost, setCompanyPassword, getMyCompany, toggleCompanyStatus } from '../../../services/admin/adminServices';
+import { toast } from 'react-toastify';
 
 const tabs = ['About', 'Posts', 'Jobs', 'People'];
 
-const CompanyProfile = () => {
+const CompanyProfile = ({ module }) => {
+  const { id } = useParams();
+  const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState('About');
   const [isPasswordModalOpen, setIsPasswordModalOpen] = useState(false);
   const [isAddPostModalOpen, setIsAddPostModalOpen] = useState(false);
@@ -14,7 +19,66 @@ const CompanyProfile = () => {
   const [password, setPassword] = useState('CNX@I204');
   const [confirmPassword, setConfirmPassword] = useState('CNX@I204');
   const [uploadedPosts, setUploadedPosts] = useState([]);
+  const [postFiles, setPostFiles] = useState([]); // Store raw File objects
+  const [company, setCompany] = useState(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [error, setError] = useState(null);
   const fileInputRef = useRef(null);
+
+  const BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
+
+  useEffect(() => {
+    const fetchCompanyData = async () => {
+      try {
+        setIsLoading(true);
+        let response;
+        if (id) {
+          response = await getCompanyById(id);
+        } else if (module === 'company') {
+          response = await getMyCompany();
+        }
+
+        if (response?.success) {
+          setCompany(response.data);
+        } else {
+          setError("Company not found");
+        }
+      } catch (err) {
+        setError("Failed to fetch company details");
+        console.error(err);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    fetchCompanyData();
+  }, [id, module]);
+
+  if (isLoading) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-[400px] gap-3">
+        <Loader2 className="w-8 h-8 text-blue-600 animate-spin" />
+        <p className="text-secondary font-medium mt-2">Loading Profile...</p>
+      </div>
+    );
+  }
+
+  if (error || !company) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-[400px] text-center p-6">
+        <div className="bg-red-50 text-red-600 p-4 rounded-xl mb-4 max-w-md">
+          <p className="font-bold text-lg mb-1">Oops!</p>
+          <p className="text-sm font-medium">{error || "Something went wrong"}</p>
+        </div>
+        <button
+          onClick={() => navigate(-1)}
+          className="px-6 py-2 bg-primary text-white rounded-full font-semibold shadow-md hover:bg-opacity-90 transition-all"
+        >
+          Go Back
+        </button>
+      </div>
+    );
+  }
 
   const SectionCard = ({ title, children, className = '' }) => (
     <div className={`rounded-[20px] border border-[#EAECF0] bg-[#FFFFFF] p-[14px] ${className}`}>
@@ -78,15 +142,16 @@ const CompanyProfile = () => {
   );
 
   const addFilesToPosts = (files) => {
-    const items = Array.from(files || [])
-      .filter((file) => file.type.startsWith('image/'))
-      .map((file, index) => ({
-        id: `${Date.now()}-${index}-${file.name}`,
-        src: URL.createObjectURL(file),
-      }));
+    const rawFiles = Array.from(files || []).filter((file) => file.type.startsWith('image/'));
+    
+    const items = rawFiles.map((file, index) => ({
+      id: `${Date.now()}-${index}-${file.name}`,
+      src: URL.createObjectURL(file),
+    }));
 
     if (!items.length) return;
     setUploadedPosts((prev) => [...prev, ...items]);
+    setPostFiles((prev) => [...prev, ...rawFiles]);
   };
 
   const handleUploadChange = (event) => {
@@ -99,8 +164,98 @@ const CompanyProfile = () => {
     addFilesToPosts(event.dataTransfer.files);
   };
 
-  const removePostImage = (id) => {
+  const removePostImage = (id, index) => {
     setUploadedPosts((prev) => prev.filter((item) => item.id !== id));
+    setPostFiles((prev) => prev.filter((_, i) => i !== index));
+  };
+
+  const handleSetPassword = async () => {
+    const companyId = id || company?._id || company?.id;
+    if (!companyId) {
+      toast.error("Company id not found");
+      return;
+    }
+    if (!password) {
+      toast.error("Password is required");
+      return;
+    }
+    if (password !== confirmPassword) {
+      toast.error("Passwords do not match");
+      return;
+    }
+
+    try {
+      setIsSubmitting(true);
+      const response = await setCompanyPassword({ id: companyId, password, confirmPassword });
+      if (response.success) {
+        toast.success(response.message || "Password updated successfully");
+        setPassword('');
+        setConfirmPassword('');
+        setIsPasswordModalOpen(false);
+      }
+    } catch (err) {
+      toast.error(err.response?.data?.message || "Failed to update password");
+      console.error(err);
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const handleToggleStatus = async () => {
+    try {
+      setIsSubmitting(true);
+      const response = await toggleCompanyStatus(company._id || company.id);
+      if (response.success) {
+        toast.success(response.message);
+        setCompany((prev) => ({ ...prev, isActive: response.data.isActive }));
+      }
+    } catch (err) {
+      toast.error("Failed to update status");
+      console.error(err);
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const handleConfirmPosts = async () => {
+    const companyId = id || company?._id || company?.id;
+    if (!companyId) {
+      toast.error("Company id not found");
+      return;
+    }
+
+    if (postFiles.length === 0) {
+      toast.error("Please select images first");
+      return;
+    }
+
+    try {
+      setIsSubmitting(true);
+      const formData = new FormData();
+      postFiles.forEach((file) => {
+        formData.append('images', file);
+      });
+
+      const response = await addCompanyPost(companyId, formData);
+      if (response.success) {
+        toast.success(response.message || "Posts uploaded successfully");
+        setUploadedPosts([]);
+        setPostFiles([]);
+        setIsAddPostModalOpen(false);
+        // Refresh company data
+        const refreshResponse = module === 'company'
+          ? await getMyCompany()
+          : await getCompanyById(companyId);
+        if (refreshResponse.success) {
+          setCompany(refreshResponse.data);
+        }
+      }
+    } catch (err) {
+      toast.error(err.response?.data?.message || "Failed to upload posts");
+      console.error(err);
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const InfoList = ({ items = [] }) => (
@@ -112,83 +267,99 @@ const CompanyProfile = () => {
   );
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 animate-in fade-in duration-500">
       <section className="bg-white rounded-[24px] border border-[#EAECF0] overflow-hidden shadow-sm">
         <div
-          className="h-[150px] md:h-[170px] bg-cover bg-center"
+          className="h-[150px] md:h-[180px] bg-cover bg-center"
           style={{
-            backgroundImage:
-              "linear-gradient(90deg, rgba(91, 108, 131, 0.2), rgba(184, 199, 217, 0.18)), url('https://images.unsplash.com/photo-1618004912476-29818d81ae2e?auto=format&fit=crop&w=1600&q=80')",
+            backgroundImage: company.coverImage
+              ? `url(${BASE_URL}/${company.coverImage})`
+              : "linear-gradient(90deg, rgba(91, 108, 131, 0.2), rgba(184, 199, 217, 0.18)), url('https://images.unsplash.com/photo-1618004912476-29818d81ae2e?auto=format&fit=crop&w=1600&q=80')",
           }}
         />
 
         <div className="px-6 pb-6">
           <div className="flex flex-col lg:flex-row lg:justify-between lg:items-end gap-6 -mt-[56px]">
             <div className="flex-1 min-w-0">
-
-              <div className="w-[120px] h-[120px] rounded-[16px] border-[3px] border-white bg-[#0B3A53] flex items-center justify-center overflow-hidden flex-shrink-0 shadow-md">
-                <img src={assets.logo} alt="Company Logo" className="w-[85px] h-[85px] object-contain" />
+              <div className="w-[124px] h-[124px] rounded-[20px] border-[4px] border-white bg-white flex items-center justify-center overflow-hidden flex-shrink-0 shadow-lg">
+                {company.companyLogo ? (
+                  <img src={`${BASE_URL}/${company.companyLogo}`} alt={company.companyName} className="w-full h-full object-contain" />
+                ) : (
+                  <div className="w-full h-full bg-[#0B3A53] flex items-center justify-center text-white text-4xl font-bold">
+                    {company.companyName.charAt(0)}
+                  </div>
+                )}
               </div>
 
               <div className="mt-4 space-y-2 max-w-[760px]">
                 <div className="flex flex-wrap items-center gap-3">
-                  <h1 className="text-[30px] font-semibold text-primary">TechNova Corp</h1>
-                  <span className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-[#ECFDF3] text-[#027A48] text-[14px] font-semibold">
-                    <span className="w-2 h-2 rounded-full bg-[#12B76A]" />
-                    Active
+                  <h1 className="text-[30px] font-bold text-primary tracking-tight">{company.companyName}</h1>
+                  <span className={`inline-flex items-center gap-2 px-3.5 py-1 rounded-full text-[14px] font-semibold ${company.isActive ? 'bg-[#ECFDF3] text-[#027A48]' : 'bg-gray-100 text-gray-600'}`}>
+                    <span className={`w-2 h-2 rounded-full ${company.isActive ? 'bg-[#12B76A]' : 'bg-gray-400'}`} />
+                    {company.isActive ? 'Active' : 'Inactive'}
                   </span>
                 </div>
-                <p className="text-[14px]  text-secondary">
-                  <span className='text-[16px] font-semibold'>Cloud Computing &amp; AI Solutions .</span> San Francisco, CA
+                <p className="text-[14px] text-secondary">
+                  <span className='text-[16px] font-semibold'>{company.companyTagLine} .</span> {company.city}, {company.state}
                 </p>
                 <p className="text-[14px] text-secondary font-medium">
-                  <span className='text-[16px] font-semibold'>Year Founded: 2018</span> www.nulinz.com
+                  <span className='text-[16px] font-semibold'>Year Founded: {company.yearFounded ? new Date(company.yearFounded).getFullYear() : 'N/A'}</span> {company.websiteLink && <a href={""} target="_blank" rel="noopener noreferrer" className="text-blue-600 ml-2 hover:underline">{company.websiteLink}</a>}
                 </p>
-                <p className="text-[16px] text-secondary font-normal leading-[1.8]">
-                  Orchestrating the future of enterprise intelligence through scalable neural networks and
-                  sustainable cloud infrastructure. Join our global network of innovators.
+                <p className="text-[16px] text-secondary font-normal leading-[1.7] max-w-2xl mt-4">
+                  {company.aboutUs ? company.aboutUs.slice(0, 200) + (company.aboutUs.length > 200 ? '...' : '') : 'No description provided.'}
                 </p>
-                <p className="text-[14px] text-secondary font-medium">
-                  <span className="text-[#110E7E] font-bold">42,809 followers</span>
+                <p className="text-[14px] text-secondary font-medium mt-3">
+                  <span className="text-[#110E7E] font-bold">0 followers</span>
                   <span className="mx-4 text-[#D0D5DD]">.</span>
-                  <span>50 -100 employees</span>
+                  <span>50 - 100 employees</span>
                 </p>
               </div>
             </div>
 
             <div className="lg:min-w-[440px] lg:pt-[40px] flex flex-col gap-4">
               <div className="flex flex-wrap gap-4">
-                <div className="min-w-[180px] md:min-w-[220px] rounded-[20px] p-6 bg-[linear-gradient(180deg,_#0989D4_0%,_#006098_100%)] text-white shadow-md flex flex-col justify-center">
-                  <p className="text-[10px] font-semibold uppercase tracking-[1.5px] mb-4 opacity-90">Total Departments</p>
-                  <p className="text-[30px] font-bold leading-none">12</p>
+                <div className="min-w-[180px] md:min-w-[210px] rounded-[24px] p-6 bg-[linear-gradient(135deg,_#0989D4_0%,_#006098_100%)] text-white shadow-xl flex flex-col justify-center">
+                  <p className="text-[11px] font-bold uppercase tracking-[1.5px] mb-3 opacity-80">Total Jobs</p>
+                  <p className="text-[34px] font-black leading-none">0</p>
                 </div>
-                <div className="min-w-[180px] md:min-w-[220px] rounded-[20px] p-6 border border-[#EAECF0] bg-white shadow-sm flex flex-col justify-center">
-                  <p className="text-[10px] font-semibold uppercase tracking-[1.5px] text-secondary mb-4">Established Year</p>
-                  <p className="text-[30px] font-bold leading-none text-[#006098]">2008</p>
+                <div className="min-w-[180px] md:min-w-[210px] rounded-[24px] p-6 border border-[#EAECF0] bg-[#F8FAFC] shadow-sm flex flex-col justify-center">
+                  <p className="text-[11px] font-bold uppercase tracking-[1.5px] text-secondary mb-3">Established Year</p>
+                  <p className="text-[34px] font-black leading-none text-[#006098]">{company.yearFounded ? new Date(company.yearFounded).getFullYear() : '---'}</p>
                 </div>
               </div>
 
-              <div className="flex flex-wrap gap-3">
-                <button className="px-[16px] py-2.5 rounded-full bg-[#F04438] text-white text-[15px] font-semibold shadow-sm hover:bg-[#D92D20] transition-colors">
-                  Inactive
-                </button>
-                <button
-                  onClick={() => setIsPasswordModalOpen(true)}
-                  className="px-[16px] py-2.5 rounded-full bg-[#0086C9] text-white text-[15px] font-semibold shadow-sm hover:bg-[#026AA2] transition-colors"
+              <div className="flex flex-wrap gap-3 mt-2">
+                {module === 'admin' && (
+                  <>
+                    <button 
+                      disabled={isSubmitting}
+                      onClick={handleToggleStatus}
+                      className={`px-[20px] py-3 rounded-full text-white text-[15px] font-bold shadow-md transition-all active:scale-95 disabled:opacity-50 ${company.isActive ? 'bg-red-500 hover:bg-red-600' : 'bg-green-500 hover:bg-green-600'}`}
+                    >
+                      {isSubmitting ? <Loader2 size={18} className="animate-spin" /> : (company.isActive ? 'Deactivate' : 'Activate')}
+                    </button>
+                    
+                    <button
+                      onClick={() => setIsPasswordModalOpen(true)}
+                      className="px-[20px] py-3 rounded-full bg-[#0086C9] text-white text-[15px] font-bold shadow-md hover:bg-[#026AA2] transition-all active:scale-95"
+                    >
+                      Set Password
+                    </button>
+                  </>
+                )}
+
+                <button 
+                  onClick={() => setIsAddPostModalOpen(true)}
+                  className="flex items-center gap-2 h-10 px-4 rounded-[10px] bg-[#110E7E] text-white text-[14px] font-bold shadow-sm hover:opacity-90 transition-all font-source"
                 >
-                  Set Password
-                </button>
-                <button
-                  onClick={() => {
-                    setUploadedPosts(postSamples.map((src, index) => ({ id: `sample-${index}`, src })));
-                    setIsAddPostModalOpen(true);
-                  }}
-                  className="inline-flex items-center gap-2 px-[16px] py-2.5 rounded-full border border-[#D0D5DD] text-[#344054] text-[15px] font-semibold bg-white shadow-sm hover:bg-[#F9FAFB] transition-colors"
-                >
-                  <Plus size={20} />
+                  <Plus size={18} />
                   Add Post
                 </button>
-                <button className="inline-flex items-center gap-2 px-[16px] py-2.5 rounded-full border border-[#D0D5DD] text-[#344054] text-[15px] font-semibold bg-white shadow-sm hover:bg-[#F9FAFB] transition-colors">
+
+                <button 
+                  onClick={() => navigate(`/${module}/company-form`, { state: { editData: company } })}
+                  className="flex items-center gap-2 h-10 px-4 rounded-[10px] border border-[#EAECF0] bg-[#FFFFFF] text-[#344054] text-[14px] font-bold shadow-sm hover:bg-gray-50 transition-all font-source"
+                >
                   <SquarePen size={18} />
                   Edit Details
                 </button>
@@ -219,99 +390,72 @@ const CompanyProfile = () => {
             <div className="space-y-5">
               <SectionCard title="Contact Information">
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-8">
-                  <DetailItem label="Contact Person Name" value="Ashwin" />
-                  <DetailItem label="Phone" value="+91 8438298692" />
-                  <DetailItem label="Email" value="nulinz@gmail.com.com" />
+                  <DetailItem label="Contact Person Name" value={company.contactPersonName} />
+                  <DetailItem label="Phone" value={company.phone} />
+                  <DetailItem label="Email" value={company.email} />
                 </div>
-                <div className="pt-2">
+                <div className="pt-2 border-t border-gray-100 mt-2">
                   <DetailItem
                     label="Location"
-                    value="1st Floor, NV Arcade Building, Near 5Roads, Next Reliance Mall, Salem - 636004"
+                    value={`${company.address}, ${company.city}, ${company.state} - ${company.pincode}`}
                   />
                 </div>
               </SectionCard>
 
-              <SectionCard title="Company Culture Tags">
-                <div className="flex flex-wrap gap-3">
-                  {['Remote', 'Hybrid', 'Flat-Structure', 'Social', 'Pet-Friendly'].map((tag) => (
-                    <span
-                      key={tag}
-                      className="px-4 py-1.5 rounded-full border border-[#D0D5DD] bg-[#F8FAFC] text-[14px] font-medium text-secondary"
-                    >
-                      {tag}
-                    </span>
-                  ))}
-                </div>
-              </SectionCard>
+              {company.companyCultureTags && (
+                <SectionCard title="Company Culture Tags">
+                  <div className="flex flex-wrap gap-3">
+                    {company.companyCultureTags.split(',').map((tag) => (
+                      <span
+                        key={tag}
+                        className="px-4 py-1.5 rounded-full border border-[#D0D5DD] bg-[#F8FAFC] text-[14px] font-semibold text-secondary"
+                      >
+                        {tag.trim()}
+                      </span>
+                    ))}
+                  </div>
+                </SectionCard>
+              )}
 
-              <SectionCard title="Technologies We Use">
-                <InfoList
-                  items={[
-                    'React.js',
-                    'Next.js',
-                    'Node.js',
-                    'Python (Django / FastAPI)',
-                    'Flutter',
-                    'AWS & Azure',
-                    'MySQL & MongoDB',
-                    'Docker & Kubernetes',
-                    'GitHub Actions (CI/CD)',
-                  ]}
-                />
-              </SectionCard>
+              {company.technologies?.length > 0 && (
+                <SectionCard title="Technologies We Use">
+                  <InfoList items={company.technologies} />
+                </SectionCard>
+              )}
 
-              <SectionCard title="What We Do">
-                <InfoList
-                  items={[
-                    'Custom Software Development',
-                    'Mobile App Development (Android & iOS)',
-                    'SaaS Product Development',
-                    'ERP & CRM Systems',
-                    'UI/UX Design Services',
-                    'Cloud Migration & DevOps',
-                    'AI & Data Analytics Solutions',
-                  ]}
-                />
-              </SectionCard>
+              {company.whatWeDo?.length > 0 && (
+                <SectionCard title="What We Do">
+                  <InfoList items={company.whatWeDo} />
+                </SectionCard>
+              )}
             </div>
 
             <div className="space-y-5">
               <SectionCard title="About Us">
-                <p className="text-[14px] md:text-[15px] text-secondary leading-[1.8] font-medium">
-                  Nulinz Global Technology Technologies is a fast-growing software development company specializing in scalable web and mobile applications.
-                  We deliver innovative digital products for startups, enterprises, and global clients. Our team focuses on performance-driven development,
-                  cloud integration, and modern UI/UX design. We aim to simplify business operations using smart automation and technology solutions.
+                <p className="text-[14px] md:text-[15px] text-secondary leading-[1.8] font-medium whitespace-pre-wrap">
+                  {company.aboutUs}
                 </p>
               </SectionCard>
 
-              <SectionCard title="Certificate Availability">
-                <p className="text-[14px] md:text-[15px] text-secondary leading-[1.8] font-medium">
-                  A completion certificate will be provided to students who successfully fulfill the internship requirements, including task completion and
-                  attendance. The certificate can be used for academic or career purposes.
-                </p>
-              </SectionCard>
+              {company.certificateAvailability && (
+                <SectionCard title="Certificate Availability">
+                  <p className="text-[14px] md:text-[15px] text-secondary leading-[1.8] font-medium whitespace-pre-wrap">
+                    {company.certificateAvailability}
+                  </p>
+                </SectionCard>
+              )}
 
-              <SectionCard title="Learning Benefits">
-                <InfoList
-                  items={[
-                    'Exposure to real-time industry projects',
-                    'Guidance from experienced professionals',
-                    'Hands-on experience with company tools and processes',
-                    'Performance feedback and career mentoring',
-                  ]}
-                />
-              </SectionCard>
+              {company.learningBenefits?.length > 0 && (
+                <SectionCard title="Learning Benefits">
+                  <InfoList items={company.learningBenefits} />
+                </SectionCard>
+              )}
 
-              <SectionCard title="Learning Outcomes">
-                <InfoList
-                  items={[
-                    'Structured learning modules aligned with internship tasks',
-                    'Progress tracking and milestone-based evaluations',
-                    'Skill assessments and performance insights',
-                    'Access to learning resources and support',
-                  ]}
-                />
-              </SectionCard>
+              {company.learningOutcomes?.length > 0 && (
+                <SectionCard title="Learning Outcomes">
+                  <InfoList items={company.learningOutcomes} />
+                </SectionCard>
+              )}
             </div>
           </div>
         )}
@@ -319,12 +463,23 @@ const CompanyProfile = () => {
         {activeTab === 'Posts' && (
           <div className="pt-6">
             <SectionCard title="Posts">
-              <div className="grid grid-cols-1 lg:grid-cols-5 gap-5">
-                {postSamples.map((src, index) => (
-                  <div key={src} className="rounded-[16px] overflow-hidden border border-[#EAECF0]">
-                    <img src={src} alt={`Company Post ${index + 1}`} className="w-full h-[260px] object-cover" />
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 xl:grid-cols-5 gap-5">
+                {company.posts && company.posts.length > 0 ? (
+                  company.posts.map((path, index) => (
+                    <div key={index} className="rounded-[16px] overflow-hidden border border-[#EAECF0] aspect-square shadow-sm bg-gray-50 group relative">
+                      <img 
+                        src={`${BASE_URL}${path}`} 
+                        alt={`Company Post ${index + 1}`} 
+                        className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" 
+                      />
+                      <div className="absolute inset-0 bg-black/20 opacity-0 group-hover:opacity-100 transition-opacity" />
+                    </div>
+                  ))
+                ) : (
+                  <div className="col-span-full py-12 text-center bg-gray-50 rounded-[16px] border border-dashed border-gray-300">
+                    <p className="text-secondary font-medium italic">No posts uploaded yet.</p>
                   </div>
-                ))}
+                )}
               </div>
             </SectionCard>
           </div>
@@ -407,7 +562,7 @@ const CompanyProfile = () => {
             <div className="space-y-4">
               <div>
                 <p className="text-[16px] font-source font-semibold text-secondary mb-1">Mobile Number</p>
-                <p className="text-[16px] font-source text-primary">8438293689</p>
+                <p className="text-[16px] font-source text-primary">{company.phone}</p>
               </div>
 
               <div>
@@ -439,10 +594,11 @@ const CompanyProfile = () => {
                 Cancel
               </button>
               <button
-                onClick={() => setIsPasswordModalOpen(false)}
-                className="h-12 rounded-[10px] bg-[#0989D4] text-white text-[16px] font-semibold"
+                disabled={isSubmitting}
+                onClick={handleSetPassword}
+                className="h-12 rounded-[10px] bg-[#0989D4] text-white text-[16px] font-semibold disabled:bg-gray-400 flex items-center justify-center gap-2"
               >
-                Save
+                {isSubmitting ? <Loader2 size={18} className="animate-spin" /> : 'Save'}
               </button>
             </div>
           </div>
@@ -499,10 +655,11 @@ const CompanyProfile = () => {
                 Cancel
               </button>
               <button
-                onClick={() => setIsAddPostModalOpen(false)}
-                className="h-11 rounded-[10px] bg-[#0989D4] text-white text-[15px] font-semibold"
+                disabled={isSubmitting}
+                onClick={handleConfirmPosts}
+                className="h-11 rounded-[10px] bg-[#0989D4] text-white text-[15px] font-bold disabled:bg-gray-400 flex items-center justify-center gap-2"
               >
-                Confirm
+                {isSubmitting ? <Loader2 size={18} className="animate-spin" /> : 'Confirm'}
               </button>
             </div>
           </div>

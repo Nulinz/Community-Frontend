@@ -18,8 +18,8 @@ export const companyFormConfig = [
     type: 'static',
     fields: [
       { label: 'Contact Person Name', type: 'text' },
-      { label: 'Phone Number', type: 'text' },
-      { label: 'Mail Id', type: 'text' },
+      { label: 'Phone Number', type: 'tel' },
+      { label: 'Mail Id', type: 'email' },
       { label: 'Address', type: 'text' },
       { label: 'City', type: 'text' },
       { label: 'State', type: 'text' },
@@ -107,7 +107,7 @@ export const collegeFormConfig = [
     type: 'static',
     fields: [
       { label: 'Courses Available', type: 'checkbox', options: ['UG', 'PG', 'Diploma'] },
-      { label: 'Placement Available', type: 'checkbox', options: ['Yes', 'No'], required: false },
+      { label: 'Placement Available', type: 'radio', options: ['Yes', 'No'], required: false },
       { label: 'Total Students', type: 'number' },
     ],
   },
@@ -117,6 +117,8 @@ export const collegeFormConfig = [
     fields: [{ label: 'About Us', type: 'textarea', span: 2 }],
   },
 ];
+
+
 
 
 export const competitionFormConfig = [

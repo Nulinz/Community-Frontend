@@ -1,30 +1,67 @@
-import React, { useState } from 'react';
-import { Plus } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { Plus, Loader2 } from 'lucide-react';
 import DynamicTable from "../../../common/DynamicTable";
 import { useNavigate } from 'react-router-dom';
-import { competitionFormVariant } from '../../../utils/profileFormConfigs';
+import { getAllCompetitions } from '../../../services/admin/adminServices';
+import { toast } from 'react-toastify';
 
 const Competition = () => {
   const [search, setSearch] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
+  const [competitions, setCompetitions] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
 
-  const navigate = useNavigate()
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    fetchCompetitions();
+  }, []);
+
+  const fetchCompetitions = async () => {
+    try {
+      setIsLoading(true);
+      const response = await getAllCompetitions();
+      if (response.success) {
+        setCompetitions(response.data);
+      } else {
+        toast.error("Failed to fetch competitions");
+      }
+    } catch (error) {
+      console.error("Error fetching competitions:", error);
+      toast.error("An error occurred while fetching competitions");
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   const columns = [
-    { title: '#', dataIndex: 'id', key: 'id' },
-    { title: 'Competition Name', dataIndex: 'name', key: 'name' },
+    { 
+      title: '#', 
+      render: (_, __, index) => (currentPage - 1) * 10 + index + 1,
+      key: 'index' 
+    },
+    { title: 'Competition Name', dataIndex: 'eventName', key: 'eventName' },
     { title: 'Organizer', dataIndex: 'organizer', key: 'organizer' },
-    { title: 'Date', dataIndex: 'date', key: 'date' },
+    { 
+      title: 'Date', 
+      dataIndex: 'eventDate', 
+      key: 'eventDate',
+      render: (date) => date ? new Date(date).toLocaleDateString() : 'N/A'
+    },
     { title: 'Mode', dataIndex: 'mode', key: 'mode' },
-    { title: 'Reg Type', dataIndex: 'regType', key: 'regType' },
-    { title: 'Fees', dataIndex: 'fees', key: 'fees' },
-    { title: 'Applied', dataIndex: 'applied', key: 'applied' },
+    { title: 'Reg Type', dataIndex: 'registrationType', key: 'registrationType' },
+    { 
+      title: 'Fees', 
+      dataIndex: 'individualFees', 
+      key: 'individualFees',
+      render: (fees) => `Rs ${fees || 0}`
+    },
     {
       title: 'Status',
-      dataIndex: 'status',
-      key: 'status',
+      dataIndex: 'isActive',
+      key: 'isActive',
       render: (value) => {
-        const isActive = String(value).toLowerCase() === 'active';
+        const isActive = value === true;
         return (
           <span
             className={`inline-flex items-center gap-2 px-3 py-1 rounded-full text-[14px] font-semibold ${isActive ? 'bg-[#E6F8EE] text-[#23A55A]' : 'bg-[#F1F5F9] text-[#64748B]'
@@ -38,38 +75,31 @@ const Competition = () => {
     },
   ];
 
-  const competitionData = [
-    { id: '01', name: 'IoT Innovation Contest', organizer: 'ConnectSphere Tech', date: '01/12/2026', mode: 'Offline', regType: 'Paid', fees: 'Rs 900', applied: '250', status: 'active' },
-    { id: '02', name: 'AI Hackathon', organizer: 'InnovateSphere', date: '20/06/2026', mode: 'Online', regType: 'Free', fees: 'Rs 0', applied: '300', status: 'active' },
-    { id: '03', name: 'Data Science Bowl', organizer: 'Data Insights Corp', date: '10/07/2026', mode: 'Online', regType: 'Paid', fees: 'Rs 500', applied: '80', status: 'inactive' },
-    { id: '04', name: 'UX Designathon', organizer: 'Design Forward Inc.', date: '05/08/2026', mode: 'Offline', regType: 'Paid', fees: 'Rs 1000', applied: '200', status: 'active' },
-    { id: '05', name: 'Mobile App Challenge', organizer: 'Appify Solutions', date: '15/08/2026', mode: 'Online', regType: 'Free', fees: 'Rs 0', applied: '500', status: 'inactive' },
-    { id: '06', name: 'Web Dev Competition', organizer: 'CodeCrafters United', date: '25/09/2026', mode: 'Offline', regType: 'Paid', fees: 'Rs 750', applied: '150', status: 'active' },
-    { id: '07', name: 'Cybersecurity Showdown', organizer: 'SecureTech Group', date: '01/10/2026', mode: 'Online', regType: 'Free', fees: 'Rs 0', applied: '180', status: 'inactive' },
-    { id: '08', name: 'AI Robotics Challenge', organizer: 'RoboAI Innovations', date: '10/11/2026', mode: 'Offline', regType: 'Paid', fees: 'Rs 1200', applied: '220', status: 'active' },
-    { id: '09', name: 'Blockchain Hackathon', organizer: 'BlockChain Forward', date: '18/11/2026', mode: 'Online', regType: 'Free', fees: 'Rs 0', applied: '130', status: 'inactive' },
-    { id: '10', name: 'IoT Innovation Contest', organizer: 'ConnectSphere Tech', date: '01/12/2026', mode: 'Offline', regType: 'Paid', fees: 'Rs 900', applied: '250', status: 'active' },
-    { id: '11', name: 'Next Gen UI Challenge', organizer: 'Visual Arts Lab', date: '12/12/2026', mode: 'Online', regType: 'Free', fees: 'Rs 0', applied: '410', status: 'inactive' },
-  ];
-
-  const filteredData = competitionData.filter((item) =>
-    item.name.toLowerCase().includes(search.toLowerCase()) ||
-    item.organizer.toLowerCase().includes(search.toLowerCase())
-  )
+  const filteredData = competitions.filter((item) =>
+    (item.eventName?.toLowerCase().includes(search.toLowerCase())) ||
+    (item.organizer?.toLowerCase().includes(search.toLowerCase()))
+  );
 
   const handleSearch = (value) => {
     setSearch(value);
     setCurrentPage(1);
   };
 
-
+  if (isLoading) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-[400px] gap-3">
+        <Loader2 className="w-8 h-8 text-blue-600 animate-spin" />
+        <p className="text-secondary font-medium">Loading Competitions...</p>
+      </div>
+    );
+  }
 
   return (
-    <div className=" bg-[#F9FAFB] min-h-screen">
+    <div className=" bg-[#F9FAFB] min-h-screen animate-in fade-in duration-500">
       <DynamicTable
         columns={columns}
         dataSource={filteredData}
-        rowKey="id"
+        rowKey="_id"
         showSearch={true}
         searchPlaceholder="Search ..."
         onSearch={handleSearch}
@@ -77,19 +107,16 @@ const Competition = () => {
         addButtonLabel="Add Competition"
         addButtonIcon={<Plus size={18} />}
         onAdd={() =>
-          navigate('/admin/add-form', {
-            state: { formType: 'competition', formVariant: competitionFormVariant },
-          })
-        } showPagination={true}
+          navigate('/admin/competition-form')
+        } 
+        showPagination={true}
         currentPage={currentPage}
         pageSize={10}
         onPageChange={setCurrentPage}
-        onRowClick={() => navigate('/admin/competition-profile')}
+        onRowClick={(record) => navigate(`/admin/competition-profile/${record._id}`)}
       />
     </div>
   );
 };
-
-
 
 export default Competition;

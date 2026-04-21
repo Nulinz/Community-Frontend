@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { IoCallOutline, IoLockClosedOutline } from 'react-icons/io5'; // Using Ionicons
 import { assets } from '../../assets/assets';
+import { useMain } from '../../context/MainContext';
 
 const InputField = ({ label, id, type, placeholder, icon: Icon, ...props }) => (
   <div className="space-y-2">
@@ -22,14 +23,26 @@ const InputField = ({ label, id, type, placeholder, icon: Icon, ...props }) => (
   </div>
 );
 
+
+
 const Login = () => {
+  const { login, authLoading, authError } = useMain();
   const [mobileNumber, setMobileNumber] = useState('');
   const [password, setPassword] = useState('');
 
-  const handleLogin = (e) => {
+  const handleLogin = async (e) => {
     e.preventDefault();
-    console.log("Submit", { mobileNumber, password });
+    try {
+      await login({
+        phone: mobileNumber.trim(),
+        password,
+      });
+    } catch (error) {
+      console.error("Login failed", error);
+    }
   };
+
+
 
   return (
     <div 
@@ -78,10 +91,15 @@ const Login = () => {
         <div className="space-y-5">
           <button
             type="submit"
+            disabled={authLoading}
             className="w-full rounded-[15px] bg-[#0091D5] py-3.5 text-base font-bold text-white shadow-lg transition-all hover:bg-[#007fb8] hover:shadow-[#0091D5]/20 active:scale-[0.99]"
           >
-            Login
+            {authLoading ? "Logging in..." : "Login"}
           </button>
+
+          {authError && (
+            <p className="text-sm text-red-400">{authError}</p>
+          )}
 
           <div className="flex items-center justify-between text-[13px]">
             <span className="text-gray-400">Did you forget your password?</span>

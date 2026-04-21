@@ -1,41 +1,12 @@
-// import React from 'react'
-// import { Outlet } from 'react-router-dom'
-// import Sidebar from './Sidebar'
-
-// const AdminLayout = () => {
-//   return (
-//     <div className='flex'>
-
-//       <Sidebar />
-
-
-//       <div className='w-full'>
-//         <Outlet />
-//       </div>
-//     </div>
-//   )
-// }
-
-
-
-// export default AdminLayout
-
-
-
-
-
-
-
-
-
-
 import React from 'react'
 import { Outlet, useLocation } from 'react-router-dom'
 import Sidebar from './Sidebar'
-import { assets } from '../../assets/assets'
+import { useMain } from '../../context/MainContext'
+import ProfileMenu from '../../components/ProfileMenu'
 
 const AdminLayout = () => {
   const location = useLocation();
+  const { user, logout } = useMain()
 
   // Logic to capitalize the current route name for the header title
   // e.g., /admin/company -> Company
@@ -59,17 +30,10 @@ const AdminLayout = () => {
           </h1>
           
           {/* User Profile Section */}
-          <div className='flex items-center gap-3'>
-                        <div className='w-10 h-10 rounded-full bg-orange-100 flex items-center justify-center overflow-hidden border border-gray-100'>
-               {/* Replace with your profile icon/image */}
-               <span className='text-lg'>👦</span>
-            </div>
-            <div className='text-left'>
-              <p className='text-sm font-bold text-gray-900 leading-none'>Dhanush</p>
-              <p className='text-[12px] text-blue-600 font-medium'>Admin</p>
-            </div>
-
-          </div>
+          <ProfileMenu
+            user={user}
+            onLogout={logout}
+          />
         </header>
 
         {/* 3. Dynamic Page Content (Table, etc.) */}

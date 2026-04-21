@@ -1,26 +1,50 @@
-import React, { useState } from 'react';
-import { Plus } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { Plus, Loader2 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-import DynamicTable from "../../../common/DynamicTable"
-import { conferenceFormVariant } from '../../../utils/profileFormConfigs';
+import DynamicTable from "../../../common/DynamicTable";
+import { getAllConferences } from '../../../services/admin/adminServices';
+import { toast } from 'react-toastify';
 
 
 const Conference = () => {
   const navigate = useNavigate();
   const [search, setSearch] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
+  const [conferences, setConferences] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
 
-  // Column definitions matching your Conference screenshot
+  useEffect(() => {
+    fetchConferences();
+  }, []);
+
+  const fetchConferences = async () => {
+    try {
+      setIsLoading(true);
+      const response = await getAllConferences();
+      console.log("Conferences API Response:", response);
+      if (response.success) {
+        setConferences(response.data);
+      } else {
+        toast.error("Failed to fetch conferences");
+      }
+    } catch (error) {
+      console.error("Error fetching conferences:", error);
+      toast.error("An error occurred while fetching conferences");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   const columns = [
     { 
       title: '#', 
-      dataIndex: 'id', 
-      key: 'id' 
+      render: (_, __, index) => (currentPage - 1) * 10 + index + 1,
+      key: 'index' 
     },
     { 
       title: 'Conference Name', 
-      dataIndex: 'name', 
-      key: 'name' 
+      dataIndex: 'eventName', 
+      key: 'eventName' 
     },
     { 
       title: 'Organizer', 
@@ -29,8 +53,9 @@ const Conference = () => {
     },
     { 
       title: 'Date', 
-      dataIndex: 'date', 
-      key: 'date' 
+      dataIndex: 'eventDate', 
+      key: 'eventDate',
+      render: (date) => date ? new Date(date).toLocaleDateString() : 'N/A'
     },
     { 
       title: 'Mode', 
@@ -39,25 +64,21 @@ const Conference = () => {
     },
     { 
       title: 'Reg Type', 
-      dataIndex: 'regType', 
-      key: 'regType' 
+      dataIndex: 'registrationType', 
+      key: 'registrationType' 
     },
     { 
       title: 'Fees', 
-      dataIndex: 'fees', 
-      key: 'fees' 
-    },
-    { 
-      title: 'Applied', 
-      dataIndex: 'applied', 
-      key: 'applied' 
+      dataIndex: 'individualFees', 
+      key: 'individualFees',
+      render: (fees) => `₹${fees || 0}`
     },
     {
       title: 'Status',
-      dataIndex: 'status',
-      key: 'status',
+      dataIndex: 'isActive',
+      key: 'isActive',
       render: (value) => {
-        const isActive = String(value).toLowerCase() === 'active';
+        const isActive = value === true;
         return (
           <span
             className={`inline-flex items-center gap-2 px-3 py-1 rounded-full text-[14px] font-semibold ${isActive ? 'bg-[#E6F8EE] text-[#23A55A]' : 'bg-[#F1F5F9] text-[#64748B]'}`}
@@ -70,28 +91,9 @@ const Conference = () => {
     }
   ];
 
-
-  
-  // Sample data to demonstrate pagination (more than 10 items)
-  const ConferenceData = [
-    { id: '01', name: 'IoT Innovation Contest', organizer: 'ConnectSphere Tech', date: '01/12/2026', mode: 'Offline', regType: 'Paid', fees: '₹900', applied: '250', status: 'active' },
-    { id: '02', name: 'AI Hackathon', organizer: 'InnovateSphere', date: '20/06/2026', mode: 'Online', regType: 'Free', fees: '₹0', applied: '300', status: 'active' },
-    { id: '03', name: 'Data Science Bowl', organizer: 'Data Insights Corp', date: '10/07/2026', mode: 'Online', regType: 'Paid', fees: '₹500', applied: '80', status: 'inactive' },
-    { id: '04', name: 'UX Designathon', organizer: 'Design Forward Inc.', date: '05/08/2026', mode: 'Offline', regType: 'Paid', fees: '₹1000', applied: '200', status: 'active' },
-    { id: '05', name: 'Mobile App Challenge', organizer: 'Appify Solutions', date: '15/08/2026', mode: 'Online', regType: 'Free', fees: '₹0', applied: '500', status: 'inactive' },
-    { id: '06', name: 'Web Dev Conference', organizer: 'CodeCrafters United', date: '25/09/2026', mode: 'Offline', regType: 'Paid', fees: '₹750', applied: '150', status: 'active' },
-    { id: '07', name: 'Cybersecurity Showdown', organizer: 'SecureTech Group', date: '01/10/2026', mode: 'Online', regType: 'Free', fees: '₹0', applied: '180', status: 'inactive' },
-    { id: '08', name: 'AI Robotics Challenge', organizer: 'RoboAI Innovations', date: '10/11/2026', mode: 'Offline', regType: 'Paid', fees: '₹1200', applied: '220', status: 'active' },
-    { id: '09', name: 'Blockchain Hackathon', organizer: 'BlockChain Forward', date: '18/11/2026', mode: 'Online', regType: 'Free', fees: '₹0', applied: '130', status: 'inactive' },
-    { id: '10', name: 'IoT Innovation Contest', organizer: 'ConnectSphere Tech', date: '01/12/2026', mode: 'Offline', regType: 'Paid', fees: '₹900', applied: '250', status: 'active' },
-    { id: '11', name: 'Next Gen UI Challenge', organizer: 'Visual Arts Lab', date: '12/12/2026', mode: 'Online', regType: 'Free', fees: '₹0', applied: '410', status: 'inactive' },
-  ];
-
-
-  // Filtering logic
-  const filteredData = ConferenceData.filter(item => 
-    item.name.toLowerCase().includes(search.toLowerCase()) ||
-    item.organizer.toLowerCase().includes(search.toLowerCase())
+  const filteredData = conferences.filter(item => 
+    (item.eventName?.toLowerCase().includes(search.toLowerCase())) ||
+    (item.organizer?.toLowerCase().includes(search.toLowerCase()))
   );
 
   const handleSearch = (value) => {
@@ -99,15 +101,22 @@ const Conference = () => {
     setCurrentPage(1);
   };
 
+  if (isLoading) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-[400px] gap-3">
+        <Loader2 className="w-8 h-8 text-blue-600 animate-spin" />
+        <p className="text-secondary font-medium">Loading Conferences...</p>
+      </div>
+    );
+  }
+
   return (
     <div className="bg-[#F9FAFB] min-h-screen">
-
-
       <DynamicTable
         columns={columns}
         dataSource={filteredData}
-        rowKey="id"
-        onRowClick={() => navigate('/admin/conference-profile')}
+        rowKey="_id"
+        onRowClick={(record) => navigate(`/admin/conference-profile/${record._id}`)}
         // Search Config
         showSearch={true}
         searchPlaceholder="Search ..."
@@ -117,9 +126,7 @@ const Conference = () => {
         addButtonLabel="Add Conference"
         addButtonIcon={<Plus size={18} />}
         onAdd={() =>
-          navigate('/admin/add-form', {
-            state: { formType: 'conference', formVariant: conferenceFormVariant },
-          })
+          navigate('/admin/conference-form')
         } 
         
         showPagination={true}
@@ -130,8 +137,5 @@ const Conference = () => {
     </div>
   );
 };
-
-
-
 
 export default Conference;
