@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { IoCallOutline, IoLockClosedOutline } from 'react-icons/io5'; // Using Ionicons
 import { assets } from '../../assets/assets';
 import { useMain } from '../../context/MainContext';
+import AuthBase from '../../layout/AuthBase';
 
 const InputField = ({ label, id, type, placeholder, icon: Icon, ...props }) => (
   <div className="space-y-2">
@@ -45,14 +46,11 @@ const Login = () => {
 
 
   return (
-    <div 
-      className="flex min-h-screen items-center justify-center bg-black px-4 bg-cover bg-center bg-no-repeat"
-      style={{ backgroundImage: `url(${assets.login_bg})` }} // Static BG from public folder
-    >
-      {/* Glassmorphism Card */}
+<AuthBase maxWidth='max-w-[450px]'>
+
       <form
         onSubmit={handleLogin}
-        className="w-full max-w-[450px] space-y-8 rounded-[30px] bg-black/8 p-10 shadow-2xl backdrop-blur-[68px] border border-white/10"
+        className="w-full  space-y-8"
       >
         <div className="text-center">
           {/* Static Logo from public folder */}
@@ -109,7 +107,8 @@ const Login = () => {
           </div>
         </div>
       </form>
-    </div>
+</AuthBase>
+  
   );
 };
 

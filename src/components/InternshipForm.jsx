@@ -49,6 +49,47 @@ const internshipFormConfig = [
     fields: [{ name: "eligibilityCriteria", label: "Eligibility Criteria", type: "text", colSpan: "md:col-span-11" }],
   },
   {
+    title: "Required skill set",
+    type: "dynamic",
+    key: "skill_set",
+    dynamicStyle: "grid-6",
+    initialRows: 6,
+    fields: [{ name: "skills", label: "Required skill set", type: "text", colSpan: "md:col-span-11" }],
+  },{
+    title: "Learning Benefits",
+    type: "dynamic",
+    key: "benefits",
+    dynamicStyle: "grid-6",
+    initialRows: 6,
+    fields: [{ name: "benefits", label: "Learning Benefits", type: "text", colSpan: "md:col-span-11" }],
+  },
+  {
+    title: "Learning outcomes",
+    type: "dynamic",
+    key: "learning_outcomes",
+    dynamicStyle: "grid-6",
+    initialRows: 6,
+    fields: [{ name: "outcomes", label: "Learning outcomes", type: "text", colSpan: "md:col-span-11" }],
+  },
+  {
+    title: "Skill Development Benefits",
+    type: "dynamic",
+    key: "development_benefits",
+    dynamicStyle: "grid-6",
+    initialRows: 6,
+    showWhen: { field: "internshipType", value: "Unpaid" },
+    fields: [{ name: "development_Benefits", label: "Skill Development Benefits", type: "text", colSpan: "md:col-span-11" }],
+  },
+  {
+    title: "Supported Development resources",
+    type: "dynamic",
+    key: "development_resources",
+    dynamicStyle: "grid-6",
+    initialRows: 6,
+    showWhen: { field: "internshipType", value: "Unpaid" },
+    fields: [{ name: "development_resources", label: "Supported Development resources", type: "text", colSpan: "md:col-span-11" }],
+  },
+  {
     title: "Project Description",
     type: "static",
     fields: [
@@ -428,6 +469,9 @@ const InternshipForm = () => {
 
   const validateForm = () => {
     for (const section of internshipFormConfig) {
+       if (section.showWhen && staticData[section.showWhen.field] !== section.showWhen.value) {
+      continue;
+    }
       if (section.type === "static") {
         for (const field of section.fields) {
           if (field.required !== false) {
@@ -471,8 +515,10 @@ const InternshipForm = () => {
     try {
       setIsSubmitting(true);
       const payload = buildPayload();
+      console.log(payload)
       await createInternship(payload);
       toast.success("Internship saved successfully");
+
       setStaticData(createInitialStaticData({ companyName: organizerName }));
       setDynamicData(createInitialDynamicData());
     } catch (error) {
@@ -488,7 +534,12 @@ const InternshipForm = () => {
         onSubmit={handleSubmit}
         className="max-w-[1400px] mx-auto space-y-5 bg-white p-4 md:p-6 lg:p-8 rounded-lg shadow-sm border border-gray-200"
       >
-        {internshipFormConfig.map((section, sectionIndex) => (
+        {internshipFormConfig
+         .filter((section) => {
+    if (!section.showWhen) return true;
+    return staticData[section.showWhen.field] === section.showWhen.value;
+  }).
+        map((section, sectionIndex) => (
           <div key={sectionIndex} className="space-y-6 border-b pb-6 last:border-b-0">
             <div className="flex flex-col gap-3 md:flex-row md:justify-between md:items-center">
               <h2 className="font-source font-semibold text-lg md:text-xl leading-none tracking-normal text-[#000000]">

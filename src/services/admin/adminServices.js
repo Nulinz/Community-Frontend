@@ -266,3 +266,20 @@ export const toggleFreelanceStatus = async (id) => {
   const response = await API.patch(`/freelance/toggle-status/${id}`);
   return response.data;
 };
+
+
+
+
+export const apiGetAdminDashboard = async () => {
+  try {
+    const res = await API.get("/admin/dashboard");
+    return res.data;
+  } catch (error) {
+    throw (
+      error.response?.data || {
+        status: false,
+        message: error.message,
+      }
+    );
+  }
+};
