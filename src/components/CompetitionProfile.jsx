@@ -8,6 +8,7 @@ import AppliedListSection from '../common/AppliedListSection';
 import { getCompetitionById, toggleCompetitionStatus, addCompetitionPost } from '../services/admin/adminServices';
 import { toast } from 'react-toastify';
 import { useMain } from '../context/MainContext';
+import { formatAddress } from '../utils/formatAddress';
 
 
 const CompetitionProfile = () => {
@@ -138,7 +139,7 @@ const [isLoading, setIsLoading] = useState(true);
 const appliedListColumns = [
   { title: '#', dataIndex: 'sNo', key: 'sNo' },
   { title: 'Name', dataIndex: 'fullName', key: 'fullName' },
-  { title: 'College', dataIndex: 'collegeName', key: 'collegeName' },
+  { title: 'College', dataIndex: 'college', key: 'college' },
   { title: 'Department', dataIndex: 'department', key: 'department' },
   { title: 'Year', dataIndex: 'year', key: 'year' },
   { title: 'Registered At', dataIndex: 'registeredAt', key: 'registeredAt' },
@@ -297,7 +298,7 @@ const appliedListColumns = [
                             <InfoCard title="Venue Details">
                                 <div className="space-y-4">
                                     <DataItem label="Venue Name" value={competition.venueName} />
-                                    <DataItem label="Address" value={competition.venueAddress} />
+                                    <DataItem label="Address" value={formatAddress(competition)} />
                                 </div>
                             </InfoCard>
                         </div>

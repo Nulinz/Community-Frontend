@@ -5,7 +5,8 @@ import { useMain } from '../../context/MainContext';
 import AuthBase from '../../layout/AuthBase';
 import { loginUser } from '../../services/auth/authServices';
 import { toast } from 'react-toastify';
-import { Loader2 } from 'lucide-react';
+import { Eye, EyeOff, Loader2 } from 'lucide-react';
+import { Link } from 'react-router-dom';
 
 const InputField = ({ label, id, type, placeholder, icon: Icon, ...props }) => (
   <div className="space-y-2">
@@ -20,13 +21,44 @@ const InputField = ({ label, id, type, placeholder, icon: Icon, ...props }) => (
         id={id}
         type={type}
         placeholder={placeholder}
+        
         className="w-full rounded-[14px] border border-white/20 bg-black/10 backdrop-blur-[68px] py-3 pl-12 pr-4 text-white placeholder-gray-500 transition focus:border-[#0091D5] focus:outline-none backdrop-blur-md"
         {...props}
       />
     </div>
   </div>
 );
+const PasswordField = ({ label, id, placeholder, ...props }) => {
+  const [show, setShow] = useState(false);
 
+  return (
+    <div className="space-y-2">
+      <label htmlFor={id} className="text-sm text-gray-300 font-light">
+        {label}
+      </label>
+      <div className="relative">
+        <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-4 text-gray-400">
+          <IoLockClosedOutline size={20} />
+        </div>
+        <input
+          id={id}
+          type={show ? 'text' : 'password'}
+          placeholder={placeholder}
+          className="w-full rounded-[14px] border border-white/20 bg-black/10 backdrop-blur-[68px] py-3 pl-12 pr-12 text-white placeholder-gray-500 transition focus:border-[#0091D5] focus:outline-none backdrop-blur-md"
+          {...props}
+        />
+        {/* ✅ Eye toggle button */}
+        <button
+          type="button"
+          onClick={() => setShow(!show)}
+          className="absolute inset-y-0 right-0 flex items-center pr-4 text-gray-400 hover:text-white transition-colors"
+        >
+          {show ? <EyeOff size={20} /> : <Eye size={20} />}
+        </button>
+      </div>
+    </div>
+  );
+};
 
 
 const Login = () => {
@@ -86,19 +118,20 @@ const Login = () => {
             label="Enter your Mobile Number"
             id="mobileNumber"
             type="tel"
-            placeholder="8438298692"
+            placeholder="Enter Mobile Number"
+            maxLength={10}
             icon={IoCallOutline}
             value={mobileNumber}
             onChange={(e) => setMobileNumber(e.target.value)}
             required
           />
 
-          <InputField
+          <PasswordField
             label="Enter your Password"
             id="password"
-            type="password"
+            
             placeholder="********"
-            icon={IoLockClosedOutline}
+            // icon={IoLockClosedOutline}
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             required
@@ -115,9 +148,9 @@ const Login = () => {
           </button>
           <div className="flex items-center justify-between text-[13px]">
             <span className="text-gray-400">Did you forget your password?</span>
-            <a href="#" className="font-semibold text-white underline underline-offset-4 hover:text-[#0091D5] transition-colors">
+            <Link to="/auth/forgot-password" className="font-semibold text-white underline underline-offset-4 hover:text-[#0091D5] transition-colors">
               Forgot Password
-            </a>
+            </Link>
           </div>
         </div>
       </form>

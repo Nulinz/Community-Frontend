@@ -233,7 +233,7 @@ const DynamicTable = ({
   };
 
   return (
-    <div className={`w-full overflow-hidden ${plain ? '' : 'bg-white rounded-[20px] shadow-sm border border-gray-100'}`}>
+    <div className={`w-full overflow-hidden ${plain ? '' : 'bg-white rounded-[10px] shadow-sm border border-gray-100'}`}>
       
       {/* 1. Action Bar */}
       {hasActionBar && (
@@ -246,7 +246,7 @@ const DynamicTable = ({
                   type="text"
                   placeholder={searchPlaceholder}
                   onChange={(e) => onSearch?.(e.target.value)}
-                  className="w-full sm:max-w-[350px] pl-10 pr-4 py-2.5 bg-[#F9FAFB] border border-gray-200 rounded-xl focus:outline-none focus:border-[#0091D5] transition-all text-sm"
+                  className="w-full sm:max-w-[200px] pl-10 pr-4 py-2.5 bg-[#F9FAFB] border border-gray-200 rounded-xl focus:outline-none focus:border-[#0091D5] transition-all text-sm"
                 />
               </div>
             )}
@@ -283,16 +283,24 @@ const DynamicTable = ({
       )}
 
       {/* 2. Table Area */}
-      <div className="overflow-x-auto">
+      <div className="overflow-x-auto md:px-6 ">
         <table className="w-full text-left border-collapse">
           <thead>
-            <tr className="bg-white border-y border-gray-100">
-              {columns.map((col) => (
-                <th key={col.key || col.dataIndex} className="px-6 py-4 whitespace-nowrap text-primary" style={headerStyle}>
-                  {col.title}
-                </th>
-              ))}
-            </tr>
+           <tr className="bg-white border-y border-gray-100">
+  {columns.map((col, index) => (
+    <th
+      key={col.key || col.dataIndex}
+      className={`
+        px-6 py-4 whitespace-nowrap bg-gray-50 text-primary border-y border-gray-200
+        ${index !== 0 ? "border-l" : ""}
+        ${index !== columns.length - 1 ? "border-r" : ""}
+      `}
+      style={headerStyle}
+    >
+      {col.title}
+    </th>
+  ))}
+</tr>
           </thead>
           <tbody className="divide-y divide-gray-100">
             {loading ? (
@@ -302,13 +310,23 @@ const DynamicTable = ({
                 <tr
                   key={record[rowKey] || index}
                   onClick={() => onRowClick?.(record)}
-                  className={`transition-colors ${onRowClick ? 'hover:bg-gray-50/50 cursor-pointer' : ''}`}
+                  className={`transition-colors  ${onRowClick ? 'hover:bg-gray-50/50 cursor-pointer' : ''}`}
                 >
-                  {columns.map((col) => (
-                    <td key={col.key || col.dataIndex} className="px-6 py-5 whitespace-nowrap text-secondary" style={rowTextStyle}>
-                      {col.render ? col.render(record[col.dataIndex], record, index) : record[col.dataIndex]}
-                    </td>
-                  ))}
+                 {columns.map((col, colIndex) => (
+  <td
+    key={col.key || col.dataIndex}
+    className={`
+      px-6 py-3 whitespace-nowrap text-secondary border-y border-gray-200
+      ${colIndex !== 0 ? "border-l" : ""}
+      ${colIndex !== columns.length - 1 ? "border-r" : ""}
+    `}
+    style={rowTextStyle}
+  >
+    {col.render
+      ? col.render(record[col.dataIndex], record, index)
+      : record[col.dataIndex]}
+  </td>
+))}
                 </tr>
               ))
             ) : (
@@ -321,8 +339,8 @@ const DynamicTable = ({
       {/* 3. Pagination Footer */}
       {showPagination && (
         <div className="p-6 flex items-center justify-between border-t border-gray-100 bg-white">
-          <p className="text-[14px] text-gray-500 font-medium">
-            Showing <span className="text-gray-900 font-bold">{paginatedData.length} Out of {totalItems}</span>
+          <p className="text-[20px] text-gray-500 font-medium">
+            Showing <span className="text-gray-900 text-[22px] font-bold">{paginatedData.length} Out of {totalItems}</span>
           </p>
           
           <div className="flex items-center gap-2">

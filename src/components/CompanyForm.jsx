@@ -19,8 +19,8 @@ const companyFormConfig = [
       { name: "companyTagLine", label: "Company Tag Line", type: "text" },
       {
         name: "companyCultureTags",
-        label: "Company Culture Tags (Multi Select)",
-        type: "select",
+        label: "Company Culture Tags",
+        type: "multiselect",
         options: ["Remote Friendly", "Fast Paced", "Inclusive", "Learning Focused"],
       },
       { name: "yearFounded", label: "Year Founded", type: "date", required: false },

@@ -8,6 +8,7 @@ import AppliedListSection from '../common/AppliedListSection';
 import { getConferenceById, toggleConferenceStatus, addConferencePost } from '../services/admin/adminServices';
 import { toast } from 'react-toastify';
 import { useMain } from '../context/MainContext';
+import { formatAddress } from '../utils/formatAddress';
 
 
 const ConferenceProfile = () => {
@@ -311,7 +312,7 @@ const [registrations, setRegistrations] = useState({ count: 0, list: [] });
                             <InfoCard title="Venue Details">
                                 <div className="space-y-4">
                                     <DataItem label="Venue Name" value={conference.venueName} />
-                                    <DataItem label="Address" value={conference.venueAddress} />
+                                    <DataItem label="Address" value={formatAddress(conference)} />
                                 </div>
                             </InfoCard>
                         </div>

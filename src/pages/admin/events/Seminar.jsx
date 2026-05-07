@@ -44,7 +44,12 @@ const Seminar = () => {
     { 
       title: 'Seminar Name', 
       dataIndex: 'eventName', 
-      key: 'eventName' 
+      key: 'eventName' ,
+       render: (text) => (
+    <p className="max-w-[150px] truncate" title={text}>
+      {text}
+    </p>
+  ),
     },
     { 
       title: 'Organizer', 

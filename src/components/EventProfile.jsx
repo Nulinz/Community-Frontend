@@ -7,6 +7,7 @@ import AppliedListSection from '../common/AppliedListSection';
 import { getEventById, toggleEventStatus, addEventPost } from '../services/admin/adminServices';
 import { toast } from 'react-toastify';
 import { useMain } from '../context/MainContext';
+import { formatAddress } from '../utils/formatAddress';
 
 const EventProfile = () => {
     const { id } = useParams();
@@ -150,7 +151,7 @@ const fetchEventData = async () => {
     };
 
     const appliedListColumns = [
-        { title: '#', dataIndex: 'id', key: 'id' },
+        { title: '#', dataIndex: 'sNo', key: 'sNo' },
         { title: 'Name', dataIndex: 'name', key: 'name' },
         { title: 'College', dataIndex: 'college', key: 'college' },
         { title: 'Department', dataIndex: 'department', key: 'department' },
@@ -311,7 +312,7 @@ onClick={() =>
                             <InfoCard title="Venue Details">
                                 <div className="space-y-4">
                                     <DataItem label="Venue Name" value={event.venueName} />
-                                    <DataItem label="Address" value={event.venueAddress} />
+                                      <DataItem label="Address" value={formatAddress(event)} />
                                 </div>
                             </InfoCard>
                         </div>

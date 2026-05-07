@@ -3,6 +3,7 @@ import { Outlet, NavLink, useLocation } from "react-router-dom";
 import { ChevronRight, KeyRound, LogOut, X, Menu, ChevronDown } from "lucide-react";
 import { changePassword } from "../services/auth/authServices";
 import { toast } from "react-toastify";
+import { useTitle } from "../context/AdminTitle";
 // ─────────────────────────────────────────────
 // ProfileMenu (inline – no separate file needed)
 // ─────────────────────────────────────────────
@@ -253,7 +254,7 @@ const AppLayout = ({
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
   const location = useLocation();
-
+  const {title}=useTitle()
   // Auto-derive title from last path segment — same logic as your AdminLayout
   const pageTitle = location.pathname.split("/").filter(Boolean).pop() || "Dashboard";
 
@@ -343,7 +344,7 @@ const AppLayout = ({
                           <>
                             {/* Curved connector line */}
                             <div className={`absolute -left-[1px] top-0 bottom-0 w-[1px] ${isActive ? "bg-[#0091D5]" : "bg-transparent"}`}>
-                              <div className="absolute top-1/2 -left-[12px] w-3 h-[1px] bg-gray-200" />
+                              <div className="absolute rounded top-1/2 left-0 w-3 h-[1px] bg-gray-200" />
                             </div>
                             <span>{sub.name}</span>
                           </>
@@ -439,7 +440,7 @@ const AppLayout = ({
                 className="h-8 w-auto object-contain md:hidden"
               />
             )}
-            <h1 className="text-lg font-bold text-gray-800 capitalize hidden sm:block">{pageTitle}</h1>
+            <h1 className="text-lg font-bold text-gray-800 capitalize hidden sm:block">{title}</h1>
           </div>
 
           {/* Desktop ProfileMenu */}
@@ -454,7 +455,7 @@ const AppLayout = ({
 
           {/* Mobile: title center + avatar right */}
           <h1 className="text-base font-bold text-gray-800 capitalize sm:hidden absolute left-1/2 -translate-x-1/2">
-            {pageTitle}
+            {title}
           </h1>
           <div className="md:hidden">
             <ProfileMenu

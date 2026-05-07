@@ -7,6 +7,7 @@ import AppliedListSection from '../common/AppliedListSection';
 import { getSeminarById, toggleSeminarStatus, addSeminarPost } from '../services/admin/adminServices';
 import { toast } from 'react-toastify';
 import { useMain } from '../context/MainContext';
+import { formatAddress } from '../utils/formatAddress';
 
 const SeminarProfile = () => {
     const { id } = useParams();
@@ -311,7 +312,7 @@ const fetchSeminarData = async () => {
                             <InfoCard title="Venue Details">
                                 <div className="space-y-4">
                                     <DataItem label="Venue Name" value={seminar.venueName} />
-                                    <DataItem label="Address" value={seminar.venueAddress} />
+                                       <DataItem label="Address" value={formatAddress(seminar)} />
                                 </div>
                             </InfoCard>
                         </div>

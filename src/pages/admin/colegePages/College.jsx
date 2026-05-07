@@ -52,7 +52,16 @@ const College = () => {
       render: (_, __, index) => (currentPage - 1) * 10 + index + 1,
       key: 'index' 
     },
-    { title: 'College Name', dataIndex: 'collegeName', key: 'collegeName' },
+   {
+  title: "College Name",
+  dataIndex: "collegeName",
+  key: "collegeName",
+  render: (text) => (
+    <p className="max-w-[150px] truncate" title={text}>
+      {text}
+    </p>
+  ),
+},
     { title: 'Type', dataIndex: 'collegeType', key: 'collegeType' },
     { title: 'Contact Person', dataIndex: 'contactPersonName', key: 'contactPersonName' },
     { title: 'Mobile Number', dataIndex: 'phone', key: 'phone' },

@@ -41,7 +41,11 @@ const Competition = () => {
       render: (_, __, index) => (currentPage - 1) * 10 + index + 1,
       key: 'index' 
     },
-    { title: 'Competition Name', dataIndex: 'eventName', key: 'eventName' },
+    { title: 'Competition Name', dataIndex: 'eventName', key: 'eventName', render: (text) => (
+    <p className="max-w-[150px] truncate" title={text}>
+      {text}
+    </p>
+  ), },
     { title: 'Organizer', dataIndex: 'organizer', key: 'organizer' },
     { 
       title: 'Date', 

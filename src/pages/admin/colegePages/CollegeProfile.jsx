@@ -212,57 +212,6 @@ const handleToggleStatus = async () => {
     { title: 'Status', dataIndex: 'status', key: 'status', render: renderStatus },
   ];
 
-  const competitionData = [
-    { id: '01', name: 'IoT Innovation Contest', date: '01/12/2026', mode: 'Offline', regType: 'Paid', fees: '?900', applied: '250', status: true },
-    { id: '02', name: 'AI Hackathon', date: '20/06/2026', mode: 'Online', regType: 'Free', fees: '?0', applied: '300', status: true },
-    { id: '03', name: 'Data Science Bowl', date: '10/07/2026', mode: 'Online', regType: 'Paid', fees: '?500', applied: '80', status: false },
-    { id: '04', name: 'UX Designathon', date: '05/08/2026', mode: 'Offline', regType: 'Paid', fees: '?1000', applied: '200', status: false },
-    { id: '05', name: 'Mobile App Challenge', date: '15/08/2026', mode: 'Online', regType: 'Free', fees: '?0', applied: '500', status: true },
-    { id: '06', name: 'Web Dev Competition', date: '25/09/2026', mode: 'Offline', regType: 'Paid', fees: '?750', applied: '150', status: true },
-    { id: '07', name: 'Cybersecurity Showdown', date: '01/10/2026', mode: 'Online', regType: 'Free', fees: '?0', applied: '180', status: true },
-    { id: '08', name: 'AI Robotics Challenge', date: '10/11/2026', mode: 'Offline', regType: 'Paid', fees: '?1200', applied: '220', status: false },
-    { id: '09', name: 'Blockchain Hackathon', date: '18/11/2026', mode: 'Online', regType: 'Free', fees: '?0', applied: '130', status: false },
-    { id: '10', name: 'IoT Innovation Contest', date: '01/12/2026', mode: 'Offline', regType: 'Paid', fees: '?900', applied: '250', status: false },
-  ];
-
-  const conferenceData = [
-    { id: '01', name: 'IoT Innovation Contest', date: '01/12/2026', mode: 'Offline', regType: 'Paid', fees: '?900', applied: '250', status: true },
-    { id: '02', name: 'AI Hackathon', date: '20/06/2026', mode: 'Online', regType: 'Free', fees: '?0', applied: '300', status: true },
-    { id: '03', name: 'Data Science Bowl', date: '10/07/2026', mode: 'Online', regType: 'Paid', fees: '?500', applied: '80', status: false },
-    { id: '04', name: 'UX Designathon', date: '05/08/2026', mode: 'Offline', regType: 'Paid', fees: '?1000', applied: '200', status: false },
-    { id: '05', name: 'Mobile App Challenge', date: '15/08/2026', mode: 'Online', regType: 'Free', fees: '?0', applied: '500', status: true },
-    { id: '06', name: 'Web Dev Competition', date: '25/09/2026', mode: 'Offline', regType: 'Paid', fees: '?750', applied: '150', status: true },
-    { id: '07', name: 'Cybersecurity Showdown', date: '01/10/2026', mode: 'Online', regType: 'Free', fees: '?0', applied: '180', status: true },
-    { id: '08', name: 'AI Robotics Challenge', date: '10/11/2026', mode: 'Offline', regType: 'Paid', fees: '?1200', applied: '220', status: false },
-    { id: '09', name: 'Blockchain Hackathon', date: '18/11/2026', mode: 'Online', regType: 'Free', fees: '?0', applied: '130', status: false },
-    { id: '10', name: 'IoT Innovation Contest', date: '01/12/2026', mode: 'Offline', regType: 'Paid', fees: '?900', applied: '250', status: false },
-  ];
-
-  const eventData = [
-    { id: '01', name: 'AI Ethics and Policy Forum', date: '08/03/2027', regType: 'Free', fees: '?0', applied: '250', status: true },
-    { id: '02', name: 'Cybersecurity Trends Conference', date: '22/08/2026', regType: 'Free', fees: '?0', applied: '300', status: false },
-    { id: '03', name: 'Quantum Computing Workshop', date: '10/09/2026', regType: 'Paid', fees: '?4500', applied: '80', status: true },
-    { id: '04', name: 'Digital Marketing Strategies', date: '05/10/2026', regType: 'Paid', fees: '?1500', applied: '200', status: false },
-    { id: '05', name: 'Sustainable Tech Expo', date: '18/11/2026', regType: 'Free', fees: '?0', applied: '500', status: true },
-    { id: '06', name: 'Virtual Reality Developers Meetup', date: '12/12/2026', regType: 'Paid', fees: '?3200', applied: '150', status: false },
-    { id: '07', name: 'Blockchain for Business Summit', date: '03/01/2027', regType: 'Paid', fees: '?4000', applied: '180', status: true },
-    { id: '08', name: 'Augmented Reality in Education', date: '25/01/2027', regType: 'Free', fees: '?0', applied: '220', status: false },
-    { id: '09', name: 'Cloud Computing Symposium', date: '14/02/2027', regType: 'Paid', fees: '?2800', applied: '130', status: true },
-    { id: '10', name: 'AI Ethics and Policy Forum', date: '08/03/2027', regType: 'Free', fees: '?0', applied: '250', status: false },
-  ];
-
-  const seminarData = [
-    { id: '01', name: 'Quantum Computing Decoded', date: '15/04/2027', regType: 'Paid', fees: '?3500', applied: '250', status: false },
-    { id: '02', name: 'Sustainable Urban Planning', date: '02/05/2027', regType: 'Free', fees: '?0', applied: '300', status: true },
-    { id: '03', name: 'Advanced Robotics Workshop', date: '18/05/2027', regType: 'Paid', fees: '?5000', applied: '80', status: false },
-    { id: '04', name: 'Digital Marketing Strategies', date: '01/06/2027', regType: 'Free', fees: '?1500', applied: '200', status: false },
-    { id: '05', name: 'Cybersecurity Threats Summit', date: '14/06/2027', regType: 'Paid', fees: '?4200', applied: '500', status: true },
-    { id: '06', name: 'Mobile App Development', date: '28/06/2027', regType: 'Free', fees: '?3200', applied: '150', status: false },
-    { id: '07', name: 'Data Analytics and Insights', date: '11/07/2027', regType: 'Paid', fees: '?4800', applied: '180', status: false },
-    { id: '08', name: 'Cloud Computing Essentials', date: '25/07/2027', regType: 'Free', fees: '?0', applied: '220', status: true },
-    { id: '09', name: 'AI and Machine Learning', date: '08/08/2027', regType: 'Paid', fees: '?5500', applied: '130', status: false },
-    { id: '10', name: 'Blockchain Technology Summit', date: '22/08/2027', regType: 'Paid', fees: '?6000', applied: '250', status: true },
-  ];
   
   return (
     <div className="animate-in fade-in duration-500">
@@ -385,7 +334,7 @@ const handleToggleStatus = async () => {
         mode: item.mode || 'N/A',
         regType: item.registrationType || 'N/A',
         fees: item.individualFees ? `₹${item.individualFees}` : '₹0',
-        applied: item.totalSeats || '0',
+        applied: item?.appliedCount || '0',
         status: item.isActive ?? true,
       }))}
       rowKey="id"
@@ -430,7 +379,7 @@ const handleToggleStatus = async () => {
         date: item.eventDate ? new Date(item.eventDate).toLocaleDateString('en-GB') : 'N/A',
         regType: item.registrationType || 'N/A',
         fees: item.individualFees ? `₹${item.individualFees}` : '₹0',
-        applied: item.totalSeats || '0',
+        applied: item?.appliedCount || '0',
         status: item.isActive ?? true,
       }))}
       rowKey="id"

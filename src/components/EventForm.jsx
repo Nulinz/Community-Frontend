@@ -4,6 +4,7 @@ import { useLocation, useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 import { createEvent } from "../services/admin/adminServices";
 import FormLayout from "../layout/FormLayout";
+import { useOrganizerDisplayName } from "../utils/organizer";
 
 
 const eventFormConfig = [
@@ -75,15 +76,20 @@ const eventFormConfig = [
   {
     title: "Venue Details",
     type: "static",
+    showWhen: { field: "mode", value: "Offline" },
     fields: [
       { name: "venueName", label: "Venue Name", type: "text" },
-      { name: "venueAddress", label: "Venue Address", type: "text" },
+      { name: "address", label: "Address", type: "text" },
+      { name: "city", label: "City", type: "text" },
+      { name: "state", label: "State", type: "text" },
+      { name: "pincode", label: "Pincode", type: "text" },
       { name: "geoLocation", label: "Geo location", type: "text", required: false },
     ],
   },
   {
     title: "Food Details",
     type: "static",
+    showWhen: { field: "mode", value: "Offline" },
     fields: [
       { name: "foodProvide", label: "Food Provide", type: "radio", options: ["Yes", "No"] },
       { name: "vegNonVeg", label: "Veg / Non-Veg", type: "radio", options: ["Veg", "Non-veg", "Both"] },
@@ -93,6 +99,7 @@ const eventFormConfig = [
   {
     title: "Accommodation",
     type: "static",
+    showWhen: { field: "mode", value: "Offline" },
     fields: [
       { name: "accommodationProvide", label: "Accommodation Provide", type: "radio", options: ["Yes", "No"] },
       { name: "separatedForBoysGirls", label: "Separated for boys & girls", type: "radio", options: ["Yes", "No"] },
@@ -119,8 +126,18 @@ const eventFormConfig = [
       { name: "eligibilityDetails", label: "Eligibility Details", type: "text" },
              { name: "allowedDepartments", label: "Allowed Departments",  type: "multiselect", options: [ "CS", "IT", "ECE", "EEE"] },
       { name: "teamOrIndividualEvent", label: "Team Or Individual Event", type: "radio", options: ["Team", "Individual", "Both"] },
-      { name: "teamSizeMinimum", label: "Team Size Minimum", type: "number" },
-      { name: "teamSizeMaximum", label: "Team Size Maximum", type: "number" },
+      { 
+  name: "teamSizeMinimum", 
+  label: "Team Size Minimum", 
+  type: "number",
+  showWhen: { field: "teamOrIndividualEvent", value: ["Team", "Both"] }  // ← array of values
+},
+{ 
+  name: "teamSizeMaximum", 
+  label: "Team Size Maximum", 
+  type: "number",
+  showWhen: { field: "teamOrIndividualEvent", value: ["Team", "Both"] }  // ← array of values
+},
     ],
   },
   {
@@ -162,11 +179,13 @@ const handleSubmit = async (formData) => {
     );
   }
 };
+  const organizerName = useOrganizerDisplayName();
   return (
     <FormLayout
       config={eventFormConfig}
       editData={editData}
       onSubmit={handleSubmit}
+       staticOverrides={{organizer : organizerName }}
       dateFields={["eventDate", "registrationStartDate", "registrationEndDate"]}
     />
   );

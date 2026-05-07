@@ -56,10 +56,10 @@ const [applications, setApplications] = useState({ count: 0, list: [] });
   const fallbackList = ['-'];
 
   const appliedListHeading = [
-    { title: '#', dataIndex: 'id', key: 'id' },
+    { title: '#', dataIndex: 'sNo', key: 'sNo' },
     { title: 'Name', dataIndex: 'name', key: 'name' },
-    { title: 'College', dataIndex: 'college', key: 'college' },
-    { title: 'Department', dataIndex: 'department', key: 'department' },
+    // { title: 'College', dataIndex: 'college', key: 'college' },
+    { title: 'Degree', dataIndex: 'department', key: 'department' },
     { title: 'Year', dataIndex: 'year', key: 'year' },
     { title: 'Contact Number', dataIndex: 'contact', key: 'contact' },
     { title: 'Mail id', dataIndex: 'mail', key: 'mail' },

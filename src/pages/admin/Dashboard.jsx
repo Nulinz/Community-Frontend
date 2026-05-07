@@ -8,6 +8,7 @@ import { assets } from '../../assets/assets';
 import { apiGetAdminDashboard } from '../../services/admin/adminServices';
 import setFileName from '../../utils/setFileName';
 import { useTitle } from '../../context/AdminTitle';
+import { useNavigate } from 'react-router-dom';
 
 // ─── tiny helper ────────────────────────────────────────────────────────────
 const Skeleton = ({ className = '' }) => (
@@ -20,6 +21,7 @@ const Dashboard = () => {
   const [latestCompanies, setLatestCompanies] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const navigate=useNavigate()
   const {setTitle}=useTitle()
   useEffect(()=>{
 setTitle("Dashboard")
@@ -217,6 +219,7 @@ useEffect(() => {
             columns={companyColumns}
             dataSource={companyRows}
             rowKey="id"
+            onRowClick={(record) => navigate(`/admin/company-profile/${record.id}`)}
             showPagination={false}
             plain={true}
           />
