@@ -7,7 +7,8 @@ import { getInternshipById, toggleInternshipStatus } from '../services/admin/adm
 
 const JobsProfile = ({ module = 'admin' }) => {
   const [activeTab, setActiveTab] = useState('overview');
-  const [internship, setInternship] = useState(null);
+const [internship, setInternship] = useState(null);
+const [applications, setApplications] = useState({ count: 0, list: [] });
   const [isLoading, setIsLoading] = useState(true);
   const [isTogglingStatus, setIsTogglingStatus] = useState(false);
   const { id } = useParams();
@@ -22,8 +23,14 @@ const JobsProfile = ({ module = 'admin' }) => {
 
       try {
         setIsLoading(true);
-        const response = await getInternshipById(id);
-        setInternship(response?.data || null);
+       const response = await getInternshipById(id);
+       console.log(response)
+    if (response.success) {
+      setInternship(response.data.internship);
+      setApplications(response.data.applications || { count: 0, list: [] });
+    } else {
+      setError("Internship not found");
+    }
       } catch (error) {
         toast.error(error?.response?.data?.message || 'Failed to load internship profile');
         setInternship(null);
@@ -229,7 +236,13 @@ const JobsProfile = ({ module = 'admin' }) => {
             <TextCard title="Certificate Availability" text={internship.certificateAvailability || '-'} />
           </div>
         ) : (
-          <AppliedListSection data={appliedListData} heading={appliedListHeading} />
+        <AppliedListSection
+  data={applications.list.map((app) => ({
+    ...app,
+    appliedAt: new Date(app.appliedAt).toLocaleDateString('en-GB'),
+  }))}
+  heading={appliedListHeading}
+/>
         )}
       </section>
     </div>

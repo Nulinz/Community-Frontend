@@ -4,13 +4,14 @@ import DynamicTable from "../../../common/DynamicTable";
 import { useNavigate } from 'react-router-dom';
 import { getAllCompetitions } from '../../../services/admin/adminServices';
 import { toast } from 'react-toastify';
+import { useMain } from '../../../context/MainContext';
 
 const Competition = () => {
   const [search, setSearch] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
   const [competitions, setCompetitions] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
-
+  const {user,dynamicPath}=useMain()
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -107,14 +108,15 @@ const Competition = () => {
         addButtonLabel="Add Competition"
         addButtonIcon={<Plus size={18} />}
         onAdd={() =>
-          navigate('/admin/competition-form')
-        } 
+  navigate(dynamicPath("competition-form"))
+}
         showPagination={true}
         currentPage={currentPage}
         pageSize={10}
         onPageChange={setCurrentPage}
-        onRowClick={(record) => navigate(`/admin/competition-profile/${record._id}`)}
-      />
+        onRowClick={(record) =>
+  navigate(dynamicPath(`competition-profile/${record._id}`))
+}     />
     </div>
   );
 };

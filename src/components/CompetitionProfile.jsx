@@ -7,6 +7,7 @@ import { assets } from '../assets/assets';
 import AppliedListSection from '../common/AppliedListSection';
 import { getCompetitionById, toggleCompetitionStatus, addCompetitionPost } from '../services/admin/adminServices';
 import { toast } from 'react-toastify';
+import { useMain } from '../context/MainContext';
 
 
 const CompetitionProfile = () => {
@@ -16,11 +17,12 @@ const CompetitionProfile = () => {
     const [isAddPostModalOpen, setIsAddPostModalOpen] = useState(false);
     const [uploadedPosts, setUploadedPosts] = useState([]);
     const [isSubmitting, setIsSubmitting] = useState(false);
-    const [competition, setCompetition] = useState(null);
-    const [isLoading, setIsLoading] = useState(true);
+const [competition, setCompetition] = useState(null);
+const [registrations, setRegistrations] = useState({ count: 0, list: [] }); // ✅ add
+const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState(null);
     const fileInputRef = useRef(null);
-
+    const {user,dynamicPath}=useMain()
     const BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
 
     useEffect(() => {
@@ -32,7 +34,8 @@ const CompetitionProfile = () => {
             setIsLoading(true);
             const response = await getCompetitionById(id);
             if (response.success) {
-                setCompetition(response.data);
+                setCompetition(response?.data?.competition);
+                 setRegistrations(response.data.registrations || { count: 0, list: [] });
             } else {
                 setError("Competition not found");
             }
@@ -132,13 +135,14 @@ const CompetitionProfile = () => {
         }
     };
 
-    const appliedListColumns = [
-        { title: '#', dataIndex: 'id', key: 'id' },
-        { title: 'Name', dataIndex: 'name', key: 'name' },
-        { title: 'College', dataIndex: 'college', key: 'college' },
-        { title: 'Department', dataIndex: 'department', key: 'department' },
-        { title: 'Year', dataIndex: 'year', key: 'year' },
-    ];
+const appliedListColumns = [
+  { title: '#', dataIndex: 'sNo', key: 'sNo' },
+  { title: 'Name', dataIndex: 'fullName', key: 'fullName' },
+  { title: 'College', dataIndex: 'collegeName', key: 'collegeName' },
+  { title: 'Department', dataIndex: 'department', key: 'department' },
+  { title: 'Year', dataIndex: 'year', key: 'year' },
+  { title: 'Registered At', dataIndex: 'registeredAt', key: 'registeredAt' },
+];
 
     return (
         <div className="bg-[#f8f9fa] min-h-screen font-sans">
@@ -219,7 +223,12 @@ const CompetitionProfile = () => {
                             <Plus size={18} /> Add Post
                         </button>
                         <button 
-                            onClick={() => navigate('/admin/competition-form', { state: { editData: competition } })}
+                            onClick={() =>
+  navigate(
+    dynamicPath("competition-form"),
+    { state: { editData: competition } }
+  )
+}
                             className="flex gap-2 items-center bg-white border border-[#D0D5DD] text-gray-700 px-6 py-2.5 rounded-full text-sm font-bold hover:bg-gray-50 transition-all shadow-sm"
                         >
                             <SquarePen size={18} /> Edit Details
@@ -399,9 +408,15 @@ const CompetitionProfile = () => {
                             </div>
                         </InfoCard>
                     </div>
-                ) : (
-                    <AppliedListSection data={[]} heading={appliedListColumns} />
-                )}
+                )  : (
+  <AppliedListSection
+    data={registrations.list.map((reg) => ({
+      ...reg,
+      registeredAt: new Date(reg.registeredAt).toLocaleDateString('en-GB'),
+    }))}
+    heading={appliedListColumns}
+  />
+)}
             </section>
 
             {isAddPostModalOpen && (

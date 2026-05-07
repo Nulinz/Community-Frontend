@@ -72,8 +72,17 @@ export const getAllColleges = async () => {
 };
 
 export const getCollegeById = async (id) => {
-  const response = await API.get(`/college/getById/${id}`);
-  return response.data;
+  try {
+    const res = await API.get(`/college/getById/${id}`);
+    return res.data;
+  } catch (error) {
+    throw (
+      error.response?.data || {
+        status: false,
+        message: error.message,
+      }
+    );
+  }
 };
 
 export const toggleCollegeStatus = async (id) => {

@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useEffect, useState } from "react";
+import React, { createContext, useCallback, useContext, useEffect, useState } from "react";
 import {
   getCurrentUser,
   loginUser,
@@ -11,28 +11,29 @@ const MainContext = createContext(null);
 
 export const MainProvider = ({ children }) => {
   const [user, setUser] = useState(null);
-  const [authLoading, setAuthLoading] = useState(true);
+  const [authLoading, setAuthLoading] = useState(false);
+  const [isHomeLoading,setIsHomeLoading]=useState(true)
   const [authError, setAuthError] = useState(null);
+  const [isAuthenticated,setIsAuthenticated]=useState(false) 
+
+const dynamicPath = useCallback((path = "") => {
+  const role = user?.role || "user";
+  const cleanPath = path.replace(/^\/+/, "");
+  return `/${role}/${cleanPath}`.replace(/\/+$/, "");
+}, [user?.role]);
 
   const login = async ({ phone, password }) => {
     try {
-      setAuthLoading(true);
-      setAuthError(null);
-
-      const data = await loginUser({ phone, password });
-      const token = data?.token;
-      const loggedInUser = data?.user || null;
-
+      const res = await loginUser({ phone, password });
+      const token = res?.data?.token;
+     
       if (!token) {
         throw new Error("Token not received");
       }
-
       localStorage.setItem("token", token);
-      setUser(loggedInUser);
-      return data;
+      return res;
     } catch (error) {
-      setAuthError(error?.response?.data?.message || "Login failed");
-      throw error;
+      throw error
     } finally {
       setAuthLoading(false);
     }
@@ -56,28 +57,30 @@ export const MainProvider = ({ children }) => {
     if (!token) {
       setUser(null);
       setAuthError(null);
-      setAuthLoading(false);
+      setIsHomeLoading(false);
       return;
     }
-
+ 
     try {
-      setAuthLoading(true);
+      setIsHomeLoading(true);
       setAuthError(null);
 
-      const data = await getCurrentUser();
-      setUser(data?.user || null);
+      const res = await getCurrentUser();
+      if(res?.status){
+        setIsAuthenticated(true)
+        setUser(res?.data?.user)
+
+      }
     } catch (error) {
       localStorage.removeItem("token");
       setUser(null);
       setAuthError(null);
     } finally {
-      setAuthLoading(false);
+      setIsHomeLoading(false);
     }
   };
 
-  useEffect(() => {
-    fetchCurrentUser();
-  }, []);
+
 
   const value = {
     user,
@@ -87,6 +90,8 @@ export const MainProvider = ({ children }) => {
     login,
     logout,
     fetchCurrentUser,
+    isAuthenticated,setIsAuthenticated,
+    isHomeLoading,setIsHomeLoading,dynamicPath
   };
 
   return <MainContext.Provider value={value}>{children}</MainContext.Provider>;

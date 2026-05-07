@@ -7,6 +7,7 @@ import { assets } from '../assets/assets';
 import AppliedListSection from '../common/AppliedListSection';
 import { getConferenceById, toggleConferenceStatus, addConferencePost } from '../services/admin/adminServices';
 import { toast } from 'react-toastify';
+import { useMain } from '../context/MainContext';
 
 
 const ConferenceProfile = () => {
@@ -15,12 +16,13 @@ const ConferenceProfile = () => {
     const [activeTab, setActiveTab] = useState('overview');
     const [isAddPostModalOpen, setIsAddPostModalOpen] = useState(false);
     const [isSubmitting, setIsSubmitting] = useState(false);
-    const [conference, setConference] = useState(null);
+  const [conference, setConference] = useState(null);
+const [registrations, setRegistrations] = useState({ count: 0, list: [] }); 
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState(null);
     const [selectedFiles, setSelectedFiles] = useState([]);
     const fileInputRef = useRef(null);
-
+    const {user,dynamicPath}=useMain()
     const BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
 
     useEffect(() => {
@@ -32,7 +34,8 @@ const ConferenceProfile = () => {
             setIsLoading(true);
             const response = await getConferenceById(id);
             if (response.success) {
-                setConference(response.data);
+                setConference(response.data.conference);
+                setRegistrations(response.data.registrations || { count: 0, list: [] });
             } else {
                 setError("Conference not found");
             }
@@ -169,8 +172,8 @@ const ConferenceProfile = () => {
                         backgroundPosition: 'center'
                     }}
                 >
-                    <div className="z-10">
-                        <h1 className="text-[24px] sm:text-[30px] md:text-[34px] lg:text-[38px] xl:text-[48px] font-extrabold leading-[32px] sm:leading-[38px] md:leading-[44px] lg:leading-[48px] xl:leading-[60px] tracking-[0px] align-middle mb-4 md:mb-6 xl:mb-8">{conference.eventName}</h1>
+                    <div className="z-10 w-full">
+                        <h1 className="text-[24px] sm:text-[30px] md:text-[34px] lg:text-[38px] xl:text-[48px] font-extrabold leading-[32px] sm:leading-[38px] md:leading-[44px] lg:leading-[48px] xl:leading-[60px] tracking-[0px]  mb-4 md:mb-6 xl:mb-8">{conference.eventName}</h1>
                         <div className="grid grid-cols-1 gap-y-2 font-source text-[13px] sm:text-[14px] md:text-[15px] xl:text-[16px] font-normal leading-[18px] sm:leading-[19px] md:leading-[20px] tracking-[0px] align-middle text-[#FFFFFF]">
                             <span className="flex items-center gap-2 "><MapPin size={16} /> {conference.organizer}</span>
                             <span className="flex items-center gap-2 "><MapPin size={16} /> {conference.venueName || 'Online'}</span>
@@ -234,7 +237,12 @@ const ConferenceProfile = () => {
                             <Plus size={18} /> Add Post
                         </button>
                         <button 
-                            onClick={() => navigate('/admin/conference-form', { state: { editData: conference } })}
+                            onClick={() =>
+  navigate(
+    dynamicPath("conference-form"),
+    { state: { editData: conference } }
+  )
+}
                             className="flex gap-2 items-center bg-white border border-[#D0D5DD] text-gray-700 px-6 py-2.5 rounded-full text-sm font-bold hover:bg-gray-50 transition-all shadow-sm"
                         >
                             <SquarePen size={18} /> Edit Details
@@ -384,7 +392,13 @@ const ConferenceProfile = () => {
                         </div>
                     </div>
                 ) : (
-                    <AppliedListSection data={[]} heading={appliedListColumns} />
+                   <AppliedListSection
+  data={registrations.list.map((reg) => ({
+    ...reg,
+    registeredAt: new Date(reg.registeredAt).toLocaleDateString('en-GB'),
+  }))}
+  heading={appliedListColumns}
+/>
                 )}
             </section>
 

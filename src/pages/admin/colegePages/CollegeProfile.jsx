@@ -5,6 +5,8 @@ import { assets } from '../../../assets/assets';
 import DynamicTable from '../../../common/DynamicTable';
 import { getCollegeById, toggleCollegeStatus, setCollegePassword } from '../../../services/admin/adminServices';
 import { toast } from 'react-toastify';
+import { useMain } from '../../../context/MainContext';
+import { getMyCollege } from '../../../services/collegeServices';
 
 const tabs = ['Overview', 'Competition', 'Conference', 'Event', 'Seminar'];
 
@@ -19,50 +21,69 @@ const CollegeProfile = () => {
   const [isPasswordModalOpen, setIsPasswordModalOpen] = useState(false);
   const [password, setPassword] = useState('CNX@I204');
   const [confirmPassword, setConfirmPassword] = useState('CNX@I2304');
-  
+  const {user}=useMain()
   const [college, setCollege] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState(null);
-
+const [events, setEvents] = useState({        // ✅ add
+  conferences: [],
+  events: [],
+  competitions: [],
+  seminars: [],
+  totalCount: 0,
+});
   const BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
 
   useEffect(() => {
     fetchCollegeData();
   }, [id]);
 
-  const fetchCollegeData = async () => {
-    try {
-      setIsLoading(true);
-      const response = await getCollegeById(id);
-      if (response.success) {
-        setCollege(response.data);
-      } else {
-        setError("College not found");
-      }
-    } catch (err) {
-      setError("Failed to fetch college details");
-      console.error(err);
-    } finally {
-      setIsLoading(false);
+const fetchCollegeData = async () => {
+  try {
+    setIsLoading(true);
+    let response;
+    if(user?.role==="college"){
+      response=await getMyCollege()
     }
-  };
+    else{
+       response = await getCollegeById(id);
+    }
+    console.log(response.data)
+    if (response.success) {
+      setCollege(response.data.college);         // ✅ nested now
+      setEvents(response.data.events || {
+        conferences: [],
+        events: [],
+        competitions: [],
+        seminars: [],
+        totalCount: 0,
+      });
+    } else {
+      setError("College not found");
+    }
+  } catch (err) {
+    setError("Failed to fetch college details");
+    console.error(err);
+  } finally {
+    setIsLoading(false);
+  }
+};
 
-  const handleToggleStatus = async () => {
-    try {
-      setIsSubmitting(true);
-      const response = await toggleCollegeStatus(college._id || college.id);
-      if (response.success) {
-        toast.success(response.message);
-        setCollege((prev) => ({ ...prev, isActive: response.data.isActive }));
-      }
-    } catch (err) {
-      toast.error("Failed to update status");
-      console.error(err);
-    } finally {
-      setIsSubmitting(false);
+const handleToggleStatus = async () => {
+  try {
+    setIsSubmitting(true);
+    const response = await toggleCollegeStatus(college._id || college.id);
+    if (response.success) {
+      toast.success(response.message);
+      setCollege((prev) => ({ ...prev, is_active: response.data.is_active }));
     }
-  };
+  } catch (err) {
+    toast.error("Failed to update status");
+  } finally {
+    setIsSubmitting(false);
+  }
+};
 
   const handleSetPassword = async () => {
     if (!password) {
@@ -256,7 +277,7 @@ const CollegeProfile = () => {
               <div className="space-y-2 ">
                 <div className="flex flex-wrap items-center gap-3">
                   <h1 className="text-[24px] md:text-[28px] font-bold text-primary tracking-tight">{college.collegeName}</h1>
-                  {renderStatus(college.isActive)}
+                  {renderStatus(college.is_active)}
                 </div>
                 <div className="space-y-1">
                   <p className="text-[16px] font-semibold text-secondary">{college.collegeType}</p>
@@ -305,7 +326,7 @@ const CollegeProfile = () => {
                 onClick={handleToggleStatus}
                 className={`px-[16px] py-2.5 rounded-full text-white text-[15px] font-semibold shadow-sm transition-all active:scale-95 disabled:opacity-50 ${college.isActive ? 'bg-[#F04438] hover:bg-[#D92D20]' : 'bg-[#12B76A] hover:bg-[#0E9355]'}`}
               >
-                {isSubmitting ? <Loader2 size={16} className="animate-spin" /> : (college.isActive ? 'Deactivate' : 'Activate')}
+                {isSubmitting ? <Loader2 size={16} className="animate-spin" /> : (college.is_active? 'Deactivate' : 'Activate')}
               </button>
               <button
                 onClick={() => setIsPasswordModalOpen(true)}
@@ -353,61 +374,94 @@ const CollegeProfile = () => {
             </div>
           )}
 
-          {activeTab === 'Competition' && (
-            <div className="animate-in fade-in duration-500">
-              <DynamicTable
-                columns={competitionColumns}
-                dataSource={competitionData}
-                rowKey="id"
-                showPagination={true}
-                currentPage={competitionPage}
-                pageSize={10}
-                onPageChange={setCompetitionPage}
-              />
-            </div>
-          )}
+         {activeTab === 'Competition' && (
+  <div className="animate-in fade-in duration-500">
+    <DynamicTable
+      columns={competitionColumns}
+      dataSource={events.competitions.map((item, i) => ({
+        id: String(i + 1).padStart(2, '0'),
+        name: item.eventName,
+        date: item.eventDate ? new Date(item.eventDate).toLocaleDateString('en-GB') : 'N/A',
+        mode: item.mode || 'N/A',
+        regType: item.registrationType || 'N/A',
+        fees: item.individualFees ? `₹${item.individualFees}` : '₹0',
+        applied: item.totalSeats || '0',
+        status: item.isActive ?? true,
+      }))}
+      rowKey="id"
+      showPagination={true}
+      currentPage={competitionPage}
+      pageSize={10}
+      onPageChange={setCompetitionPage}
+    />
+  </div>
+)}
 
           {activeTab === 'Conference' && (
-            <div className="animate-in fade-in duration-500">
-              <DynamicTable
-                columns={conferenceColumns}
-                dataSource={conferenceData}
-                rowKey="id"
-                showPagination={true}
-                currentPage={conferencePage}
-                pageSize={10}
-                onPageChange={setConferencePage}
-              />
-            </div>
-          )}
+  <div className="animate-in fade-in duration-500">
+    <DynamicTable
+      columns={conferenceColumns}
+      dataSource={events.conferences.map((item, i) => ({
+        id: String(i + 1).padStart(2, '0'),
+        name: item.eventName,
+        date: item.eventDate ? new Date(item.eventDate).toLocaleDateString('en-GB') : 'N/A',
+        mode: item.mode || 'N/A',
+        regType: item.registrationType || 'N/A',
+        fees: item.individualFees ? `₹${item.individualFees}` : '₹0',
+        applied: item.totalSeats || '0',
+        status: item.isActive ?? true,
+      }))}
+      rowKey="id"
+      showPagination={true}
+      currentPage={conferencePage}
+      pageSize={10}
+      onPageChange={setConferencePage}
+    />
+  </div>
+)}
 
           {activeTab === 'Event' && (
-            <div className="animate-in fade-in duration-500">
-              <DynamicTable
-                columns={eventColumns}
-                dataSource={eventData}
-                rowKey="id"
-                showPagination={true}
-                currentPage={eventPage}
-                pageSize={10}
-                onPageChange={setEventPage}
-              />
-            </div>
-          )}
-
+  <div className="animate-in fade-in duration-500">
+    <DynamicTable
+      columns={eventColumns}
+      dataSource={events.events.map((item, i) => ({
+        id: String(i + 1).padStart(2, '0'),
+        name: item.eventName,
+        date: item.eventDate ? new Date(item.eventDate).toLocaleDateString('en-GB') : 'N/A',
+        regType: item.registrationType || 'N/A',
+        fees: item.individualFees ? `₹${item.individualFees}` : '₹0',
+        applied: item.totalSeats || '0',
+        status: item.isActive ?? true,
+      }))}
+      rowKey="id"
+      showPagination={true}
+      currentPage={eventPage}
+      pageSize={10}
+      onPageChange={setEventPage}
+    />
+  </div>
+)}
           {activeTab === 'Seminar' && (
-            <div className="animate-in fade-in duration-500">
-              <DynamicTable
-                columns={seminarColumns}
-                dataSource={seminarData}
-                rowKey="id"
-                showPagination={true}
-                currentPage={seminarPage}
-                pageSize={10}
-                onPageChange={setSeminarPage}
-              />
-            </div>
-          )}
+  <div className="animate-in fade-in duration-500">
+    <DynamicTable
+      columns={seminarColumns}
+      dataSource={events.seminars.map((item, i) => ({
+        id: String(i + 1).padStart(2, '0'),
+        name: item.eventName,
+        date: item.eventDate ? new Date(item.eventDate).toLocaleDateString('en-GB') : 'N/A',
+        regType: item.registrationType || 'N/A',
+        fees: item.individualFees ? `₹${item.individualFees}` : '₹0',
+        applied: item.totalSeats || '0',
+        status: item.isActive ?? true,
+      }))}
+      rowKey="id"
+      showPagination={true}
+      currentPage={seminarPage}
+      pageSize={10}
+      onPageChange={setSeminarPage}
+    />
+  </div>
+)}
         </section>
       </div>
 

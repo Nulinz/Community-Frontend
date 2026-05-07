@@ -39,11 +39,11 @@ const debugWarn = (...args) => {
 };
 
 const MainLayout = () => {
-  const { user, authLoading } = useMain();
+  const { user,isAuthenticated} = useMain();
   const location = useLocation();
   const pathname = location.pathname;
 
-  const isAuthenticated = Boolean(user);
+ 
 
   // ============================================================================
   // DERIVED VALUES
@@ -79,9 +79,7 @@ const MainLayout = () => {
     }
   }, [isAuthenticated, userRole]);
 
-  if (authLoading) {
-    return null;
-  }
+
 
   // ============================================================================
   // 2. AUTH ROUTES

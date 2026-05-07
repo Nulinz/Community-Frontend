@@ -6,6 +6,7 @@ import {
 import AppliedListSection from '../common/AppliedListSection';
 import { getEventById, toggleEventStatus, addEventPost } from '../services/admin/adminServices';
 import { toast } from 'react-toastify';
+import { useMain } from '../context/MainContext';
 
 const EventProfile = () => {
     const { id } = useParams();
@@ -13,34 +14,35 @@ const EventProfile = () => {
     const [activeTab, setActiveTab] = useState('overview');
     const [isAddPostModalOpen, setIsAddPostModalOpen] = useState(false);
     const [isSubmitting, setIsSubmitting] = useState(false);
-    const [event, setEvent] = useState(null);
+  const [event, setEvent] = useState(null);
+const [registrations, setRegistrations] = useState({ count: 0, list: [] }); // ✅
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState(null);
     const [selectedFiles, setSelectedFiles] = useState([]);
     const fileInputRef = useRef(null);
-
+const {user,dynamicPath}=useMain()
     const BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
 
     useEffect(() => {
         fetchEventData();
     }, [id]);
 
-    const fetchEventData = async () => {
-        try {
-            setIsLoading(true);
-            const response = await getEventById(id);
-            if (response.success) {
-                setEvent(response.data);
-            } else {
-                setError("Event not found");
-            }
-        } catch (err) {
-            setError("Failed to fetch event details");
-            console.error(err);
-        } finally {
-            setIsLoading(false);
-        }
-    };
+const fetchEventData = async () => {
+  try {
+    setIsLoading(true);
+    const response = await getEventById(id);
+    if (response.success) {
+      setEvent(response.data.event);                                           // ✅ nested
+      setRegistrations(response.data.registrations || { count: 0, list: [] }); // ✅
+    } else {
+      setError("Event not found");
+    }
+  } catch (err) {
+    setError("Failed to fetch event details");
+  } finally {
+    setIsLoading(false);
+  }
+};
 
     const handleToggleStatus = async () => {
         try {
@@ -230,7 +232,12 @@ const EventProfile = () => {
                             <Plus size={18} /> Add Post
                         </button>
                         <button
-                            onClick={() => navigate('/admin/events-form', { state: { editData: event } })}
+onClick={() =>
+  navigate(
+    dynamicPath("events-form"),
+    { state: { editData: event } }
+  )
+}
                             className="flex gap-2 items-center bg-white border border-[#D0D5DD] text-gray-700 px-6 py-2.5 rounded-full text-sm font-bold hover:bg-gray-50 transition-all shadow-sm"
                         >
                             <SquarePen size={18} /> Edit Details
@@ -388,7 +395,13 @@ const EventProfile = () => {
                         </div>
                     </div>
                 ) : (
-                    <AppliedListSection data={[]} heading={appliedListColumns} />
+                   <AppliedListSection
+  data={registrations.list.map((reg) => ({
+    ...reg,
+    registeredAt: new Date(reg.registeredAt).toLocaleDateString('en-GB'),
+  }))}
+  heading={appliedListColumns}
+/>
                 )}
             </section>
 

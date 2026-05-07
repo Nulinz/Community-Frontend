@@ -37,7 +37,7 @@ const Freelance = ({ module = 'admin' }) => {
                 mode: item?.mode || '-',
                 salary: item?.salary ? `Rs ${item.salary}` : 'Rs 0',
                 duration: item?.duration || '-',
-                applied: '-',
+                applied: item?.appliedCount,
                 deadline: formatDate(item?.applicationDeadline || item?.createdAt),
                 status: item?.isActive ? 'active' : 'inactive',
             }));

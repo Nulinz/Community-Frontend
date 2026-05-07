@@ -37,7 +37,7 @@ const Internship = ({ module = 'admin' }) => {
                 jobType: item?.internshipType || '-',
                 salary: item?.salary ? `Rs ${item.salary}` : 'Rs 0',
                 location: item?.location || '-',
-                applied: '-',
+                applied: item?.appliedCount,
                 status: item?.isActive ? 'active' : 'inactive',
             }));
             setInternships(mappedData);

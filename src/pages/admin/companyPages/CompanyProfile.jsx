@@ -5,6 +5,14 @@ import { assets } from '../../../assets/assets';
 import DynamicTable from '../../../common/DynamicTable';
 import { getCompanyById, addCompanyPost, setCompanyPassword, getMyCompany, toggleCompanyStatus } from '../../../services/admin/adminServices';
 import { toast } from 'react-toastify';
+import setFileName from '../../../utils/setFileName';
+
+
+import dayjs from "dayjs";
+import relativeTime from "dayjs/plugin/relativeTime";
+import { useMain } from '../../../context/MainContext';
+
+dayjs.extend(relativeTime);
 
 const tabs = ['About', 'Posts', 'Jobs', 'People'];
 
@@ -16,43 +24,47 @@ const CompanyProfile = ({ module }) => {
   const [isAddPostModalOpen, setIsAddPostModalOpen] = useState(false);
   const [peopleSearch, setPeopleSearch] = useState('');
   const [peoplePage, setPeoplePage] = useState(1);
-  const [password, setPassword] = useState('CNX@I204');
-  const [confirmPassword, setConfirmPassword] = useState('CNX@I204');
+  const [password, setPassword] = useState('12345678');
+  const [confirmPassword, setConfirmPassword] = useState('12345678');
   const [uploadedPosts, setUploadedPosts] = useState([]);
   const [postFiles, setPostFiles] = useState([]); // Store raw File objects
-  const [company, setCompany] = useState(null);
-  const [isLoading, setIsLoading] = useState(true);
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [error, setError] = useState(null);
+const [company, setCompany] = useState(null);
+const [jobs, setJobs] = useState({ internships: [], freelances: [] });       // ✅ add
+const [followers, setFollowers] = useState({ count: 0, data: [] });          // ✅ add
+const [isLoading, setIsLoading] = useState(true);
+const [isSubmitting, setIsSubmitting] = useState(false);
+const [error, setError] = useState(null);
   const fileInputRef = useRef(null);
-
+  const {user,setUser}=useMain()
   const BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
-
-  useEffect(() => {
-    const fetchCompanyData = async () => {
-      try {
-        setIsLoading(true);
-        let response;
-        if (id) {
-          response = await getCompanyById(id);
-        } else if (module === 'company') {
-          response = await getMyCompany();
-        }
-
-        if (response?.success) {
-          setCompany(response.data);
-        } else {
-          setError("Company not found");
-        }
-      } catch (err) {
-        setError("Failed to fetch company details");
-        console.error(err);
-      } finally {
-        setIsLoading(false);
+  
+useEffect(() => {
+  const fetchCompanyData = async () => {
+    try {
+      setIsLoading(true);
+      let response;
+      if (id) {
+        response = await getCompanyById(id);
+      } else if (module === 'company') {
+        response = await getMyCompany();
       }
-    };
-    fetchCompanyData();
-  }, [id, module]);
+     console.log(response)
+      if (response?.success) {
+        setCompany(response.data.company);        // ✅ company is now nested
+        setJobs(response.data.jobs || { internships: [], freelances: [] });
+        setFollowers(response.data.followers || { count: 0, data: [] });
+      } else {
+        setError("Company not found");
+      }
+    } catch (err) {
+      setError("Failed to fetch company details");
+      console.error(err);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+  fetchCompanyData();
+}, [id, module]);
 
   if (isLoading) {
     return (
@@ -94,30 +106,17 @@ const CompanyProfile = ({ module }) => {
     </div>
   );
 
-  const postSamples = [
-    'https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?auto=format&fit=crop&w=800&q=80',
-    'https://images.unsplash.com/photo-1552664730-d307ca884978?auto=format&fit=crop&w=800&q=80',
-    'https://images.unsplash.com/photo-1521737604893-d14cc237f11d?auto=format&fit=crop&w=800&q=80',
-  ];
+  
 
-  const jobs = [
-    { id: 1, title: 'Senior UI/UX Designer', company: 'Nulinz', location: 'Salem', duration: 'No fixed duration', salary: 'Unpaid', skills: 'AutoCAD, Modelling,3D Modelling, architecture...', posted: '5 Days Ago' },
-    { id: 2, title: 'Web Developer', company: 'Nulinz', location: 'Salem', duration: '6 Months', salary: '7,000/month', skills: 'AutoCAD, Modelling,3D Modelling, architecture...', posted: '5 Days Ago' },
-    { id: 3, title: 'Senior AutoCAD Designers', company: 'Nulinz', location: 'Salem', duration: 'No fixed duration', salary: '20,000', skills: 'AutoCAD, Modelling,3D Modelling, architecture...', posted: '5 Days Ago' },
-    { id: 4, title: 'Senior UI/UX Designer', company: 'Nulinz', location: 'Salem', duration: 'No fixed duration', salary: 'Unpaid', skills: 'AutoCAD, Modelling,3D Modelling, architecture...', posted: '5 Days Ago' },
-    { id: 5, title: 'Web Developer', company: 'Nulinz', location: 'Salem', duration: '6 Months', salary: '7,000/month', skills: 'AutoCAD, Modelling,3D Modelling, architecture...', posted: '5 Days Ago' },
-    { id: 6, title: 'Senior AutoCAD Designers', company: 'Nulinz', location: 'Salem', duration: 'No fixed duration', salary: '20,000', skills: 'AutoCAD, Modelling,3D Modelling, architecture...', posted: '5 Days Ago' },
-  ];
+  // const jobs = [
+  //   { id: 1, title: 'Senior UI/UX Designer', company: 'Nulinz', location: 'Salem', duration: 'No fixed duration', salary: 'Unpaid', skills: 'AutoCAD, Modelling,3D Modelling, architecture...', posted: '5 Days Ago' },
+  //   { id: 2, title: 'Web Developer', company: 'Nulinz', location: 'Salem', duration: '6 Months', salary: '7,000/month', skills: 'AutoCAD, Modelling,3D Modelling, architecture...', posted: '5 Days Ago' },
+  //   { id: 3, title: 'Senior AutoCAD Designers', company: 'Nulinz', location: 'Salem', duration: 'No fixed duration', salary: '20,000', skills: 'AutoCAD, Modelling,3D Modelling, architecture...', posted: '5 Days Ago' },
+  //   { id: 4, title: 'Senior UI/UX Designer', company: 'Nulinz', location: 'Salem', duration: 'No fixed duration', salary: 'Unpaid', skills: 'AutoCAD, Modelling,3D Modelling, architecture...', posted: '5 Days Ago' },
+  //   { id: 5, title: 'Web Developer', company: 'Nulinz', location: 'Salem', duration: '6 Months', salary: '7,000/month', skills: 'AutoCAD, Modelling,3D Modelling, architecture...', posted: '5 Days Ago' },
+  //   { id: 6, title: 'Senior AutoCAD Designers', company: 'Nulinz', location: 'Salem', duration: 'No fixed duration', salary: '20,000', skills: 'AutoCAD, Modelling,3D Modelling, architecture...', posted: '5 Days Ago' },
+  // ];
 
-  const peopleColumns = [
-    { title: '#', dataIndex: 'id', key: 'id' },
-    { title: 'Name', dataIndex: 'name', key: 'name' },
-    { title: 'College', dataIndex: 'college', key: 'college' },
-    { title: 'Department', dataIndex: 'department', key: 'department' },
-    { title: 'Year', dataIndex: 'year', key: 'year' },
-    { title: 'Contact Number', dataIndex: 'contact', key: 'contact' },
-    { title: 'Mail id', dataIndex: 'mail', key: 'mail' },
-  ];
 
   const peopleData = [
     { id: '01', name: 'Nala', college: 'Quantum Innovators Institute', department: 'Robotics', year: '2025', contact: '9876543210', mail: 'nala@example.com' },
@@ -207,7 +206,7 @@ const CompanyProfile = ({ module }) => {
       const response = await toggleCompanyStatus(company._id || company.id);
       if (response.success) {
         toast.success(response.message);
-        setCompany((prev) => ({ ...prev, isActive: response.data.isActive }));
+        setCompany((prev) => ({ ...prev, is_active: response.data.is_active }));
       }
     } catch (err) {
       toast.error("Failed to update status");
@@ -247,7 +246,9 @@ const CompanyProfile = ({ module }) => {
           ? await getMyCompany()
           : await getCompanyById(companyId);
         if (refreshResponse.success) {
-          setCompany(refreshResponse.data);
+      setCompany(refreshResponse.data.company);
+  setJobs(refreshResponse.data.jobs || { internships: [], freelances: [] });
+  setFollowers(refreshResponse.data.followers || { count: 0, data: [] });
         }
       }
     } catch (err) {
@@ -265,6 +266,9 @@ const CompanyProfile = ({ module }) => {
       ))}
     </ul>
   );
+
+  const mergedJobs=[...jobs?.internships,...jobs?.freelances]
+
 
   return (
     <div className="space-y-6 animate-in fade-in duration-500">
@@ -286,7 +290,7 @@ const CompanyProfile = ({ module }) => {
                   <img src={`${BASE_URL}/${company.companyLogo}`} alt={company.companyName} className="w-full h-full object-contain" />
                 ) : (
                   <div className="w-full h-full bg-[#0B3A53] flex items-center justify-center text-white text-4xl font-bold">
-                    {company.companyName.charAt(0)}
+                    {company?.companyName?.charAt(0)}
                   </div>
                 )}
               </div>
@@ -309,7 +313,7 @@ const CompanyProfile = ({ module }) => {
                   {company.aboutUs ? company.aboutUs.slice(0, 200) + (company.aboutUs.length > 200 ? '...' : '') : 'No description provided.'}
                 </p>
                 <p className="text-[14px] text-secondary font-medium mt-3">
-                  <span className="text-[#110E7E] font-bold">0 followers</span>
+                  <span className="text-[#110E7E] font-bold">{followers?.count} followers</span>
                   <span className="mx-4 text-[#D0D5DD]">.</span>
                   <span>50 - 100 employees</span>
                 </p>
@@ -329,14 +333,14 @@ const CompanyProfile = ({ module }) => {
               </div>
 
               <div className="flex flex-wrap gap-3 mt-2">
-                {module === 'admin' && (
+                {user.role === 'admin' && (
                   <>
                     <button 
                       disabled={isSubmitting}
                       onClick={handleToggleStatus}
                       className={`px-[20px] py-3 rounded-full text-white text-[15px] font-bold shadow-md transition-all active:scale-95 disabled:opacity-50 ${company.isActive ? 'bg-red-500 hover:bg-red-600' : 'bg-green-500 hover:bg-green-600'}`}
                     >
-                      {isSubmitting ? <Loader2 size={18} className="animate-spin" /> : (company.isActive ? 'Deactivate' : 'Activate')}
+                      {isSubmitting ? <Loader2 size={18} className="animate-spin" /> : (company.is_active ? 'Deactivate' : 'Activate')}
                     </button>
                     
                     <button
@@ -347,18 +351,18 @@ const CompanyProfile = ({ module }) => {
                     </button>
                   </>
                 )}
-
+{/* bg-[#110E7E] */}
                 <button 
                   onClick={() => setIsAddPostModalOpen(true)}
-                  className="flex items-center gap-2 h-10 px-4 rounded-[10px] bg-[#110E7E] text-white text-[14px] font-bold shadow-sm hover:opacity-90 transition-all font-source"
+                  className="flex items-center gap-2 px-[20px] py-3 rounded-full bg-[#110E7E] text-white text-[15px] font-bold shadow-md hover:bg-[#026AA2] transition-all active:scale-95"
                 >
                   <Plus size={18} />
                   Add Post
                 </button>
-
+{/* border border-[#EAECF0] bg-[#FFFFFF] */}
                 <button 
                   onClick={() => navigate(`/${module}/company-form`, { state: { editData: company } })}
-                  className="flex items-center gap-2 h-10 px-4 rounded-[10px] border border-[#EAECF0] bg-[#FFFFFF] text-[#344054] text-[14px] font-bold shadow-sm hover:bg-gray-50 transition-all font-source"
+                  className="flex border border-[#EAECF0] bg-[#FFFFFF] items-center gap-2 px-[20px] py-3 rounded-full   text-[15px] font-bold shadow-md  transition-all active:scale-95 "
                 >
                   <SquarePen size={18} />
                   Edit Details
@@ -485,63 +489,92 @@ const CompanyProfile = ({ module }) => {
           </div>
         )}
 
-        {activeTab === 'Jobs' && (
-          <div className="pt-6">
-            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
-              {jobs.map((job) => (
-                <div key={job.id} className="rounded-[14px] border border-[#EAECF0] bg-white p-4 shadow-sm">
-                  <div className="flex items-start gap-3">
-                    <div className="w-14 h-14 rounded-[10px] border border-[#EAECF0] bg-[#F8FAFC] flex items-center justify-center overflow-hidden flex-shrink-0">
-                      <img src={assets.logo} alt="Company" className="w-9 h-9 object-contain" />
-                    </div>
-                    <div className="min-w-0">
-                      <h3 className="text-[18px] font-semibold leading-[1.2] text-primary truncate">{job.title}</h3>
-                      <p className="mt-1 text-[14px] font-medium text-[#667085]">{job.company}</p>
-                    </div>
-                  </div>
+    {activeTab === 'Jobs' && (
+  <div className="pt-6 space-y-6">
+    
+    {/* Internships */}
+    {(mergedJobs.length > 0 ||mergedJobs.length > 0) && (
 
-                  <div className="mt-3 flex flex-wrap items-center gap-x-5 gap-y-2 text-[16px] text-[#475467] font-medium">
-                    <span className="inline-flex items-center gap-1.5">
-                      <MapPin size={16} className="text-[#667085]" />
-                      {job.location}
-                    </span>
-                    <span className="inline-flex items-center gap-1.5">
-                      <Clock3 size={16} className="text-[#667085]" />
-                      {job.duration}
-                    </span>
-                    <span className="inline-flex items-center gap-1.5">
-                      <BriefcaseBusiness size={16} className="text-[#667085]" />
-                      {job.salary}
-                    </span>
-                  </div>
-
-                  <p className="mt-2 text-[16px] text-[#475467] font-medium truncate">{job.skills}</p>
-                  <p className="mt-3 text-[12px] text-[#667085] font-medium">{job.posted}</p>
+        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+          {mergedJobs.map((job) => (
+            <div key={job._id} className="rounded-[14px] border border-[#EAECF0] bg-white p-4 shadow-sm">
+              <div className="flex items-start gap-3">
+                <div className="w-14 h-14 rounded-[10px] border border-[#EAECF0] bg-[#F8FAFC] flex items-center justify-center overflow-hidden flex-shrink-0">
+                  <img src={setFileName(company?.companyLogo)} alt="Company" className=" object-contain" />
                 </div>
-              ))}
-            </div>
-          </div>
-        )}
+                <div className="min-w-0">
+                  <h3 className="text-[18px] font-semibold leading-[1.2] text-primary truncate">{job.jobTitle}</h3>
+                  <p className="mt-1 text-[14px] font-medium text-[#667085]">{job.companyName}</p>
+                </div>
+              </div>
+              <div className="mt-3 flex flex-wrap items-center gap-x-5 gap-y-2 text-[14px] text-[#475467] font-medium">
+                  <span className="inline-flex items-center gap-1.5">
+                      <MapPin size={16} className="text-[#667085]" />
+                      {job?.location|| "---"}
+                    </span>
+               <span className="inline-flex items-center gap-1.5">
+                      <Clock3 size={16} className="text-[#667085]" />
+                      {job?.duration|| "---"}
+                    </span>
 
-        {activeTab === 'People' && (
-          <div className="pt-6">
-            <DynamicTable
-              columns={peopleColumns}
-              dataSource={filteredPeople}
-              rowKey="id"
-              showSearch={true}
-              searchPlaceholder="Search ..."
-              onSearch={(value) => {
-                setPeopleSearch(value);
-                setPeoplePage(1);
-              }}
-              showPagination={true}
-              currentPage={peoplePage}
-              pageSize={10}
-              onPageChange={setPeoplePage}
-            />
-          </div>
-        )}
+                <span className="inline-flex items-center gap-1.5">
+                      <BriefcaseBusiness size={16} className="text-[#667085]" />
+                      {job?.salary|| "---"}
+                    </span>
+              </div>
+              <p className="mt-2 text-[16px] text-[#475467] font-medium truncate">
+  {job?.eligibility?.join(", ")}
+</p>
+             <p className="mt-3 text-[12px] text-[#667085] font-medium">
+  {dayjs(job?.createdAt).fromNow()}
+</p>
+            </div>
+
+
+
+          ))}
+     
+        </div>
+
+    )}
+    {/* Empty state */}
+    {jobs.internships.length === 0 && jobs.freelances.length === 0 && (
+      <div className="py-12 text-center bg-gray-50 rounded-[16px] border border-dashed border-gray-300">
+        <p className="text-secondary font-medium italic">No jobs posted yet.</p>
+      </div>
+    )}
+  </div>
+)}
+
+      {activeTab === 'People' && (
+  <div className="pt-6">
+    <DynamicTable
+      columns={[
+        { title: '#', dataIndex: 'index', key: 'index' },
+        { title: 'Name', dataIndex: 'email', key: 'email' },
+        { title: 'Status', dataIndex: 'currentStatus', key: 'currentStatus' },
+        { title: 'Education', dataIndex: 'education', key: 'education' },
+        { title: 'Degree', dataIndex: 'ugDegree', key: 'ugDegree' },
+        { title: 'Job Title', dataIndex: 'jobTitle', key: 'jobTitle' },
+        { title: 'Contact', dataIndex: 'phone', key: 'phone' },
+        { title: 'Followed On', dataIndex: 'followedAt', key: 'followedAt' },
+      ]}
+      dataSource={followers.data.map((person, i) => ({
+        ...person,
+        index: String(i + 1).padStart(2, '0'),
+        followedAt: new Date(person.followedAt).toLocaleDateString(),
+      }))}
+      rowKey="userId"
+      showSearch={true}
+      searchPlaceholder="Search people..."
+      onSearch={(value) => setPeopleSearch(value)}
+      showPagination={true}
+      currentPage={peoplePage}
+      pageSize={10}
+      onPageChange={setPeoplePage}
+    />
+  </div>
+)}
       </section>
 
       {isPasswordModalOpen && (

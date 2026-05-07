@@ -323,7 +323,7 @@ import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import AdminLayout from "./layout/admin/AdminLayout";
-import { MainProvider } from "./context/MainContext";
+import { MainProvider, useMain } from "./context/MainContext";
 import MainLayout from "./layout/MainLayout";
 import CollegeLayout from "./layout/college/CollegeLayout";
 import CompanyLayout from "./layout/company/CompanyLayout";
@@ -359,11 +359,32 @@ import SeminarProfile from "./components/SeminarProfile";
 import ConferenceProfile from "./components/ConferenceProfile";
 import EventProfile from "./components/EventProfile";
 import FreelanceProfile from "./components/FreelanceProfile";
+import { useEffect } from "react";
+import { Loader2 } from "lucide-react";
+import CompanyDashboard from "./pages/admin/companyPages/CompanyDashboard";
+import CollegeDashboard from "./pages/admin/colegePages/CollegeDashboard";
 
 const App = () => {
+   const {fetchCurrentUser,isHomeLoading} =useMain()
+
+  useEffect(() => {
+    fetchCurrentUser();
+  }, []);
+  if(isHomeLoading){
+    return <div className="flex flex-col items-center justify-center min-h-screen gap-3">
+            <Loader2 className="w-8 h-8 text-blue-600 animate-spin" />
+            <p className="text-secondary font-medium mt-2">Loading </p>
+          </div>
+  }
   return (
-    <MainProvider>
+
       <BrowserRouter>
+       <ToastContainer
+          position="top-center"
+          autoClose={2500}
+          hideProgressBar={false}
+          newestOnTop
+        />
         <ScrollHandler />
         <Routes>
 
@@ -417,20 +438,33 @@ const App = () => {
       
 </Route>
           {/* College routes */}
-          {/* <Route  element={<MainLayout />}> */}
+          <Route  element={<MainLayout />}>
             <Route path="/college" element={<CollegeLayout />}>
               <Route index element={<Navigate to="dashboard" replace />} />
-              <Route path="dashboard" element={<Dashboard />} />
+              <Route path="dashboard" element={<CollegeDashboard />} />
               <Route path="college" element={<College />} />
               <Route path="college-form" element={<CollegeForm />} />
+              <Route path="conference" element={<Conference />} />
+              <Route path="conference-profile/:id" element={<ConferenceProfile />} />
+              <Route path="conference-form" element={<ConferenceForm />} />
+              <Route path="competition" element={<Competition />} />
+              <Route path="competition-form" element={<CompetitionForm />} />
+              <Route path="competition-profile/:id" element={<CompetitionProfile />} />
+              <Route path="events" element={<Event />} />
+              <Route path="events-form" element={<EventForm />} />
+              <Route path="event-profile/:id" element={<EventProfile />} />
+              <Route path="seminar" element={<Seminar />} />
+              <Route path="seminar-form" element={<SeminarForm />} />
+              <Route path="seminar-profile/:id" element={<SeminarProfile />} />
+                 <Route path="profile" element={<CollegeProfile />} />
             </Route>
-          {/* </Route> */}
+          </Route>
 
           {/* Company routes */}
           <Route path="/company" element={<MainLayout />}>
             <Route element={<CompanyLayout />}>
               <Route index element={<Navigate to="dashboard" replace />} />
-              <Route path="dashboard" element={<Dashboard />} />
+              <Route path="dashboard" element={<CompanyDashboard/>} />
               <Route path="company" element={<CompanyProfile module="company" />} />
               <Route path="company-form" element={<CompanyForm module="company" />} />
               <Route path="company-profile/:id" element={<CompanyProfile module="company" />} />
@@ -453,7 +487,7 @@ const App = () => {
           newestOnTop
         />
       </BrowserRouter>
-    </MainProvider>
+
   );
 };
 

@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import DynamicTable from "../../../common/DynamicTable";
 import { getAllEvents } from '../../../services/admin/adminServices';
 import { toast } from 'react-toastify';
+import { useMain } from '../../../context/MainContext';
 
 const Event = () => {
   const navigate = useNavigate();
@@ -11,7 +12,7 @@ const Event = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [events, setEvents] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
-
+  const {user,dynamicPath}=useMain()
   useEffect(() => {
     fetchEvents();
   }, []);
@@ -97,14 +98,15 @@ const Event = () => {
         columns={columns}
         dataSource={filteredData}
         rowKey="_id"
-        onRowClick={(record) => navigate(`/admin/event-profile/${record._id}`)}
-        showSearch={true}
+       onRowClick={(record) =>
+  navigate(dynamicPath(`event-profile/${record._id}`))
+}      showSearch={true}
         searchPlaceholder="Search ..."
         onSearch={handleSearch}
         showAddButton={true}
         addButtonLabel="Add Event"
         addButtonIcon={<Plus size={18} />}
-        onAdd={() => navigate('/admin/events-form')}
+      onAdd={() => navigate(dynamicPath("events-form"))}
         showPagination={true}
         currentPage={currentPage}
         pageSize={10}

@@ -1,13 +1,9 @@
-﻿
-
-
-
 import { useEffect, useState } from 'react';
-import DynamicTable from '../../common/DynamicTable';
-import { assets } from '../../assets/assets';
-import { apiGetAdminDashboard } from '../../services/admin/adminServices';
-import setFileName from '../../utils/setFileName';
-import { useTitle } from '../../context/AdminTitle';
+import DynamicTable from '../../../common/DynamicTable';
+import { assets } from '../../../assets/assets';
+
+import setFileName from '../../../utils/setFileName';
+import { apiGetcompanyDashboard } from '../../../services/companyServices';
 
 // ─── tiny helper ────────────────────────────────────────────────────────────
 const Skeleton = ({ className = '' }) => (
@@ -15,25 +11,23 @@ const Skeleton = ({ className = '' }) => (
 );
 
 // ─── Component ───────────────────────────────────────────────────────────────
-const Dashboard = () => {
+const CompanyDashboard = () => {
   const [stats, setStats] = useState(null);
-  const [latestCompanies, setLatestCompanies] = useState([]);
+  const [latestApplied, setLatestApplied] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const {setTitle}=useTitle()
-  useEffect(()=>{
-setTitle("Dashboard")
-  },[])
+
 
 useEffect(() => {
   const fetchDashboard = async () => {
     try {
       setLoading(true);
-      const res = await apiGetAdminDashboard();
+      const res = await apiGetcompanyDashboard();
       console.log(res)
-      if (!res.success) throw new Error(res.message);
-      setStats(res.data.stats);
-      setLatestCompanies(res.data.latestCompanies);
+      if (!res.status) throw new Error(res.message);
+      setStats(res?.data?.stats);
+      setLatestApplied(res?.data?.lastApplied
+);
 
     } catch (err) {
       console.error(err);
@@ -48,23 +42,19 @@ useEffect(() => {
 
   // ── Metric card config (maps to API stats keys) ───────────────────────────
   const metricCards = [
-    { key: 'companies',    title: 'Total Companies',     highlighted: true },
-    { key: 'colleges',     title: 'Total College' },
-    { key: 'competitions', title: 'Active Competition' },
-    { key: 'conferences',  title: 'Active Conference' },
-    { key: 'events',       title: 'Active Events' },
-    { key: 'seminars',     title: 'Active Seminar' },
-    { key: 'internships',  title: 'Active Internship' },
-    { key: 'freelances',   title: 'Active Freelance' },
+  
+    { key: 'totalFollowers',title: 'Total followers', highlighted: true},
+    { key: 'activeInternships',  title: 'Active Internship' },
+    { key: 'activeFreelances',   title: 'Active Freelance' },
   ];
 
   // ── Table columns ─────────────────────────────────────────────────────────
   const companyColumns = [
     { title: '#',               dataIndex: 'index',              key: 'index' },
     {
-      title: 'Company',
-      dataIndex: 'companyName',
-      key: 'companyName',
+      title: 'Name',
+      dataIndex: 'name',
+      key: 'name',
       render: (text, row) => (
         <div className="flex items-center gap-2">
           {row.companyLogo ? (
@@ -82,11 +72,13 @@ useEffect(() => {
         </div>
       ),
     },
-    { title: 'Industry',        dataIndex: 'companyType',        key: 'companyType' },
-    { title: 'Contact Person',  dataIndex: 'contactPersonName',  key: 'contactPersonName' },
-    { title: 'Location',        dataIndex: 'city',               key: 'city' },
+    { title: 'Job Type',        dataIndex: 'type',        key: 'type' },
+    { title: 'Job Title',        dataIndex: 'title',        key: 'title' },
+     { title: 'Name ',  dataIndex: 'name',  key:"name" },
+    { title: 'Email ',  dataIndex: 'email',  key:"email" },
+    { title: 'Mobile',        dataIndex: 'phone',               key: 'phone' },
     {
-      title: 'Joined',
+      title: 'Applied',
       dataIndex: 'createdAt',
       key: 'createdAt',
       render: (v) =>
@@ -101,7 +93,7 @@ useEffect(() => {
   ];
 
   // Add a 1-based index to each row for the "#" column
-  const companyRows = latestCompanies.map((c, i) => ({
+  const companyRows =latestApplied.map((c, i) => ({
     ...c,
     index: `0${i + 1}`,
     id: c._id,
@@ -120,7 +112,7 @@ useEffect(() => {
   return (
     <div className="space-y-5">
       {/* ── Metric Cards ── */}
-      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
         {metricCards.map((card) => {
           const isHighlighted = card.highlighted;
           const data = stats?.[card.key];
@@ -160,7 +152,7 @@ useEffect(() => {
                 {loading || !data ? (
                   <>
                     <Skeleton className="h-9 w-16 mb-3" />
-                    <Skeleton className="h-6 w-28" />
+                    {/* <Skeleton className="h-6 w-28" /> */}
                   </>
                 ) : (
                   <>
@@ -171,7 +163,7 @@ useEffect(() => {
                     >
                       {data.total}
                     </p>
-                    <div className="mt-3 flex items-center gap-2">
+                    {/* <div className="mt-3 flex items-center gap-2">
                       <span
                         className={`px-3 py-1 rounded-full text-[14px] font-semibold leading-none ${
                           isHighlighted
@@ -188,7 +180,7 @@ useEffect(() => {
                       >
                         This month
                       </span>
-                    </div>
+                    </div> */}
                   </>
                 )}
               </div>
@@ -201,7 +193,7 @@ useEffect(() => {
       <section className="rounded-[24px] border border-[#EAECF0] bg-white p-4">
         <div className="flex items-center justify-between mb-2">
           <h2 className="text-[20px] font-semibold text-primary">
-            Latest Companies
+            Latest Applied
           </h2>
           <span className="text-sm text-[#667085]">5 most recent</span>
         </div>
@@ -226,4 +218,4 @@ useEffect(() => {
   );
 };
 
-export default Dashboard;
+export default CompanyDashboard;

@@ -4,6 +4,7 @@ import DynamicTable from "../../../common/DynamicTable"
 import { useNavigate } from 'react-router-dom';
 import { getAllSeminars } from '../../../services/admin/adminServices';
 import { toast } from 'react-toastify';
+import { useMain } from '../../../context/MainContext';
 
 const Seminar = () => {
   const [search, setSearch] = useState('');
@@ -11,7 +12,7 @@ const Seminar = () => {
   const [seminars, setSeminars] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const navigate = useNavigate();
-
+  const {dynamicPath}=useMain()
   useEffect(() => {
     fetchSeminars();
   }, []);
@@ -115,13 +116,14 @@ const Seminar = () => {
           showAddButton={true}
           addButtonLabel="Add Seminar"
           addButtonIcon={<Plus size={18} />}
-          onAdd={() => navigate('/admin/seminar-form')}
+     onAdd={() => navigate(dynamicPath("seminar-form"))}
           showPagination={true}
           currentPage={currentPage}
           pageSize={10}
           onPageChange={setCurrentPage}
-          onRowClick={(record) => navigate(`/admin/seminar-profile/${record._id || record.id}`)}
-        />
+          onRowClick={(record) =>
+  navigate(dynamicPath(`seminar-profile/${record._id || record.id}`))
+}        />
       )}
     </div>
   );

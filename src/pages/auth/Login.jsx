@@ -3,6 +3,9 @@ import { IoCallOutline, IoLockClosedOutline } from 'react-icons/io5'; // Using I
 import { assets } from '../../assets/assets';
 import { useMain } from '../../context/MainContext';
 import AuthBase from '../../layout/AuthBase';
+import { loginUser } from '../../services/auth/authServices';
+import { toast } from 'react-toastify';
+import { Loader2 } from 'lucide-react';
 
 const InputField = ({ label, id, type, placeholder, icon: Icon, ...props }) => (
   <div className="space-y-2">
@@ -27,19 +30,35 @@ const InputField = ({ label, id, type, placeholder, icon: Icon, ...props }) => (
 
 
 const Login = () => {
-  const { login, authLoading, authError } = useMain();
+  const { login,fetchCurrentUser} = useMain();
   const [mobileNumber, setMobileNumber] = useState('');
   const [password, setPassword] = useState('');
-
+  const [loading,setLoading]=useState(false)
+  
+  
   const handleLogin = async (e) => {
+    setLoading(true)
     e.preventDefault();
     try {
-      await login({
+     const res  = await login ({
         phone: mobileNumber.trim(),
         password,
       });
+      console.log(res)
+      if(res?.status){
+        toast.success(res?.message||"Login successfully")
+        await fetchCurrentUser()
+      }
+      else{
+        toast.error(res.message||"Login Failed")
+      }
+
     } catch (error) {
+      toast.error(error.message||"Login Failed")
       console.error("Login failed", error);
+    }
+    finally{
+    setLoading(false)
     }
   };
 
@@ -89,16 +108,11 @@ const Login = () => {
         <div className="space-y-5">
           <button
             type="submit"
-            disabled={authLoading}
-            className="w-full rounded-[15px] bg-[#0091D5] py-3.5 text-base font-bold text-white shadow-lg transition-all hover:bg-[#007fb8] hover:shadow-[#0091D5]/20 active:scale-[0.99]"
+            disabled={loading}
+            className="w-full flex justify-center rounded-[15px] bg-[#0091D5] py-3.5 text-base font-bold text-white shadow-lg transition-all hover:bg-[#007fb8] hover:shadow-[#0091D5]/20 active:scale-[0.99]"
           >
-            {authLoading ? "Logging in..." : "Login"}
+            {loading ? <Loader2 className='animate-spin' /> : "Login"}
           </button>
-
-          {authError && (
-            <p className="text-sm text-red-400">{authError}</p>
-          )}
-
           <div className="flex items-center justify-between text-[13px]">
             <span className="text-gray-400">Did you forget your password?</span>
             <a href="#" className="font-semibold text-white underline underline-offset-4 hover:text-[#0091D5] transition-colors">

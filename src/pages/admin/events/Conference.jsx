@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import DynamicTable from "../../../common/DynamicTable";
 import { getAllConferences } from '../../../services/admin/adminServices';
 import { toast } from 'react-toastify';
+import { useMain } from '../../../context/MainContext';
 
 
 const Conference = () => {
@@ -12,6 +13,7 @@ const Conference = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [conferences, setConferences] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
+  const {dynamicPath}=useMain()
 
   useEffect(() => {
     fetchConferences();
@@ -116,8 +118,9 @@ const Conference = () => {
         columns={columns}
         dataSource={filteredData}
         rowKey="_id"
-        onRowClick={(record) => navigate(`/admin/conference-profile/${record._id}`)}
-        // Search Config
+        onRowClick={(record) =>
+  navigate(dynamicPath(`conference-profile/${record._id}`))
+}   // Search Config
         showSearch={true}
         searchPlaceholder="Search ..."
         onSearch={handleSearch}
@@ -126,7 +129,7 @@ const Conference = () => {
         addButtonLabel="Add Conference"
         addButtonIcon={<Plus size={18} />}
         onAdd={() =>
-          navigate('/admin/conference-form')
+          navigate(dynamicPath(`conference-form`))
         } 
         
         showPagination={true}

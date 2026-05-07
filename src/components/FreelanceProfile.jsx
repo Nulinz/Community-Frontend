@@ -7,7 +7,8 @@ import AppliedListSection from '../common/AppliedListSection';
 
 const FreelanceProfile = ({ module = 'admin' }) => {
   const [activeTab, setActiveTab] = useState('overview');
-  const [freelance, setFreelance] = useState(null);
+ const [freelance, setFreelance] = useState(null);
+const [applications, setApplications] = useState({ count: 0, list: [] });
   const [isLoading, setIsLoading] = useState(true);
   const [isTogglingStatus, setIsTogglingStatus] = useState(false);
   const { id } = useParams();
@@ -23,7 +24,12 @@ const FreelanceProfile = ({ module = 'admin' }) => {
       try {
         setIsLoading(true);
         const response = await getFreelanceById(id);
-        setFreelance(response?.data || null);
+         if (response.success) {
+      setFreelance(response.data.freelance);
+      setApplications(response.data.applications || { count: 0, list: [] });
+    } else {
+      setError("Freelance not found");
+    }
       } catch (error) {
         toast.error(error?.response?.data?.message || 'Failed to load freelance profile');
         setFreelance(null);
@@ -50,7 +56,7 @@ const FreelanceProfile = ({ module = 'admin' }) => {
   const referenceWebsite = Array.isArray(freelance?.referenceWebsite) ? freelance.referenceWebsite : [];
   const fallbackList = ['-'];
 
-  const appliedListHeading = [
+  const appliedListColumns = [
     { title: '#', dataIndex: 'id', key: 'id' },
     { title: 'Name', dataIndex: 'name', key: 'name' },
     { title: 'College', dataIndex: 'college', key: 'college' },
@@ -231,7 +237,13 @@ const FreelanceProfile = ({ module = 'admin' }) => {
             <TextCard title="Certificate Availability" text={freelance.certificateAvailability || '-'} />
           </div>
         ) : (
-          <AppliedListSection data={appliedListData} heading={appliedListHeading} />
+          <AppliedListSection
+  data={applications.list.map((app) => ({
+    ...app,
+    appliedAt: new Date(app.appliedAt).toLocaleDateString('en-GB'),
+  }))}
+  heading={appliedListColumns}
+/>
         )}
       </section>
     </div>
