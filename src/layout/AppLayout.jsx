@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from "react";
 import { Outlet, NavLink, useLocation } from "react-router-dom";
-import { ChevronRight, KeyRound, LogOut, X, Menu, ChevronDown } from "lucide-react";
+import { ChevronRight, KeyRound, LogOut, X, Menu, ChevronDown, EyeOff, Eye } from "lucide-react";
 import { changePassword } from "../services/auth/authServices";
 import { toast } from "react-toastify";
 import { useTitle } from "../context/AdminTitle";
@@ -16,7 +16,12 @@ const ProfileMenu = ({ user, onLogout, isMobile = false }) => {
   const [confirmPassword, setConfirmPassword] = useState("");
   const [formError, setFormError] = useState("");
   const menuRef = useRef(null);
-  const [loading,setLoading]=useState(false)
+  const [loading, setLoading] = useState(false);
+
+  // ── NEW: visibility state for each password field ──
+  const [showOld, setShowOld] = useState(false);
+  const [showNew, setShowNew] = useState(false);
+  const [showConfirm, setShowConfirm] = useState(false);
 
   useEffect(() => {
     const handleClickOutside = (e) => {
@@ -31,6 +36,10 @@ const ProfileMenu = ({ user, onLogout, isMobile = false }) => {
     setNewPassword("");
     setConfirmPassword("");
     setFormError("");
+    // ── reset visibility on form reset ──
+    setShowOld(false);
+    setShowNew(false);
+    setShowConfirm(false);
   };
 
   const handleLogoutConfirm = async () => {
@@ -38,46 +47,43 @@ const ProfileMenu = ({ user, onLogout, isMobile = false }) => {
     setIsLogoutModalOpen(false);
   };
 
-const handleChangePasswordSave = async () => {
-  if (!oldPassword || !newPassword || !confirmPassword) {
-    setFormError("All fields are required");
-    return;
-  }
-
-  if (newPassword !== confirmPassword) {
-    setFormError("New password and confirm password do not match");
-    return;
-  }
-
-  try {
-    setFormError("");
-    setLoading(true); // optional if you have loader state
-
-    const res = await changePassword({
-      currentPassword: oldPassword,
-      newPassword,
-      confirmPassword,
-    });
-
-    if (res?.status) {
-      toast.success(res.message || "Password changed successfully");
-      setIsChangePasswordModalOpen(false);
-      resetPasswordForm();
-    } else {
-      toast.error(res?.message || "Failed to change password");
+  const handleChangePasswordSave = async () => {
+    if (!oldPassword || !newPassword || !confirmPassword) {
+      setFormError("All fields are required");
+      return;
     }
+    if (newPassword !== confirmPassword) {
+      setFormError("New password and confirm password do not match");
+      return;
+    }
+    try {
+      setFormError("");
+      setLoading(true);
+      const res = await changePassword({ currentPassword: oldPassword, newPassword, confirmPassword });
+      if (res?.status) {
+        toast.success(res.message || "Password changed successfully");
+        setIsChangePasswordModalOpen(false);
+        resetPasswordForm();
+      } else {
+        toast.error(res?.message || "Failed to change password");
+      }
+    } catch (error) {
+      toast.error(error?.message || "Something went wrong");
+    } finally {
+      setLoading(false);
+    }
+  };
 
-  } catch (error) {
-    toast.error(error?.message || "Something went wrong");
-  } finally {
-    setLoading(false); // optional
-  }
-};
+  const dropdownPositionClass = isMobile
+    ? "-left-[200px] top-full mt-2"
+    : "right-0 top-full mt-2";
 
-  // On mobile the dropdown opens UPWARD (bottom-full), on desktop it opens DOWN (top-full mt-2)
-const dropdownPositionClass = isMobile
-  ? "-left-[200px] top-full mt-2"
-  : "right-0 top-full mt-2"
+  // ── NEW: password field config with per-field show/toggle ──
+  const passwordFields = [
+    { label: "Old Password",     value: oldPassword,     setter: setOldPassword,     show: showOld,     toggle: () => setShowOld((p) => !p) },
+    { label: "New Password",     value: newPassword,     setter: setNewPassword,     show: showNew,     toggle: () => setShowNew((p) => !p) },
+    { label: "Confirm Password", value: confirmPassword, setter: setConfirmPassword, show: showConfirm, toggle: () => setShowConfirm((p) => !p) },
+  ];
 
   return (
     <>
@@ -92,7 +98,6 @@ const dropdownPositionClass = isMobile
               {user?.name?.charAt(0)?.toUpperCase() || "U"}
             </span>
           </div>
-          {/* Show name only in desktop header */}
           {!isMobile && (
             <div className="text-left hidden sm:block">
               <p className="text-sm font-bold text-gray-900 leading-none">{user?.name || "User"}</p>
@@ -102,21 +107,14 @@ const dropdownPositionClass = isMobile
         </button>
 
         {isOpen && (
-          <div
-            className={`absolute w-[240px] rounded-2xl border border-[#E5E7EB] bg-white shadow-xl z-50 ${dropdownPositionClass}`}
-          >
+          <div className={`absolute w-[240px] rounded-2xl border border-[#E5E7EB] bg-white shadow-xl z-50 ${dropdownPositionClass}`}>
             <div className="px-4 py-3 border-b border-[#E5E7EB]">
               <p className="text-sm font-semibold text-gray-900">{user?.name || "User"}</p>
               <p className="text-xs text-blue-600 capitalize">{user?.role || "User"}</p>
             </div>
-
             <button
               type="button"
-              onClick={() => {
-                setIsOpen(false);
-                resetPasswordForm();
-                setIsChangePasswordModalOpen(true);
-              }}
+              onClick={() => { setIsOpen(false); resetPasswordForm(); setIsChangePasswordModalOpen(true); }}
               className="w-full flex items-center justify-between px-4 py-3 text-left hover:bg-gray-50"
             >
               <span className="flex items-center gap-3 text-[15px] text-gray-800">
@@ -125,13 +123,9 @@ const dropdownPositionClass = isMobile
               </span>
               <ChevronRight size={16} className="text-gray-400" />
             </button>
-
             <button
               type="button"
-              onClick={() => {
-                setIsOpen(false);
-                setIsLogoutModalOpen(true);
-              }}
+              onClick={() => { setIsOpen(false); setIsLogoutModalOpen(true); }}
               className="w-full flex items-center gap-3 px-4 py-3 text-left border-t border-[#E5E7EB] hover:bg-gray-50 text-[15px] text-gray-800 rounded-b-2xl"
             >
               <LogOut size={16} />
@@ -189,21 +183,30 @@ const dropdownPositionClass = isMobile
             </div>
             <div className="space-y-4 px-8 pb-8">
               <h3 className="text-[20px] font-bold text-gray-900">Change Password</h3>
-              {[
-                { label: "Old Password", value: oldPassword, setter: setOldPassword },
-                { label: "New Password", value: newPassword, setter: setNewPassword },
-                { label: "Confirm Password", value: confirmPassword, setter: setConfirmPassword },
-              ].map(({ label, value, setter }) => (
+
+              {/* ── UPDATED: password fields with show/hide toggle ── */}
+              {passwordFields.map(({ label, value, setter, show, toggle }) => (
                 <div key={label}>
                   <label className="mb-2 block text-[14px] font-semibold text-gray-800">{label}</label>
-                  <input
-                    type="password"
-                    value={value}
-                    onChange={(e) => setter(e.target.value)}
-                    className="w-full rounded-lg border border-gray-300 px-3 py-2.5 text-base outline-none focus:border-[#0091D5]"
-                  />
+                  <div className="relative">
+                    <input
+                      type={show ? "text" : "password"}
+                      value={value}
+                      onChange={(e) => setter(e.target.value)}
+                      className="w-full rounded-lg border border-gray-300 px-3 py-2.5 pr-10 text-base outline-none focus:border-[#0091D5]"
+                    />
+                    <button
+                      type="button"
+                      onClick={toggle}
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                      tabIndex={-1}
+                    >
+                      {show ? <Eye size={18} /> : <EyeOff size={18} />}
+                    </button>
+                  </div>
                 </div>
               ))}
+
               {formError && <p className="text-sm text-red-500">{formError}</p>}
               <div className="pt-2 flex gap-4">
                 <button
@@ -216,9 +219,10 @@ const dropdownPositionClass = isMobile
                 <button
                   type="button"
                   onClick={handleChangePasswordSave}
-                  className="flex-1 rounded-xl bg-[#0091D5] px-4 py-2 text-base font-semibold text-white hover:bg-[#007fb8]"
+                  disabled={loading}
+                  className="flex-1 rounded-xl bg-[#0091D5] px-4 py-2 text-base font-semibold text-white hover:bg-[#007fb8] disabled:opacity-60"
                 >
-                  Save
+                  {loading ? "Saving..." : "Save"}
                 </button>
               </div>
             </div>

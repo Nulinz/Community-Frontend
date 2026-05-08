@@ -5,6 +5,7 @@ import DynamicTable from "../../../common/DynamicTable";
 import { getAllConferences } from '../../../services/admin/adminServices';
 import { toast } from 'react-toastify';
 import { useMain } from '../../../context/MainContext';
+import { useTitle } from '../../../context/AdminTitle';
 
 
 const Conference = () => {
@@ -14,7 +15,10 @@ const Conference = () => {
   const [conferences, setConferences] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const {dynamicPath}=useMain()
-
+  const {setTitle}=useTitle()
+  useEffect(()=>{
+setTitle("Conferences")
+  },[])
   useEffect(() => {
     fetchConferences();
   }, []);

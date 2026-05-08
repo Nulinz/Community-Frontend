@@ -4,6 +4,7 @@ import DynamicTable from '../../../common/DynamicTable';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import { getAllFreelances } from '../../../services/admin/adminServices';
+import { useTitle } from '../../../context/AdminTitle';
 
 
 const Freelance = ({ module = 'admin' }) => {
@@ -11,7 +12,10 @@ const Freelance = ({ module = 'admin' }) => {
     const [currentPage, setCurrentPage] = useState(1);
     const [freelances, setFreelances] = useState([]);
     const [isLoading, setIsLoading] = useState(true);
-
+  const {setTitle}=useTitle()
+  useEffect(()=>{
+setTitle("Freelances")
+  },[])
     const navigate = useNavigate();
 
     useEffect(() => {

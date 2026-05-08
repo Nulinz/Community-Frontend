@@ -2,6 +2,8 @@ import { useLocation, useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 import { createCompany } from "../services/admin/adminServices";
 import FormLayout from "../layout/FormLayout";
+import { useTitle } from "../context/AdminTitle";
+import { useEffect } from "react";
 
 
 const companyFormConfig = [
@@ -27,6 +29,12 @@ const companyFormConfig = [
       { name: "websiteLink", label: "Website Link", type: "text", required: false },
       { name: "companyLogo", label: "Company Logo", type: "file" },
       { name: "coverImage", label: "Cover Image", type: "file" },
+      {
+  name: "employees",
+  label: "Employees",
+  type: "select",
+  options: ["1-10", "11-50", "51-100", "101-500", "500+"],
+}
     ],
   },
   {
@@ -48,7 +56,7 @@ const companyFormConfig = [
     key: "technologies",
     payloadKey: "technologies",
     dynamicStyle: "grid-6",
-    initialRows: 6,
+    initialRows: 3,
     fields: [{ name: "technology", label: "Technology", type: "text", colSpan: "md:col-span-11" }],
   },
   {
@@ -57,7 +65,7 @@ const companyFormConfig = [
     key: "what_we_do",
     payloadKey: "whatWeDo",
     dynamicStyle: "grid-6",
-    initialRows: 6,
+    initialRows: 3,
     fields: [{ name: "whatWeDo", label: "What We Do", type: "text", colSpan: "md:col-span-11" }],
   },
   {
@@ -66,7 +74,7 @@ const companyFormConfig = [
     key: "learning_benefits",
     payloadKey: "learningBenefits",
     dynamicStyle: "grid-6",
-    initialRows: 6,
+    initialRows: 3,
     fields: [{ name: "learningBenefit", label: "Learning Benefit", type: "text", colSpan: "md:col-span-11" }],
   },
   {
@@ -75,7 +83,7 @@ const companyFormConfig = [
     key: "learning_outcomes",
     payloadKey: "learningOutcomes",
     dynamicStyle: "grid-6",
-    initialRows: 6,
+    initialRows: 3,
     fields: [{ name: "learningOutcome", label: "Learning Outcome", type: "text", colSpan: "md:col-span-11" }],
   },
   {
@@ -92,7 +100,10 @@ const CompanyForm = ({ module }) => {
   const location = useLocation();
   const navigate = useNavigate();
   const editData = location.state?.editData;
-
+  const {setTitle}=useTitle()
+  useEffect(()=>{
+setTitle("Company Form")
+  },[])
   // ✅ Remap email/phone aliases from editData before passing to FormLayout
   const normalizedEditData = editData
     ? {

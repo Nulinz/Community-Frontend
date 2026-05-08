@@ -11,6 +11,9 @@ import setFileName from '../../../utils/setFileName';
 import dayjs from "dayjs";
 import relativeTime from "dayjs/plugin/relativeTime";
 import { useMain } from '../../../context/MainContext';
+import { useTitle } from '../../../context/AdminTitle';
+import ConfirmActionButton from '../../../common/ConfirmActionButton';
+import Icon from '../../../components/icons';
 
 dayjs.extend(relativeTime);
 
@@ -28,16 +31,19 @@ const CompanyProfile = ({ module }) => {
   const [confirmPassword, setConfirmPassword] = useState('12345678');
   const [uploadedPosts, setUploadedPosts] = useState([]);
   const [postFiles, setPostFiles] = useState([]); // Store raw File objects
-const [company, setCompany] = useState(null);
-const [jobs, setJobs] = useState({ internships: [], freelances: [] });       // ✅ add
-const [followers, setFollowers] = useState({ count: 0, data: [] });          // ✅ add
-const [isLoading, setIsLoading] = useState(true);
-const [isSubmitting, setIsSubmitting] = useState(false);
-const [error, setError] = useState(null);
+  const [company, setCompany] = useState(null);
+  const [jobs, setJobs] = useState({ internships: [], freelances: [] });       // ✅ add
+  const [followers, setFollowers] = useState({ count: 0, data: [] });          // ✅ add
+  const [isLoading, setIsLoading] = useState(true);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [error, setError] = useState(null);
   const fileInputRef = useRef(null);
   const {user,setUser}=useMain()
   const BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
-  
+    const {setTitle}=useTitle()
+    useEffect(()=>{
+  setTitle("Company Profile")
+    },[])
 useEffect(() => {
   const fetchCompanyData = async () => {
     try {
@@ -105,36 +111,8 @@ useEffect(() => {
       <p className="text-[14px] font-medium text-secondary leading-normal">{value}</p>
     </div>
   );
-
-  
-
-  // const jobs = [
-  //   { id: 1, title: 'Senior UI/UX Designer', company: 'Nulinz', location: 'Salem', duration: 'No fixed duration', salary: 'Unpaid', skills: 'AutoCAD, Modelling,3D Modelling, architecture...', posted: '5 Days Ago' },
-  //   { id: 2, title: 'Web Developer', company: 'Nulinz', location: 'Salem', duration: '6 Months', salary: '7,000/month', skills: 'AutoCAD, Modelling,3D Modelling, architecture...', posted: '5 Days Ago' },
-  //   { id: 3, title: 'Senior AutoCAD Designers', company: 'Nulinz', location: 'Salem', duration: 'No fixed duration', salary: '20,000', skills: 'AutoCAD, Modelling,3D Modelling, architecture...', posted: '5 Days Ago' },
-  //   { id: 4, title: 'Senior UI/UX Designer', company: 'Nulinz', location: 'Salem', duration: 'No fixed duration', salary: 'Unpaid', skills: 'AutoCAD, Modelling,3D Modelling, architecture...', posted: '5 Days Ago' },
-  //   { id: 5, title: 'Web Developer', company: 'Nulinz', location: 'Salem', duration: '6 Months', salary: '7,000/month', skills: 'AutoCAD, Modelling,3D Modelling, architecture...', posted: '5 Days Ago' },
-  //   { id: 6, title: 'Senior AutoCAD Designers', company: 'Nulinz', location: 'Salem', duration: 'No fixed duration', salary: '20,000', skills: 'AutoCAD, Modelling,3D Modelling, architecture...', posted: '5 Days Ago' },
-  // ];
-
-
-  const peopleData = [
-    { id: '01', name: 'Nala', college: 'Quantum Innovators Institute', department: 'Robotics', year: '2025', contact: '9876543210', mail: 'nala@example.com' },
-    { id: '02', name: 'Rishi', college: 'Stellaris Academy', department: 'AI Engineering', year: '2024', contact: '8765432109', mail: 'rishi@sample.com' },
-    { id: '03', name: 'Priya', college: 'Zenith Institute', department: 'Data Analytics', year: '2026', contact: '7654321098', mail: 'priya@domain.com' },
-    { id: '04', name: 'Veer', college: 'Nova College', department: 'Cybersecurity', year: '2027', contact: '6543210987', mail: 'veer@institution.com' },
-    { id: '05', name: 'Leela', college: 'Apex University', department: 'Cloud Computing', year: '2025', contact: '5432109876', mail: 'leela@university.com' },
-    { id: '06', name: 'Kiran', college: 'Pinnacle Institute', department: 'Software Development', year: '2024', contact: '4321098765', mail: 'kiran@academy.com' },
-    { id: '07', name: 'Diya', college: 'Horizon College', department: 'UX Design', year: '2026', contact: '3210987654', mail: 'diya@institute.com' },
-    { id: '08', name: 'Aryan', college: 'Summit Academy', department: 'Mobile Development', year: '2027', contact: '2109876543', mail: 'aryan@college.com' },
-    { id: '09', name: 'Neha', college: 'Vanguard Institute', department: 'Network Engineering', year: '2025', contact: '1098765432', mail: 'neha@summit.com' },
-    { id: '10', name: 'Rohan', college: 'Everest College', department: 'Game Development', year: '2024', contact: '0987654321', mail: 'rohan@vanguard.com' },
-    { id: '11', name: 'Ishaan', college: 'Future Minds College', department: 'Machine Learning', year: '2026', contact: '9876501234', mail: 'ishaan@future.com' },
-    { id: '12', name: 'Meera', college: 'Tech Valley University', department: 'AI Research', year: '2025', contact: '8765401234', mail: 'meera@techvalley.com' },
-  ];
-
-  const filteredPeople = peopleData.filter((item) =>
-    [item.name, item.college, item.department, item.year, item.contact, item.mail]
+  const filteredPeople =followers?.data?.filter((item) =>
+    [item.name, item.status, item.education, item.degree, item.contact]
       .join(' ')
       .toLowerCase()
       .includes(peopleSearch.toLowerCase())
@@ -313,9 +291,11 @@ useEffect(() => {
                   {company.aboutUs ? company.aboutUs.slice(0, 200) + (company.aboutUs.length > 200 ? '...' : '') : 'No description provided.'}
                 </p>
                 <p className="text-[14px] text-secondary font-medium mt-3">
-                  <span className="text-[#110E7E] font-bold">{followers?.count} followers</span>
+                  <span className="text-[#110E7E] font-bold">
+  {followers?.count} {followers?.count === 1 ? "Follower" : "Followers"}
+</span>
                   <span className="mx-4 text-[#D0D5DD]">.</span>
-                  <span>50 - 100 employees</span>
+                  <span>{company?.employees} employees</span>
                 </p>
               </div>
             </div>
@@ -324,7 +304,7 @@ useEffect(() => {
               <div className="flex flex-wrap gap-4">
                 <div className="min-w-[180px] md:min-w-[210px] rounded-[24px] p-6 bg-[linear-gradient(135deg,_#0989D4_0%,_#006098_100%)] text-white shadow-xl flex flex-col justify-center">
                   <p className="text-[11px] font-bold uppercase tracking-[1.5px] mb-3 opacity-80">Total Jobs</p>
-                  <p className="text-[34px] font-black leading-none">0</p>
+                  <p className="text-[34px] font-black leading-none">{mergedJobs?.length}</p>
                 </div>
                 <div className="min-w-[180px] md:min-w-[210px] rounded-[24px] p-6 border border-[#EAECF0] bg-[#F8FAFC] shadow-sm flex flex-col justify-center">
                   <p className="text-[11px] font-bold uppercase tracking-[1.5px] text-secondary mb-3">Established Year</p>
@@ -335,13 +315,11 @@ useEffect(() => {
               <div className="flex flex-wrap gap-3 mt-2">
                 {user.role === 'admin' && (
                   <>
-                    <button 
-                      disabled={isSubmitting}
-                      onClick={handleToggleStatus}
-                      className={`px-[20px] py-3 rounded-full text-white text-[15px] font-bold shadow-md transition-all active:scale-95 disabled:opacity-50 ${company.isActive ? 'bg-red-500 hover:bg-red-600' : 'bg-green-500 hover:bg-green-600'}`}
-                    >
-                      {isSubmitting ? <Loader2 size={18} className="animate-spin" /> : (company.is_active ? 'Deactivate' : 'Activate')}
-                    </button>
+                   <ConfirmActionButton
+  isActive={company?.is_active}
+  isSubmitting={isSubmitting}
+  onConfirm={handleToggleStatus}
+/>
                     
                     <button
                       onClick={() => setIsPasswordModalOpen(true)}
@@ -354,7 +332,7 @@ useEffect(() => {
 {/* bg-[#110E7E] */}
                 <button 
                   onClick={() => setIsAddPostModalOpen(true)}
-                  className="flex items-center gap-2 px-[20px] py-3 rounded-full bg-[#110E7E] text-white text-[15px] font-bold shadow-md hover:bg-[#026AA2] transition-all active:scale-95"
+                  className="flex items-center gap-2 px-[20px] py-3 rounded-full  text-[15px] font-bold shadow-md  transition-all active:scale-95"
                 >
                   <Plus size={18} />
                   Add Post
@@ -364,7 +342,7 @@ useEffect(() => {
                   onClick={() => navigate(`/${module}/company-form`, { state: { editData: company } })}
                   className="flex border border-[#EAECF0] bg-[#FFFFFF] items-center gap-2 px-[20px] py-3 rounded-full   text-[15px] font-bold shadow-md  transition-all active:scale-95 "
                 >
-                  <SquarePen size={18} />
+                  <Icon src="/icons/Edit.png" size={18} />
                   Edit Details
                 </button>
               </div>
@@ -409,7 +387,7 @@ useEffect(() => {
               {company.companyCultureTags && (
                 <SectionCard title="Company Culture Tags">
                   <div className="flex flex-wrap gap-3">
-                    {company.companyCultureTags.split(',').map((tag) => (
+                    {company?.companyCultureTags.map((tag) => (
                       <span
                         key={tag}
                         className="px-4 py-1.5 rounded-full border border-[#D0D5DD] bg-[#F8FAFC] text-[14px] font-semibold text-secondary"
@@ -551,15 +529,15 @@ useEffect(() => {
     <DynamicTable
       columns={[
         { title: '#', dataIndex: 'index', key: 'index' },
-        { title: 'Name', dataIndex: 'email', key: 'email' },
-        { title: 'Status', dataIndex: 'currentStatus', key: 'currentStatus' },
+        { title: 'Name', dataIndex: 'name', key: 'name' },
+        { title: 'Status', dataIndex: 'status', key: 'status' },
         { title: 'Education', dataIndex: 'education', key: 'education' },
-        { title: 'Degree', dataIndex: 'ugDegree', key: 'ugDegree' },
+        { title: 'Degree', dataIndex: 'degree', key: 'degree' },
         { title: 'Job Title', dataIndex: 'jobTitle', key: 'jobTitle' },
-        { title: 'Contact', dataIndex: 'phone', key: 'phone' },
+        { title: 'Contact', dataIndex: 'contact', key: 'contact' },
         { title: 'Followed On', dataIndex: 'followedAt', key: 'followedAt' },
       ]}
-      dataSource={followers.data.map((person, i) => ({
+      dataSource={filteredPeople?.map((person, i) => ({
         ...person,
         index: String(i + 1).padStart(2, '0'),
         followedAt: new Date(person.followedAt).toLocaleDateString(),

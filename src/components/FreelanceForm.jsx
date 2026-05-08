@@ -5,6 +5,8 @@ import { toast } from "react-toastify";
 import { createFreelance, createInternship } from "../services/admin/adminServices";
 import { useOrganizerDisplayName } from "../utils/organizer";
 import FormLayout from "../layout/FormLayout";
+import { useEffect } from "react";
+import { useTitle } from "../context/AdminTitle";
 
 
 const freelanceFormConfig = [
@@ -109,10 +111,11 @@ const freelanceFormConfig = [
   {
     title: "Benefits & Jobs Description",
     type: "static",
+    dynamicStyle: "grid-6",
     fields: [
-      { name: "learning", label: "Learning", type: "textarea" },
-      { name: "certificateAvailability", label: "Certificate Availability", type: "textarea" },
-      { name: "description", label: "Description", type: "textarea" },
+      { name: "learning", label: "Learning", type: "textarea",span:2 },
+      { name: "certificateAvailability", label: "Certificate Availability", type: "textarea" ,span:2},
+      { name: "description", label: "Description", type: "textarea",span:2 },
     ],
   },
 ];
@@ -122,6 +125,11 @@ const FreelanceForm = () => {
   const editData = location.state?.editData;
   const organizerName = useOrganizerDisplayName();
   const navigate =useNavigate()
+  const {setTitle}=useTitle()
+  useEffect(()=>{
+setTitle("Freelance Form")
+  },[])
+
 const handleSubmit = async (_, payload) => {
   try {
     const res = await createFreelance(payload); // JSON payload

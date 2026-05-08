@@ -69,17 +69,7 @@ useEffect(() => {
       key: 'companyName',
       render: (text, row) => (
         <div className="flex items-center gap-2">
-          {row.companyLogo ? (
-            <img
-              src={setFileName(row.companyLogo)}
-              alt={text}
-              className="w-8 h-8 rounded-full object-cover border border-gray-100"
-            />
-          ) : (
-            <span className="w-8 h-8 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center font-bold text-sm">
-              {text?.[0] ?? '?'}
-            </span>
-          )}
+          
           <span className="font-medium">{text}</span>
         </div>
       ),

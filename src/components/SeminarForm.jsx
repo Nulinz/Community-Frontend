@@ -8,6 +8,8 @@ import { toast } from "react-toastify";
 
 import FormLayout from "../layout/FormLayout";
 import { useOrganizerDisplayName } from "../utils/organizer";
+import { useEffect } from "react";
+import { useTitle } from "../context/AdminTitle";
 
 
 const seminarFormConfig = [
@@ -53,6 +55,7 @@ const seminarFormConfig = [
   {
     title: "Fees Details",
     type: "static",
+     showWhen: { field: "registrationType", value: "Paid" },
     fields: [
       { name: "individualFees", label: "Individual Fees", type: "number" },
       { name: "teamFees", label: "Team Fees", type: "number" },
@@ -98,8 +101,8 @@ const seminarFormConfig = [
      showWhen: { field: "mode", value: "Offline" },
     fields: [
       { name: "foodProvide", label: "Food Provide", type: "radio", options: ["Yes", "No"] },
-      { name: "vegNonVeg", label: "Veg / Non-Veg", type: "radio", options: ["Veg", "Non-veg", "Both"] },
-      { name: "midnightSnacks", label: "Midnight Snacks", type: "radio", options: ["Yes", "No"] },
+      { showWhen: { field: "foodProvide", value: "Yes" },name: "vegNonVeg", label: "Veg / Non-Veg", type: "radio", options: ["Veg", "Non-veg", "Both"] },
+      { showWhen: { field: "foodProvide", value: "Yes" },name: "midnightSnacks", label: "Midnight Snacks", type: "radio", options: ["Yes", "No"] },
     ],
   },
   {
@@ -108,8 +111,8 @@ const seminarFormConfig = [
     showWhen: { field: "mode", value: "Offline" },
     fields: [
       { name: "accommodationProvide", label: "Accommodation Provide", type: "radio", options: ["Yes", "No"] },
-      { name: "separatedForBoysGirls", label: "Separated for boys & girls", type: "radio", options: ["Yes", "No"] },
-      { name: "onlyForOutstationParticipants", label: "Only For Outstation Participants", type: "radio", options: ["Yes", "No"] },
+      {  showWhen: { field: "accommodationProvide", value: "Yes" },name: "separatedForBoysGirls", label: "Separated for boys & girls", type: "radio", options: ["Yes", "No"] },
+      {  showWhen: { field: "accommodationProvide", value: "Yes" },name: "onlyForOutstationParticipants", label: "Only For Outstation Participants", type: "radio", options: ["Yes", "No"] },
     ],
   },
   {
@@ -159,7 +162,10 @@ const SeminarForm = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const editData = location.state?.editData;
-
+  const {setTitle}=useTitle()
+  useEffect(()=>{
+setTitle("Semianr Form")
+  },[])
 const handleSubmit = async (formData) => {
   try {
     const res = await createSeminar(formData);

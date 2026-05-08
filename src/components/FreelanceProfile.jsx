@@ -4,6 +4,8 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import { getFreelanceById, toggleFreelanceStatus } from '../services/admin/adminServices';
 import AppliedListSection from '../common/AppliedListSection';
+import ConfirmActionButton from '../common/ConfirmActionButton';
+import { useTitle } from '../context/AdminTitle';
 
 const FreelanceProfile = ({ module = 'admin' }) => {
   const [activeTab, setActiveTab] = useState('overview');
@@ -13,7 +15,10 @@ const [applications, setApplications] = useState({ count: 0, list: [] });
   const [isTogglingStatus, setIsTogglingStatus] = useState(false);
   const { id } = useParams();
   const navigate = useNavigate();
-
+  const {setTitle}=useTitle()
+  useEffect(()=>{
+setTitle("Freelance Profile")
+  },[])
   useEffect(() => {
     const fetchFreelance = async () => {
       if (!id) {
@@ -202,14 +207,13 @@ const [applications, setApplications] = useState({ count: 0, list: [] });
           </div>
 
           <div className="flex flex-wrap items-center gap-3">
-            <button
-              type="button"
-              onClick={handleToggleStatus}
-              disabled={isTogglingStatus}
-              className={`${statusIsActive ? 'bg-[#23A55A]' : 'bg-[#ff5327]'} text-white px-6 py-2.5 rounded-full text-[15px] font-medium shadow-sm disabled:opacity-70`}
-            >
-              {isTogglingStatus ? 'Updating...' : statusLabel}
-            </button>
+            <ConfirmActionButton
+  isActive={statusIsActive}
+  isSubmitting={isTogglingStatus}
+  onConfirm={handleToggleStatus}
+  activateText="Activate"
+  deactivateText="Deactivate"
+/>
             <button
               type="button"
               onClick={() => navigate(`/${module}/jobs/freelance-form`, { state: { editData: freelance } })}

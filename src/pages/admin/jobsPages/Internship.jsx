@@ -4,6 +4,7 @@ import DynamicTable from '../../../common/DynamicTable';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import { getAllInternships } from '../../../services/admin/adminServices';
+import { useTitle } from '../../../context/AdminTitle';
 
 
 const Internship = ({ module = 'admin' }) => {
@@ -13,7 +14,10 @@ const Internship = ({ module = 'admin' }) => {
     const [isLoading, setIsLoading] = useState(true);
 
     const navigate = useNavigate();
-
+  const {setTitle}=useTitle()
+  useEffect(()=>{
+setTitle("Internships")
+  },[])
     useEffect(() => {
         fetchInternships();
     }, []);

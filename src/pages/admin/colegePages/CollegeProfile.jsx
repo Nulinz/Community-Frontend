@@ -7,6 +7,8 @@ import { getCollegeById, toggleCollegeStatus, setCollegePassword } from '../../.
 import { toast } from 'react-toastify';
 import { useMain } from '../../../context/MainContext';
 import { getMyCollege } from '../../../services/collegeServices';
+import { useTitle } from '../../../context/AdminTitle';
+import ConfirmActionButton from '../../../common/ConfirmActionButton';
 
 const tabs = ['Overview', 'Competition', 'Conference', 'Event', 'Seminar'];
 
@@ -19,8 +21,8 @@ const CollegeProfile = () => {
   const [eventPage, setEventPage] = useState(1);
   const [seminarPage, setSeminarPage] = useState(1);
   const [isPasswordModalOpen, setIsPasswordModalOpen] = useState(false);
-  const [password, setPassword] = useState('CNX@I204');
-  const [confirmPassword, setConfirmPassword] = useState('CNX@I2304');
+  const [password, setPassword] = useState('12345678');
+  const [confirmPassword, setConfirmPassword] = useState('12345678');
   const {user}=useMain()
   const [college, setCollege] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -34,7 +36,10 @@ const [events, setEvents] = useState({        // ✅ add
   totalCount: 0,
 });
   const BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
-
+  const {setTitle}=useTitle()
+  useEffect(()=>{
+setTitle("College Profile")
+  },[])
   useEffect(() => {
     fetchCollegeData();
   }, [id]);
@@ -251,7 +256,8 @@ const handleToggleStatus = async () => {
               </div>
             </div>
           </div>
-
+{
+  user.role ==="admin" &&
           <div className="flex flex-col xl:flex-row justify-between xl:items-center gap-5 py-6">
             <div className="flex flex-wrap gap-3">
               {tabs.map((tab) => (
@@ -270,19 +276,22 @@ const handleToggleStatus = async () => {
             </div>
 
             <div className="flex flex-wrap gap-3">
-              <button 
-                disabled={isSubmitting}
-                onClick={handleToggleStatus}
-                className={`px-[16px] py-2.5 rounded-full text-white text-[15px] font-semibold shadow-sm transition-all active:scale-95 disabled:opacity-50 ${college.isActive ? 'bg-[#F04438] hover:bg-[#D92D20]' : 'bg-[#12B76A] hover:bg-[#0E9355]'}`}
-              >
-                {isSubmitting ? <Loader2 size={16} className="animate-spin" /> : (college.is_active? 'Deactivate' : 'Activate')}
-              </button>
+              {user.role === 'admin' && (
+                  <>
+                  
+  <ConfirmActionButton
+  isActive={college?.is_active}
+  isSubmitting={isSubmitting}
+  onConfirm={handleToggleStatus}
+/>
               <button
                 onClick={() => setIsPasswordModalOpen(true)}
                 className="px-[16px] py-2.5 rounded-full bg-[#0086C9] text-white text-[15px] font-semibold shadow-sm hover:bg-[#026AA2] transition-colors"
               >
                 Set Password
               </button>
+                  </>
+                            )}              
               <button 
                 onClick={() => navigate('/admin/college-form', { state: { editData: college } })}
                 className="inline-flex items-center gap-2 px-[16px] py-2.5 rounded-full border border-[#D0D5DD] text-[#344054] text-[15px] font-semibold bg-white shadow-sm hover:bg-[#F9FAFB] transition-colors"
@@ -291,6 +300,7 @@ const handleToggleStatus = async () => {
               </button>
             </div>
           </div>
+}
 
           {activeTab === 'Overview' && (
             <div className="animate-in fade-in slide-in-from-bottom-2 duration-500">
@@ -357,7 +367,7 @@ const handleToggleStatus = async () => {
         mode: item.mode || 'N/A',
         regType: item.registrationType || 'N/A',
         fees: item.individualFees ? `₹${item.individualFees}` : '₹0',
-        applied: item.totalSeats || '0',
+          applied: item?.appliedCount || '0',
         status: item.isActive ?? true,
       }))}
       rowKey="id"
@@ -379,7 +389,7 @@ const handleToggleStatus = async () => {
         date: item.eventDate ? new Date(item.eventDate).toLocaleDateString('en-GB') : 'N/A',
         regType: item.registrationType || 'N/A',
         fees: item.individualFees ? `₹${item.individualFees}` : '₹0',
-        applied: item?.appliedCount || '0',
+          applied: item?.appliedCount || '0',
         status: item.isActive ?? true,
       }))}
       rowKey="id"
@@ -400,7 +410,7 @@ const handleToggleStatus = async () => {
         date: item.eventDate ? new Date(item.eventDate).toLocaleDateString('en-GB') : 'N/A',
         regType: item.registrationType || 'N/A',
         fees: item.individualFees ? `₹${item.individualFees}` : '₹0',
-        applied: item.totalSeats || '0',
+        applied: item?.appliedCount || '0',
         status: item.isActive ?? true,
       }))}
       rowKey="id"

@@ -4,6 +4,7 @@ import { assets } from '../../../assets/assets';
 
 import setFileName from '../../../utils/setFileName';
 import { apiGetcompanyDashboard } from '../../../services/companyServices';
+import { useTitle } from '../../../context/AdminTitle';
 
 // ─── tiny helper ────────────────────────────────────────────────────────────
 const Skeleton = ({ className = '' }) => (
@@ -16,6 +17,10 @@ const CompanyDashboard = () => {
   const [latestApplied, setLatestApplied] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const {setTitle}=useTitle()
+  useEffect(()=>{
+setTitle("Dashboard")
+  },[])
 
 
 useEffect(() => {

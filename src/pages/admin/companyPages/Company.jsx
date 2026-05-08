@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { Plus } from 'lucide-react';
 import DynamicTable from '../../../common/DynamicTable';
 import { getAllCpmpanies } from '../../../services/admin/adminServices';
+import { useTitle } from '../../../context/AdminTitle';
 
 const Company = ({ module }) => {
     const navigate = useNavigate();
@@ -10,7 +11,10 @@ const Company = ({ module }) => {
     const [isLoading, setIsLoading] = useState(true);
     const [search, setSearch] = useState('');
     const [currentPage, setCurrentPage] = useState(1);
-
+  const {setTitle}=useTitle()
+  useEffect(()=>{
+setTitle("Company")
+  },[])
     useEffect(() => {
         fetchCompanies();
     }, []);

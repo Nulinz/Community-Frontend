@@ -8,6 +8,8 @@ import { toast } from "react-toastify";
 import { createConference} from "../services/admin/adminServices";
 import FormLayout from "../layout/FormLayout";
 import { useOrganizerDisplayName } from "../utils/organizer";
+import { useTitle } from "../context/AdminTitle";
+import { useEffect } from "react";
 
 
 const conferenceFormConfig = [
@@ -30,6 +32,7 @@ const conferenceFormConfig = [
     title: "Round Details",
     type: "dynamic",
     key: "rounds",
+     dynamicStyle: "row-action",
     fields: [
       { name: "roundNumber", label: "Round Number", type: "text", colSpan: "md:col-span-3" },
       { name: "roundName", label: "Round Name", type: "text", colSpan: "md:col-span-4" },
@@ -40,6 +43,7 @@ const conferenceFormConfig = [
     title: "Event Schedule",
     type: "dynamic",
     key: "schedule",
+     dynamicStyle: "row-action",
     fields: [
       { name: "name", label: "Name", type: "text", colSpan: "md:col-span-4" },
       { name: "startTime", label: "Start Time", type: "time", colSpan: "md:col-span-3" },
@@ -49,6 +53,7 @@ const conferenceFormConfig = [
   {
     title: "Fees Details",
     type: "static",
+    showWhen: { field: "registrationType", value: "Paid" },
     fields: [
       { name: "individualFees", label: "Individual Fees", type: "number" },
       { name: "teamFees", label: "Team Fees", type: "number" },
@@ -94,8 +99,8 @@ const conferenceFormConfig = [
     showWhen: { field: "mode", value: "Offline" },
     fields: [
       { name: "foodProvide", label: "Food Provide", type: "radio", options: ["Yes", "No"] },
-      { name: "vegNonVeg", label: "Veg / Non-Veg", type: "radio", options: ["Veg", "Non-veg", "Both"] },
-      { name: "midnightSnacks", label: "Midnight Snacks", type: "radio", options: ["Yes", "No"] },
+      {showWhen: { field: "foodProvide", value: "Yes" }, name: "vegNonVeg", label: "Veg / Non-Veg", type: "radio", options: ["Veg", "Non-veg", "Both"] },
+      {showWhen: { field: "foodProvide", value: "Yes" }, name: "midnightSnacks", label: "Midnight Snacks", type: "radio", options: ["Yes", "No"] },
     ],
   },
   {
@@ -104,14 +109,15 @@ const conferenceFormConfig = [
     showWhen: { field: "mode", value: "Offline" },
     fields: [
       { name: "accommodationProvide", label: "Accommodation Provide", type: "radio", options: ["Yes", "No"] },
-      { name: "separatedForBoysGirls", label: "Separated for boys & girls", type: "radio", options: ["Yes", "No"] },
-      { name: "onlyForOutstationParticipants", label: "Only For Outstation Participants", type: "radio", options: ["Yes", "No"] },
+      {  showWhen: { field: "accommodationProvide", value: "Yes" },name: "separatedForBoysGirls", label: "Separated for boys & girls", type: "radio", options: ["Yes", "No"] },
+      {  showWhen: { field: "accommodationProvide", value: "Yes" },name: "onlyForOutstationParticipants", label: "Only For Outstation Participants", type: "radio", options: ["Yes", "No"] },
     ],
   },
   {
     title: "Event Incharge Details",
     type: "dynamic",
     key: "incharges",
+     dynamicStyle: "row-action",
     fields: [
       { name: "type", label: "Type", type: "select", options: ["Organizer", "Volunteer", "Staff"], colSpan: "md:col-span-3" },
       { name: "name", label: "Name", type: "text", colSpan: "md:col-span-3" },
@@ -124,7 +130,7 @@ const conferenceFormConfig = [
     type: "static",
     fields: [
       { name: "eligibilityDetails", label: "Eligibility Details", type: "text" },
-         { name: "allowedDepartments", label: "Allowed Departments",  type: "multiselect", options: [ "CS", "IT", "ECE", "EEE"] },
+      { name: "allowedDepartments", label: "Allowed Departments",  type: "multiselect", options: [ "CS", "IT", "ECE", "EEE"] },
       { name: "teamOrIndividualEvent", label: "Team Or Individual Event", type: "radio", options: ["Team", "Individual", "Both"] },
       { 
   name: "teamSizeMinimum", 
@@ -154,7 +160,10 @@ const ConferenceForm = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const editData = location.state?.editData;
-
+  const {setTitle}=useTitle()
+  useEffect(()=>{
+setTitle("Competition Form")
+  },[])
 const handleSubmit = async (formData) => {
   try {
     const res = await createConference(formData);

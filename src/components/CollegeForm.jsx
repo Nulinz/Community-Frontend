@@ -4,6 +4,8 @@ import { useLocation, useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 import { createCollege, createEvent } from "../services/admin/adminServices";
 import FormLayout from "../layout/FormLayout";
+import { useTitle } from "../context/AdminTitle";
+import { useEffect } from "react";
 
 const collegeFormConfig = [
   {
@@ -42,7 +44,7 @@ const collegeFormConfig = [
     key: "departments",
     payloadKey: "departments",
     dynamicStyle: "grid-6",
-    initialRows: 6,
+    initialRows: 3,
     fields: [{ name: "department", label: "Department", type: "text", colSpan: "md:col-span-11" }],
   },
   {
@@ -85,6 +87,12 @@ const CollegeForm = () => {
         phoneNumber: editData.phoneNumber || editData.phone || "",
       }
     : undefined;
+
+  const {setTitle}=useTitle()
+  useEffect(()=>{
+setTitle("College Form")
+  },[])
+    
 const handleSubmit = async (formData) => {
   try {
     const res = await createCollege(formData);

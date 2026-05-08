@@ -5,6 +5,8 @@ import { createInternship } from "../services/admin/adminServices";
 import { useOrganizerDisplayName } from "../utils/organizer";
 import FormLayout from "../layout/FormLayout";
 import { useState } from "react";
+import { useEffect } from "react";
+import { useTitle } from "../context/AdminTitle";
 
 
 const internshipFormConfig = [
@@ -71,7 +73,7 @@ const internshipFormConfig = [
     key: "learning_outcomes",
     dynamicStyle: "grid-6",
     initialRows: 6,
-    fields: [{ name: "outcomes", label: "Learning outcomes", type: "text", colSpan: "md:col-span-11" }],
+    fields: [{ name: "learning_outcomes", label: "Learning outcomes", type: "text", colSpan: "md:col-span-11" }],
   },
   {
     title: "Skill Development Benefits",
@@ -106,7 +108,10 @@ const InternshipForm = () => {
   const organizerName = useOrganizerDisplayName();
 const [loading, setLoading] = useState(false);
 const navigate=useNavigate()
-
+  const {setTitle}=useTitle()
+  useEffect(()=>{
+setTitle("Internship Form")
+  },[])
 const handleSubmit = async (_, payload) => {
   try {
     setLoading(true);

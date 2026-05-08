@@ -5,6 +5,7 @@ import DynamicTable from "../../../common/DynamicTable";
 import { getAllEvents } from '../../../services/admin/adminServices';
 import { toast } from 'react-toastify';
 import { useMain } from '../../../context/MainContext';
+import { useTitle } from '../../../context/AdminTitle';
 
 const Event = () => {
   const navigate = useNavigate();
@@ -13,6 +14,10 @@ const Event = () => {
   const [events, setEvents] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const {user,dynamicPath}=useMain()
+    const {setTitle}=useTitle()
+    useEffect(()=>{
+  setTitle("Events")
+    },[])
   useEffect(() => {
     fetchEvents();
   }, []);

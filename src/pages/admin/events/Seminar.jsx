@@ -5,6 +5,7 @@ import { useNavigate } from 'react-router-dom';
 import { getAllSeminars } from '../../../services/admin/adminServices';
 import { toast } from 'react-toastify';
 import { useMain } from '../../../context/MainContext';
+import { useTitle } from '../../../context/AdminTitle';
 
 const Seminar = () => {
   const [search, setSearch] = useState('');
@@ -13,6 +14,11 @@ const Seminar = () => {
   const [isLoading, setIsLoading] = useState(true);
   const navigate = useNavigate();
   const {dynamicPath}=useMain()
+
+    const {setTitle}=useTitle()
+    useEffect(()=>{
+  setTitle("Seminars")
+    },[])
   useEffect(() => {
     fetchSeminars();
   }, []);

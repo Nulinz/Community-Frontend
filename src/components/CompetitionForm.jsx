@@ -4,6 +4,8 @@ import { toast } from "react-toastify";
 import { createCompetition } from "../services/admin/adminServices";
 import FormLayout from "../layout/FormLayout";
 import { useOrganizerDisplayName } from "../utils/organizer";
+import { useEffect } from "react";
+import { useTitle } from "../context/AdminTitle";
 
 const competitionFormConfig = [
   {
@@ -26,7 +28,7 @@ const competitionFormConfig = [
     type: "dynamic",
     key: "rounds",
     dynamicStyle: "row-action",
-    initialRows: 2,
+    initialRows: 1,
     fields: [
       { name: "roundNumber", label: "Round Number", type: "text" },
       { name: "roundName", label: "Round Name", type: "text" },
@@ -38,7 +40,7 @@ const competitionFormConfig = [
     type: "dynamic",
     key: "schedule",
     dynamicStyle: "row-action",
-    initialRows: 2,
+    initialRows: 1,
     fields: [
       { name: "name", label: "Name", type: "text" },
       { name: "startTime", label: "Start Time", type: "time" },
@@ -48,6 +50,7 @@ const competitionFormConfig = [
   {
     title: "Fees Details",
     type: "static",
+    showWhen: { field: "registrationType", value: "Paid" },
     fields: [
       { name: "individualFees", label: "Individual Fees", type: "number" },
       { name: "teamFees", label: "Team Fees", type: "number" },
@@ -93,8 +96,8 @@ const competitionFormConfig = [
     showWhen: { field: "mode", value: "Offline" },
     fields: [
       { name: "foodProvide", label: "Food Provide", type: "radio", options: ["Yes", "No"] },
-      { name: "vegNonVeg", label: "Veg / Non-Veg", type: "radio", options: ["Veg", "Non-veg", "Both"] },
-      { name: "midnightSnacks", label: "Midnight Snacks", type: "radio", options: ["Yes", "No"] },
+      { showWhen: { field: "foodProvide", value: "Yes" },name: "vegNonVeg", label: "Veg / Non-Veg", type: "radio", options: ["Veg", "Non-veg", "Both"] },
+      { showWhen: { field: "foodProvide", value: "Yes" },name: "midnightSnacks", label: "Midnight Snacks", type: "radio", options: ["Yes", "No"] },
     ],
   },
   {
@@ -103,8 +106,8 @@ const competitionFormConfig = [
     showWhen: { field: "mode", value: "Offline" },
     fields: [
       { name: "accommodationProvide", label: "Accommodation Provide", type: "radio", options: ["Yes", "No"] },
-      { name: "separatedForBoysGirls", label: "Separated for boys & girls", type: "radio", options: ["Yes", "No"] },
-      { name: "onlyForOutstationParticipants", label: "Only For Outstation Participants", type: "radio", options: ["Yes", "No"] },
+      {  showWhen: { field: "accommodationProvide", value: "Yes" },name: "separatedForBoysGirls", label: "Separated for boys & girls", type: "radio", options: ["Yes", "No"] },
+      {  showWhen: { field: "accommodationProvide", value: "Yes" },name: "onlyForOutstationParticipants", label: "Only For Outstation Participants", type: "radio", options: ["Yes", "No"] },
     ],
   },
   {
@@ -112,7 +115,7 @@ const competitionFormConfig = [
     type: "dynamic",
     key: "incharges",
     dynamicStyle: "row-action",
-    initialRows: 2,
+    initialRows: 1,
     fields: [
       { name: "type", label: "Type", type: "select", options: ["Organizer", "Volunteer", "Staff"] },
       { name: "name", label: "Name", type: "text" },
@@ -163,7 +166,10 @@ const CompetitionForm = () => {
   const navigate = useNavigate();
   const editData = location.state?.editData;
     const organizerName = useOrganizerDisplayName();
-
+  const {setTitle}=useTitle()
+  useEffect(()=>{
+setTitle("Competition Form")
+  },[])
 const handleSubmit = async (formData) => {
   try {
     const res = await createCompetition(formData);

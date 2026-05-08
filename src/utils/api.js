@@ -66,7 +66,6 @@ API.interceptors.response.use(
     // Handle Unauthorized globally
     if (error.response?.status === 401) {
       console.warn("Unauthorized. Redirecting to login...");
-      localStorage.removeItem("token");
       // Optionally redirect:
       // window.location.href = "/login";
     }

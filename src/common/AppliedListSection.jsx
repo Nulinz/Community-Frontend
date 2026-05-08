@@ -1,7 +1,7 @@
 import React, { useMemo, useState } from 'react';
 import DynamicTable from './DynamicTable';
 
-const AppliedListSection = ({ data = [] ,heading =[]}) => {
+const AppliedListSection = ({ data = [] ,heading =[],showFilters}) => {
     const [search, setSearch] = useState('');
     const [yearFilter, setYearFilter] = useState('');
     const [departmentFilter, setDepartmentFilter] = useState('');
@@ -61,8 +61,8 @@ const AppliedListSection = ({ data = [] ,heading =[]}) => {
                         },
                     },
                     {
-                        key: 'location',
-                        placeholder: 'All Location',
+                        key: 'department',
+                        placeholder: 'All Department',
                         value: departmentFilter,
                         options: departmentOptions,
                         onChange: (value) => {

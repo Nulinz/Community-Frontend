@@ -5,6 +5,7 @@ import { useNavigate } from 'react-router-dom';
 import { getAllCompetitions } from '../../../services/admin/adminServices';
 import { toast } from 'react-toastify';
 import { useMain } from '../../../context/MainContext';
+import { useTitle } from '../../../context/AdminTitle';
 
 const Competition = () => {
   const [search, setSearch] = useState('');
@@ -13,7 +14,10 @@ const Competition = () => {
   const [isLoading, setIsLoading] = useState(true);
   const {user,dynamicPath}=useMain()
   const navigate = useNavigate();
-
+ const {setTitle}=useTitle()
+  useEffect(()=>{
+setTitle("Competitions")
+  },[])
   useEffect(() => {
     fetchCompetitions();
   }, []);

@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import DynamicTable from '../../../common/DynamicTable';
 import { getAllColleges } from '../../../services/admin/adminServices';
 import { toast } from 'react-toastify';
+import { useTitle } from '../../../context/AdminTitle';
 
 const College = () => {
   const navigate = useNavigate();
@@ -11,7 +12,10 @@ const College = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [colleges, setColleges] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
-
+  const {setTitle}=useTitle()
+  useEffect(()=>{
+setTitle("College")
+  },[])
   useEffect(() => {
     fetchColleges();
   }, []);

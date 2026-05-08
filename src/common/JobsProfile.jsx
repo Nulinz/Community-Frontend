@@ -4,6 +4,8 @@ import AppliedListSection from './AppliedListSection';
 import { useNavigate, useParams } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import { getInternshipById, toggleInternshipStatus } from '../services/admin/adminServices';
+import ConfirmActionButton from './ConfirmActionButton';
+import { useTitle } from '../context/AdminTitle';
 
 const JobsProfile = ({ module = 'admin' }) => {
   const [activeTab, setActiveTab] = useState('overview');
@@ -13,7 +15,10 @@ const [applications, setApplications] = useState({ count: 0, list: [] });
   const [isTogglingStatus, setIsTogglingStatus] = useState(false);
   const { id } = useParams();
   const navigate = useNavigate();
-
+  const {setTitle}=useTitle()
+  useEffect(()=>{
+setTitle("Internship Profile")
+  },[])
   useEffect(() => {
     const fetchInternship = async () => {
       if (!id) {
@@ -63,7 +68,7 @@ const [applications, setApplications] = useState({ count: 0, list: [] });
     { title: 'Year', dataIndex: 'year', key: 'year' },
     { title: 'Contact Number', dataIndex: 'contact', key: 'contact' },
     { title: 'Mail id', dataIndex: 'mail', key: 'mail' },
-    { title: 'Location', dataIndex: 'location', key: 'location' },
+    // { title: 'Location', dataIndex: 'location', key: 'location' },
   ];
 
   const appliedListData = [];
@@ -201,14 +206,13 @@ const [applications, setApplications] = useState({ count: 0, list: [] });
           </div>
 
           <div className="flex flex-wrap items-center gap-3">
-            <button
-              type="button"
-              onClick={handleToggleStatus}
-              disabled={isTogglingStatus}
-              className={`${statusIsActive ? 'bg-[#23A55A]' : 'bg-[#ff5327]'} text-white px-6 py-2.5 rounded-full text-[15px] font-medium shadow-sm disabled:opacity-70`}
-            >
-              {isTogglingStatus ? 'Updating...' : statusLabel}
-            </button>
+           <ConfirmActionButton
+  isActive={statusIsActive}
+  isSubmitting={isTogglingStatus}
+  onConfirm={handleToggleStatus}
+  activateText="Activate"
+  deactivateText="Deactivate"
+/>
             <button
               type="button"
               onClick={() => navigate(`/${module}/jobs/internship-form`, { state: { editData: internship } })}
@@ -230,10 +234,19 @@ const [applications, setApplications] = useState({ count: 0, list: [] });
             <ListCard title="Supported Learning Recourse" items={responsibilities.length ? responsibilities : fallbackList} />
             <TextCard title="Description" text={internship.description || '-'} />
 
-            <div className="xl:col-span-2">
-              <TextCard title="Learning" text={internship.description || '-'} />
-            </div>
-            <TextCard title="Certificate Availability" text={internship.certificateAvailability || '-'} />
+            <div className="xl:col-span-3 grid grid-cols-1 md:grid-cols-2 gap-4">
+  
+  <TextCard
+    title="Learning"
+    text={internship.description || '-'}
+  />
+
+  <TextCard
+    title="Certificate Availability"
+    text={internship.certificateAvailability || '-'}
+  />
+
+</div>
           </div>
         ) : (
         <AppliedListSection

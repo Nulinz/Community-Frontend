@@ -1,7 +1,8 @@
 import React, { useRef, useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import {
-    MapPin, Briefcase, CalendarDays, Download, Plus, X, Upload, Loader2, SquarePen
+    MapPin, Briefcase, CalendarDays, Download, Plus, X, Upload, Loader2, SquarePen,
+    IndianRupee
 } from 'lucide-react';
 import { assets } from '../assets/assets';
 import AppliedListSection from '../common/AppliedListSection';
@@ -9,6 +10,10 @@ import { getConferenceById, toggleConferenceStatus, addConferencePost } from '..
 import { toast } from 'react-toastify';
 import { useMain } from '../context/MainContext';
 import { formatAddress } from '../utils/formatAddress';
+import getRemainingDays from '../utils/getRemainingDays';
+import ConfirmActionButton from '../common/ConfirmActionButton';
+import { useTitle } from '../context/AdminTitle';
+import { EducationIcon } from './icons';
 
 
 const ConferenceProfile = () => {
@@ -17,15 +22,18 @@ const ConferenceProfile = () => {
     const [activeTab, setActiveTab] = useState('overview');
     const [isAddPostModalOpen, setIsAddPostModalOpen] = useState(false);
     const [isSubmitting, setIsSubmitting] = useState(false);
-  const [conference, setConference] = useState(null);
-const [registrations, setRegistrations] = useState({ count: 0, list: [] }); 
+    const [conference, setConference] = useState(null);
+    const [registrations, setRegistrations] = useState({ count: 0, list: [],revenue:null }); 
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState(null);
     const [selectedFiles, setSelectedFiles] = useState([]);
     const fileInputRef = useRef(null);
     const {user,dynamicPath}=useMain()
     const BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
-
+  const {setTitle}=useTitle()
+  useEffect(()=>{
+setTitle("Conference Profile")
+  },[])
     useEffect(() => {
         fetchConferenceData();
     }, [id]);
@@ -36,7 +44,7 @@ const [registrations, setRegistrations] = useState({ count: 0, list: [] });
             const response = await getConferenceById(id);
             if (response.success) {
                 setConference(response.data.conference);
-                setRegistrations(response.data.registrations || { count: 0, list: [] });
+                setRegistrations(response.data.registrations || { count: 0, list: [],revenue:null });
             } else {
                 setError("Conference not found");
             }
@@ -154,7 +162,7 @@ const [registrations, setRegistrations] = useState({ count: 0, list: [] });
     };
 
     const appliedListColumns = [
-        { title: '#', dataIndex: 'id', key: 'id' },
+        { title: '#', dataIndex: 'sNo', key: 'sNo' },
         { title: 'Name', dataIndex: 'name', key: 'name' },
         { title: 'College', dataIndex: 'college', key: 'college' },
         { title: 'Department', dataIndex: 'department', key: 'department' },
@@ -162,8 +170,8 @@ const [registrations, setRegistrations] = useState({ count: 0, list: [] });
     ];
 
     return (
-        <div className="bg-[#f8f9fa] min-h-screen font-sans">
-            <section className="bg-white rounded-[16px] md:rounded-[24px] border border-gray-200 p-4 md:p-6 shadow-sm">
+        <div className="bg-[#f8f9fa] min-h-screen ">
+            <section className="bg-white rounded-[16px] md:rounded-[16px] border border-gray-200 p-4 md:p-6 shadow-sm">
                 <div
                     className="relative overflow-hidden rounded-[20px] md:rounded-[22px] xl:rounded-[24px] text-white p-5 pt-8 pb-6 sm:p-6 md:p-7 lg:p-8 xl:p-10 xl:pt-16 xl:pb-10 min-h-[320px] md:min-h-[360px] lg:min-h-[380px] xl:min-h-[400px] flex flex-col xl:flex-row justify-between xl:items-end gap-6 md:gap-7 xl:gap-8 mb-6 md:mb-7 xl:mb-8"
                     style={{
@@ -176,27 +184,33 @@ const [registrations, setRegistrations] = useState({ count: 0, list: [] });
                     <div className="z-10 w-full">
                         <h1 className="text-[24px] sm:text-[30px] md:text-[34px] lg:text-[38px] xl:text-[48px] font-extrabold leading-[32px] sm:leading-[38px] md:leading-[44px] lg:leading-[48px] xl:leading-[60px] tracking-[0px]  mb-4 md:mb-6 xl:mb-8">{conference.eventName}</h1>
                         <div className="grid grid-cols-1 gap-y-2 font-source text-[13px] sm:text-[14px] md:text-[15px] xl:text-[16px] font-normal leading-[18px] sm:leading-[19px] md:leading-[20px] tracking-[0px] align-middle text-[#FFFFFF]">
-                            <span className="flex items-center gap-2 "><MapPin size={16} /> {conference.organizer}</span>
-                            <span className="flex items-center gap-2 "><MapPin size={16} /> {conference.venueName || 'Online'}</span>
+                            <span className="flex items-center gap-2 "><EducationIcon  />  {conference.organizer}</span>
+                            <span className="flex items-center gap-2 "><MapPin size={16} />{formatAddress(conference)}</span>
                             <span className="flex items-center gap-2 "><Briefcase size={16} /> {conference.mode}</span>
                             <span className="flex items-center gap-2 "><CalendarDays size={16} /> {conference.eventDate ? new Date(conference.eventDate).toLocaleDateString() : 'N/A'}</span>
                         </div>
                     </div>
 
-                    <div className="z-10 grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-3 xl:flex gap-3 md:gap-4 xl:gap-4 items-stretch xl:items-end w-full xl:w-auto">
-                        <div className="bg-[linear-gradient(119.97deg,_#006098_0%,_#00C1FD_100%)] p-3 sm:p-3.5 md:p-4 xl:p-6 rounded-[14px] sm:rounded-[16px] xl:rounded-[24px] min-w-0 xl:min-w-[180px] flex flex-col justify-center shadow-lg w-full xl:w-auto">
-                            <p className="font-source text-[8px] sm:text-[9px] md:text-[10px] xl:text-[10px] font-semibold leading-[13px] sm:leading-[14px] tracking-[0.5px] align-middle uppercase text-[#FFFFFF] mb-1">Registration</p>
-                            <p className="text-[18px] sm:text-[20px] md:text-[22px] lg:text-[24px] xl:text-[30px] font-bold leading-[24px] sm:leading-[26px] md:leading-[28px] lg:leading-[30px] xl:leading-[36px] tracking-[0px] align-middle text-[#ffffff] text-source">{conference.registrationType}</p>
+                      <div className="z-10 grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-3 xl:flex gap-3 md:gap-4 xl:gap-4 items-stretch xl:items-end w-full xl:w-auto">
+                                           <div className="bg-[linear-gradient(119.97deg,_#006098_0%,_#00C1FD_100%)] p-3 sm:p-3.5 md:p-4 xl:p-6 rounded-[14px] sm:rounded-[16px] xl:rounded-[24px] min-w-0 xl:min-w-[180px] flex flex-col justify-center shadow-lg w-full xl:w-auto">
+                                               <p className="font-source text-[8px] sm:text-[9px] md:text-[10px] xl:text-[10px] font-semibold leading-[13px] sm:leading-[14px] tracking-[0.5px] align-middle uppercase text-[#FFFFFF] mb-1">Total Registration</p>
+                                               <p className="text-[18px] sm:text-[20px] md:text-[22px] lg:text-[24px] xl:text-[30px] font-bold leading-[24px] sm:leading-[26px] md:leading-[28px] lg:leading-[30px] xl:leading-[36px] tracking-[0px] align-middle text-[#ffffff] text-source">{registrations.count} <span className='text-[20px] text-gray-300 ' >/{conference?.totalSeats}</span></p>
+                                           </div>
+                                            <div className="bg-white p-3 sm:p-3.5 md:p-4 xl:p-6 rounded-[14px] sm:rounded-[16px] xl:rounded-[24px] min-w-0 xl:min-w-[180px] flex flex-col justify-center text-gray-900 shadow-xl w-full xl:w-auto">
+                            <p className="font-source text-[8px] sm:text-[9px] md:text-[10px] xl:text-[10px] font-semibold leading-[13px] sm:leading-[14px] tracking-[0.5px] align-middle uppercase text-[#64748B] mb-1">Revenue Generated</p>
+            <div className="flex items-center gap-1">
+               <IndianRupee  size={24} className="text-[#006098] font-bold" />
+           
+               <p className="text-[18px] sm:text-[20px] md:text-[22px] lg:text-[24px] xl:text-[30px] font-bold leading-[24px] sm:leading-[26px] md:leading-[28px] lg:leading-[30px] xl:leading-[36px] tracking-[0px] align-middle text-[#006098] text-source">
+                 {registrations?.revenue?.totalAmount || 0}
+               </p>
+             </div>
                         </div>
-                        <div className="bg-white p-3 sm:p-3.5 md:p-4 xl:p-6 rounded-[14px] sm:rounded-[16px] xl:rounded-[24px] min-w-0 xl:min-w-[180px] flex flex-col justify-center text-gray-900 shadow-xl w-full xl:w-auto">
-                            <p className="font-source text-[8px] sm:text-[9px] md:text-[10px] xl:text-[10px] font-semibold leading-[13px] sm:leading-[14px] tracking-[0.5px] align-middle uppercase text-[#64748B] mb-1">Total Seats</p>
-                            <p className="text-[18px] sm:text-[20px] md:text-[22px] lg:text-[24px] xl:text-[30px] font-bold leading-[24px] sm:leading-[26px] md:leading-[28px] lg:leading-[30px] xl:leading-[36px] tracking-[0px] align-middle text-[#006098] text-source">{conference.totalSeats || 'Unlimited'}</p>
-                        </div>
-                        <div className="bg-white p-3 sm:p-3.5 md:p-4 xl:p-6 rounded-[14px] sm:rounded-[16px] xl:rounded-[24px] min-w-0 xl:min-w-[180px] flex flex-col justify-center items-start shadow-xl w-full xl:w-auto">
-                            <p className="font-source text-[8px] sm:text-[9px] md:text-[10px] xl:text-[10px] font-semibold leading-[13px] sm:leading-[14px] tracking-[0.5px] align-middle uppercase text-[#64748B] mb-1">Individual Fees</p>
-                            <p className="text-[18px] sm:text-[20px] md:text-[22px] lg:text-[24px] xl:text-[30px] font-bold leading-[24px] sm:leading-[26px] md:leading-[28px] lg:leading-[30px] xl:leading-[36px] tracking-[0px] align-middle text-[#006098] text-source">₹{conference.individualFees || 0}</p>
-                        </div>
-                    </div>
+                                           <div className="bg-white p-3 sm:p-3.5 md:p-4 xl:p-6 rounded-[14px] sm:rounded-[16px] xl:rounded-[24px] min-w-0 xl:min-w-[180px] flex flex-col justify-center items-start shadow-xl w-full xl:w-auto">
+                                               <p className="font-source text-[8px] sm:text-[9px] md:text-[10px] xl:text-[10px] font-semibold leading-[13px] sm:leading-[14px] tracking-[0.5px] align-middle uppercase text-[#64748B] mb-1">Days Remaining</p>
+                                               <p className="text-[18px] sm:text-[20px] md:text-[22px] lg:text-[24px] xl:text-[30px] font-bold leading-[24px] sm:leading-[26px] md:leading-[28px] lg:leading-[30px] xl:leading-[36px] tracking-[0px] align-middle text-[#006098] text-source">{getRemainingDays(conference.eventDate)}</p>
+                                           </div>
+                                       </div>
                 </div>
 
                 <div className="flex flex-col lg:flex-row justify-between lg:items-center xl:items-center gap-4 xl:gap-0 pb-4 mb-6">
@@ -224,13 +238,13 @@ const [registrations, setRegistrations] = useState({ count: 0, list: [] });
                         <span className={`flex items-center gap-2 px-4 py-2 rounded-full text-[12px] font-bold border ${conference.isActive ? 'bg-[#E6F8EE] text-[#0ca678] border-[#c3fae8]' : 'bg-gray-50 text-secondary border-gray-200'}`}>
                             <div className={`w-2 h-2 rounded-full ${conference.isActive ? 'bg-[#0ca678]' : 'bg-secondary'}`}></div> {conference.isActive ? 'Active' : 'Inactive'}
                         </span>
-                        <button 
-                            disabled={isSubmitting}
-                            onClick={handleToggleStatus}
-                            className={`px-8 py-2.5 rounded-full text-sm font-bold shadow-sm transition-all active:scale-95 disabled:opacity-50 ${conference.isActive ? 'bg-red-500 text-white' : 'bg-[#12B76A] text-white'}`}
-                        >
-                            {isSubmitting ? <Loader2 size={16} className="animate-spin" /> : (conference.isActive ? 'Deactivate' : 'Activate')}
-                        </button>
+                         <ConfirmActionButton
+                          isActive={conference?.isActive}
+                          isSubmitting={isSubmitting}
+                          onConfirm={handleToggleStatus}
+                          activateText="Activate"
+                          deactivateText="Deactivate"
+                        />
                         <button
                             onClick={() => { setIsAddPostModalOpen(true); setSelectedFiles([]); }}
                             className="flex gap-2 items-center bg-white border border-[#D0D5DD] text-gray-700 px-6 py-2.5 rounded-full text-sm font-bold hover:bg-gray-50 transition-all shadow-sm"
@@ -362,9 +376,17 @@ const [registrations, setRegistrations] = useState({ count: 0, list: [] });
                         </div>
 
                         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                            <InfoCard title="Allowed Departments">
-                                <p className="text-secondary text-sm leading-relaxed">{conference.allowedDepartments || 'Open to all departments'}</p>
-                            </InfoCard>
+                             <InfoCard title="Allowed Departments">
+  <ul className="list-disc pl-5 space-y-1 text-secondary text-sm">
+    {conference?.allowedDepartments?.length > 0 ? (
+      conference?.allowedDepartments.map((dept, index) => (
+        <li key={index}>{dept}</li>
+      ))
+    ) : (
+      <li>Open to all departments</li>
+    )}
+  </ul>
+</InfoCard>
                             <InfoCard title="Eligibility">
                                 <p className="text-secondary text-sm leading-relaxed">{conference.eligibilityDetails}</p>
                             </InfoCard>
