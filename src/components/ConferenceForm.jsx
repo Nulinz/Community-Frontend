@@ -50,16 +50,16 @@ const conferenceFormConfig = [
       { name: "endTime", label: "End Time", type: "time", colSpan: "md:col-span-4" },
     ],
   },
-  {
-    title: "Fees Details",
-    type: "static",
-    showWhen: { field: "registrationType", value: "Paid" },
-    fields: [
-      { name: "individualFees", label: "Individual Fees", type: "number" },
-      { name: "teamFees", label: "Team Fees", type: "number" },
-      { name: "lateFees", label: "Late Fees", type: "number" },
-    ],
-  },
+  // {
+  //   title: "Fees Details",
+  //   type: "static",
+  //   showWhen: { field: "registrationType", value: "Paid" },
+  //   fields: [
+  //     { name: "individualFees", label: "Individual Fees", type: "number" },
+  //     { name: "teamFees", label: "Team Fees", type: "number" },
+  //     { name: "lateFees", label: "Late Fees", type: "number" },
+  //   ],
+  // },
   {
     title: "Prize Details",
     type: "static",
@@ -147,6 +147,16 @@ const conferenceFormConfig = [
     ],
   },
   {
+    title: "Fees Details",
+    type: "static",
+    showWhen: { field: "registrationType", value: "Paid" },
+    fields: [
+      { name: "individualFees", label: "Individual Fees", type: "number" },
+      { showWhen: { field: "teamOrIndividualEvent", value: ["Team", "Both"] }, name: "teamFees", label: "Team Fees", type: "number" },
+      { name: "lateFees", label: "Late Fees", type: "number" },
+    ],
+  },
+  {
     title: "Event Description",
     type: "static",
     fields: [
@@ -162,7 +172,7 @@ const ConferenceForm = () => {
   const editData = location.state?.editData;
   const {setTitle}=useTitle()
   useEffect(()=>{
-setTitle("Competition Form")
+setTitle("Conference Form")
   },[])
 const handleSubmit = async (formData) => {
   try {

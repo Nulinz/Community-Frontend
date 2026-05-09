@@ -62,11 +62,11 @@ setTitle("Internships")
             render: (_text, _record, index) => index + 1
         },
         { title: 'Job Title', dataIndex: 'jobTitle', key: 'jobTitle' },
-        { title: 'Company', dataIndex: 'company', key: 'company' },
+        // { title: 'Company', dataIndex: 'company', key: 'company' },
         { title: 'Date', dataIndex: 'date', key: 'date' },
         { title: 'Job Type', dataIndex: 'jobType', key: 'jobType' },
         { title: 'Salary', dataIndex: 'salary', key: 'salary' },
-        { title: 'Location', dataIndex: 'location', key: 'location' },
+        // { title: 'Location', dataIndex: 'location', key: 'location' },
         { title: 'Applied', dataIndex: 'applied', key: 'applied' },
         {
             title: 'Status',

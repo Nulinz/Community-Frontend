@@ -155,7 +155,7 @@ const appliedListColumns = [
 ];
 
     return (
-        <div className="bg-[#f8f9fa] min-h-screen font-sans">
+        <div className="bg-[#f8f9fa] min-h-screen ">
             <section className="bg-white rounded-[16px] md:rounded-[24px] border border-gray-200 p-4 md:p-6 shadow-sm">
                 <div
                     className="relative overflow-hidden rounded-[20px] md:rounded-[22px] xl:rounded-[24px] text-white p-5 pt-8 pb-6 sm:p-6 md:p-7 lg:p-8 xl:p-10 xl:pt-16 xl:pb-10 min-h-[320px] md:min-h-[360px] lg:min-h-[380px] xl:min-h-[400px] flex flex-col xl:flex-row justify-between xl:items-end gap-6 md:gap-7 xl:gap-8 mb-6 md:mb-7 xl:mb-8"

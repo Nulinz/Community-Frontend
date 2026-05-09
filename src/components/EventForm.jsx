@@ -46,16 +46,16 @@ const eventFormConfig = [
       { name: "endTime", label: "End Time", type: "time", colSpan: "md:col-span-4" },
     ],
   },
-  {
-    title: "Fees Details",
-    type: "static",
-     showWhen: { field: "registrationType", value: "Paid" },
-    fields: [
-      { name: "individualFees", label: "Individual Fees", type: "number" },
-      { name: "teamFees", label: "Team Fees", type: "number" },
-      { name: "lateFees", label: "Late Fees", type: "number" },
-    ],
-  },
+  // {
+  //   title: "Fees Details",
+  //   type: "static",
+  //    showWhen: { field: "registrationType", value: "Paid" },
+  //   fields: [
+  //     { name: "individualFees", label: "Individual Fees", type: "number" },
+  //     { name: "teamFees", label: "Team Fees", type: "number" },
+  //     { name: "lateFees", label: "Late Fees", type: "number" },
+  //   ],
+  // },
   {
     title: "Prize Details",
     type: "static",
@@ -142,6 +142,16 @@ const eventFormConfig = [
   type: "number",
   showWhen: { field: "teamOrIndividualEvent", value: ["Team", "Both"] }  // ← array of values
 },
+    ],
+  },
+  {
+    title: "Fees Details",
+    type: "static",
+    showWhen: { field: "registrationType", value: "Paid" },
+    fields: [
+      { name: "individualFees", label: "Individual Fees", type: "number" },
+      { showWhen: { field: "teamOrIndividualEvent", value: ["Team", "Both"] }, name: "teamFees", label: "Team Fees", type: "number" },
+      { name: "lateFees", label: "Late Fees", type: "number" },
     ],
   },
   {

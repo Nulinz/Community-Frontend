@@ -41,7 +41,7 @@ const freelanceFormConfig = [
     key: "project_needs",
     payloadKey: "projectNeeds",
     dynamicStyle: "grid-6",
-    initialRows: 6,
+    initialRows: 3,
     fields: [{ name: "projectNeed", label: "Project Needs", type: "text", colSpan: "md:col-span-11" }],
   },
   {
@@ -50,7 +50,7 @@ const freelanceFormConfig = [
     key: "eligibility",
     payloadKey: "eligibility",
     dynamicStyle: "grid-6",
-    initialRows: 6,
+    initialRows: 3,
     fields: [{ name: "eligibilityCriteria", label: "Eligibility ", type: "text", colSpan: "md:col-span-11" }],
   },
   {
@@ -59,7 +59,7 @@ const freelanceFormConfig = [
     key: "eligibility_criteria",
     payloadKey: "eligibility_criteria",
     dynamicStyle: "grid-6",
-    initialRows: 6,
+    initialRows: 3,
     fields: [{ name: "eligibilityCriteria", label: "Eligibility Criteria", type: "text", colSpan: "md:col-span-11" }],
   },
   {
@@ -68,8 +68,15 @@ const freelanceFormConfig = [
     key: "security",
     payloadKey: "security",
     dynamicStyle: "grid-6",
-    initialRows: 6,
+    initialRows: 3,
     fields: [{ name: "securityInfo", label: "Security", type: "text", colSpan: "md:col-span-11" }],
+  }, {
+    title: "Required skill set",
+    type: "dynamic",
+    key: "skill_set",
+    dynamicStyle: "grid-6",
+    initialRows: 3,
+    fields: [{ name: "skill_set", label: "Required skill set", type: "text", colSpan: "md:col-span-11" }],
   },
   {
     title: "Reference Website",
@@ -77,7 +84,7 @@ const freelanceFormConfig = [
     key: "reference_website",
     payloadKey: "referenceWebsite",
     dynamicStyle: "grid-6",
-    initialRows: 6,
+    initialRows: 3,
     fields: [{ name: "reference", label: "Reference", type: "text", colSpan: "md:col-span-11" }],
   },
   {
@@ -86,7 +93,7 @@ const freelanceFormConfig = [
     key: "supporting_files",
     payloadKey: "supporting_files",
     dynamicStyle: "grid-6",
-    initialRows: 6,
+    initialRows: 3,
     fields: [{ name: "supporting_files", label: "Supporting Files", type: "text", colSpan: "md:col-span-11" }],
   },
   {
@@ -95,7 +102,7 @@ const freelanceFormConfig = [
     key: "payment_structure",
     payloadKey: "payment_structure",
     dynamicStyle: "grid-6",
-    initialRows: 6,
+    initialRows: 3,
     fields: [{ name: "payment_structure", label: "Payment Structure", type: "text", colSpan: "md:col-span-11" }],
   },
   {
@@ -104,7 +111,7 @@ const freelanceFormConfig = [
     key: "rules",
     payloadKey: "rules",
     dynamicStyle: "grid-6",
-    initialRows: 6,
+    initialRows: 3,
     fields: [{ name: "rules", label: "Rules", type: "text", colSpan: "md:col-span-11" }],
   },
   
@@ -133,7 +140,7 @@ setTitle("Freelance Form")
 const handleSubmit = async (_, payload) => {
   try {
     const res = await createFreelance(payload); // JSON payload
-
+    
     if (res?.success) {
       toast.success("Freelance saved successfully");
       navigate(-1)
