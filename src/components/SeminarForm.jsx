@@ -22,6 +22,7 @@ const seminarFormConfig = [
       { name: "organizer", label: "Organizer", type: "text" },
       { name: "mode", label: "Mode", type: "select", options: ["Online", "Offline"] },
       { name: "eventDate", label: "Event Date", type: "date" },
+      { name: "eventStartTime", label: "Event Start Time", type: "time" },
       { name: "registrationType", label: "Registration Type", type: "radio", options: ["Free", "Paid"] },
       { name: "registrationStartDate", label: "Registration Start Date", type: "date" },
       { name: "registrationEndDate", label: "Registration End Date", type: "date" },

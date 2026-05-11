@@ -38,6 +38,37 @@ const collegeFormConfig = [
       { name: "pincode", label: "Pincode", type: "text" },
     ],
   },
+    {
+  title: "Account Details",
+  type: "static",
+  fields: [
+    {
+      name: "accountHolderName",
+      label: "Account Holder Name",
+      type: "text",
+    },
+    {
+      name: "bankName",
+      label: "Bank Name",
+      type: "text",
+    },
+    {
+      name: "branchName",
+      label: "Branch Name",
+      type: "text",
+    },
+    {
+      name: "accountNumber",
+      label: "Account Number",
+      type: "text",
+    },
+    {
+      name: "ifscCode",
+      label: "IFSC Code",
+      type: "text",
+    },
+  ],
+},
   {
     title: "Departments",
     type: "dynamic",

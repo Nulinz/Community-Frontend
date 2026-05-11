@@ -43,6 +43,8 @@ import { Loader2 } from "lucide-react";
 import CompanyDashboard from "./pages/admin/companyPages/CompanyDashboard";
 import CollegeDashboard from "./pages/admin/colegePages/CollegeDashboard";
 import ScrollToTop from "./common/ScrollTop";
+import MobileJobRedirect from "./pages/MobileJobReferel";
+import MobileEventRedirect from "./pages/MobileEventRedirect";
 
 const App = () => {
    const {fetchCurrentUser,isHomeLoading} =useMain()
@@ -66,7 +68,8 @@ const App = () => {
 
           {/* Root redirect */}
           <Route path="/" element={<Navigate to="/auth/login" replace />} />
-
+           <Route path="/job" element={<MobileJobRedirect />} />
+           <Route path="/event" element={<MobileEventRedirect />} />
           {/* Auth routes */}
           <Route element={<MainLayout />}>
             <Route path="/auth" element={<HomeLayout />}>
@@ -90,6 +93,7 @@ const App = () => {
               <Route path="conference-profile/:id" element={<ConferenceProfile />} />
               <Route path="college" element={<College />} />
               <Route path="college-form" element={<CollegeForm />} />
+              <Route path="profile" element={<CompanyProfile module="company" />} />
               <Route path="college-profile/:id" element={<CollegeProfile />} />
               <Route path="competition" element={<Competition />} />
               <Route path="competition-form" element={<CompetitionForm />} />
