@@ -103,10 +103,13 @@ export const createEvent = async (payload) => {
   return response.data;
 };
 
-export const getAllEvents = async () => {
-  const response = await API.get("/event/all");
+export const getAllEvents = async (status = "pending") => {
+  const response = await API.get("/event/all", {
+    params: { status },
+  });
   return response.data;
 };
+
 
 export const getEventById = async (id) => {
   const response = await API.get(`/event/getById/${id}`);
@@ -135,8 +138,10 @@ export const createCompetition = async (payload) => {
   return response.data;
 };
 
-export const getAllCompetitions = async () => {
-  const response = await API.get("/competition/all");
+export const getAllCompetitions = async (status = "pending") => {
+  const response = await API.get("/competition/all", {
+    params: { status },
+  });
   return response.data;
 };
 
@@ -170,8 +175,10 @@ export const createConference = async (payload) => {
   return response.data;
 };
 
-export const getAllConferences = async () => {
-  const response = await API.get("/conference/all");
+export const getAllConferences = async (status = "pending") => {
+  const response = await API.get("/conference/all", {
+    params: { status },
+  });
   return response.data;
 };
 
@@ -204,11 +211,12 @@ export const createSeminar = async (payload) => {
   return response.data;
 };
 
-export const getAllSeminars = async () => {
-  const response = await API.get("/seminar/all");
+export const getAllSeminars = async (status = "pending") => {
+  const response = await API.get("/seminar/all", {
+    params: { status },
+  });
   return response.data;
 };
-
 export const getSeminarById = async (id) => {
   const response = await API.get(`/seminar/getById/${id}`);
   return response.data;
@@ -238,10 +246,13 @@ export const createInternship = async (payload) => {
   return response.data;
 };
 
-export const getAllInternships = async () => {
-  const response = await API.get("/internship/all");
+export const getAllInternships = async (status = "pending") => {
+  const response = await API.get("/internship/all", {
+    params: { status },
+  });
   return response.data;
 };
+
 
 export const getInternshipById = async (id) => {
   const response = await API.get(`/internship/getById/${id}`);
@@ -261,8 +272,10 @@ export const createFreelance = async (payload) => {
   return response.data;
 };
 
-export const getAllFreelances = async () => {
-  const response = await API.get("/freelance/all");
+export const getAllFreelances = async (status = "pending") => {
+  const response = await API.get("/freelance/all", {
+    params: { status },
+  });
   return response.data;
 };
 
@@ -282,6 +295,44 @@ export const toggleFreelanceStatus = async (id) => {
 export const apiGetAdminDashboard = async () => {
   try {
     const res = await API.get("/admin/dashboard");
+    return res.data;
+  } catch (error) {
+    throw (
+      error.response?.data || {
+        status: false,
+        message: error.message,
+      }
+    );
+  }
+};
+
+export const updateEventStatus = async (event_id, eventType, status, rejected_reason = null) => {
+  try {
+    const res = await API.patch("/admin/event/status", {
+      event_id,
+      eventType,
+      status,
+      ...(rejected_reason && { rejected_reason }),
+    });
+    return res.data;
+  } catch (error) {
+    throw (
+      error.response?.data || {
+        status: false,
+        message: error.message,
+      }
+    );
+  }
+};
+
+export const updateJobStatus = async (job_id, jobType, status, rejected_reason = null) => {
+  try {
+    const res = await API.patch("/admin/job/status", {
+      job_id,
+      jobType,
+      status,
+      ...(rejected_reason && { rejected_reason }),
+    });
     return res.data;
   } catch (error) {
     throw (

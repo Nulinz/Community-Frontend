@@ -28,7 +28,7 @@ const AppliedListSection = ({ data = [] ,heading =[],showFilters}) => {
                 item?.mail?.toLowerCase().includes(query) ||
                 item?.location?.toLowerCase().includes(query);
 
-            const matchesYear = yearFilter ? item.year === yearFilter : true;
+            const matchesYear = yearFilter ?String(item.year) === yearFilter : true;
             const matchesLocation = departmentFilter ? item.department === departmentFilter : true;
 
             return matchesSearch && matchesYear && matchesLocation;

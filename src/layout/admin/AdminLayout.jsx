@@ -128,6 +128,7 @@ const AdminLayout = () => {
         { name: "Freelance",  path: "/admin/jobs/freelance" },
       ],
     },
+    //  { name: "Settings",     path: "/admin/profile",     icon: assets.sem_i },
   ];
  
   return (

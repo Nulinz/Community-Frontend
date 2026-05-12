@@ -7,7 +7,7 @@ import {
 } from 'lucide-react';
 import { assets } from '../assets/assets';
 import AppliedListSection from '../common/AppliedListSection';
-import { getCompetitionById, toggleCompetitionStatus, addCompetitionPost } from '../services/admin/adminServices';
+import { getCompetitionById, toggleCompetitionStatus, addCompetitionPost, updateEventStatus } from '../services/admin/adminServices';
 import { toast } from 'react-toastify';
 import { useMain } from '../context/MainContext';
 import { formatAddress } from '../utils/formatAddress';
@@ -15,6 +15,7 @@ import getRemainingDays from '../utils/getRemainingDays';
 import ConfirmActionButton from '../common/ConfirmActionButton';
 import { useTitle } from '../context/AdminTitle';
 import { EducationIcon } from './icons';
+import StatusActionButtons from '../common/AcceptRejectButtons';
 
 
 const CompetitionProfile = () => {
@@ -23,29 +24,50 @@ const CompetitionProfile = () => {
     const [activeTab, setActiveTab] = useState('overview');
     const [isAddPostModalOpen, setIsAddPostModalOpen] = useState(false);
     const [uploadedPosts, setUploadedPosts] = useState([]);
+    const [statusLoading, setStatusLoading] = useState(false)
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [competition, setCompetition] = useState(null);
-    const [registrations, setRegistrations] = useState({ count: 0, list: [],revenue:null }); // ✅ add
+    const [registrations, setRegistrations] = useState({ count: 0, list: [], revenue: null }); // ✅ add
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState(null);
     const fileInputRef = useRef(null);
-    const {user,dynamicPath}=useMain()
+    const { user, dynamicPath } = useMain()
     const BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
-  const {setTitle}=useTitle()
-  useEffect(()=>{
-setTitle("Competition Profile")
-  },[])
+    const { setTitle } = useTitle()
+    useEffect(() => {
+        setTitle("Competition Profile")
+    }, [])
     useEffect(() => {
         fetchCompetitionData();
     }, [id]);
 
+    const updateStatus = async (status, rejected_reason) => {
+        try {
+            setStatusLoading(true);
+            const response = await updateEventStatus(id, "competition", status, rejected_reason);
+            console.log(response)
+            if (response.success) {
+                setCompetition(response.data)
+                toast.success(response.message);
+            }
+            else {
+                toast.error(response.message);
+            }
+
+        } catch (err) {
+            toast.error(err.message);
+            console.error(err);
+        } finally {
+            setStatusLoading(false);
+        }
+    };
     const fetchCompetitionData = async () => {
         try {
             setIsLoading(true);
             const response = await getCompetitionById(id);
             if (response.success) {
                 setCompetition(response?.data?.competition);
-                 setRegistrations(response.data.registrations || { count: 0, list: [],revenue:null });
+                setRegistrations(response.data.registrations || { count: 0, list: [], revenue: null });
             } else {
                 setError("Competition not found");
             }
@@ -145,14 +167,14 @@ setTitle("Competition Profile")
         }
     };
 
-const appliedListColumns = [
-  { title: '#', dataIndex: 'sNo', key: 'sNo' },
-  { title: 'Name', dataIndex: 'name', key: 'name' },
-  { title: 'College', dataIndex: 'college', key: 'college' },
-  { title: 'Department', dataIndex: 'department', key: 'department' },
-  { title: 'Year', dataIndex: 'year', key: 'year' },
-  { title: 'Registered At', dataIndex: 'registeredAt', key: 'registeredAt' },
-];
+    const appliedListColumns = [
+        { title: '#', dataIndex: 'sNo', key: 'sNo' },
+        { title: 'Name', dataIndex: 'name', key: 'name' },
+        { title: 'College', dataIndex: 'college', key: 'college' },
+        { title: 'Department', dataIndex: 'department', key: 'department' },
+        { title: 'Year', dataIndex: 'year', key: 'year' },
+        { title: 'Registered At', dataIndex: 'registeredAt', key: 'registeredAt' },
+    ];
 
     return (
         <div className="bg-[#f8f9fa] min-h-screen ">
@@ -170,7 +192,7 @@ const appliedListColumns = [
                     <div className="z-10">
                         <h1 className="text-[24px] sm:text-[30px] md:text-[34px] lg:text-[38px] xl:text-[48px] font-extrabold leading-[32px] sm:leading-[38px] md:leading-[44px] lg:leading-[48px] xl:leading-[60px] tracking-[0px] align-middle mb-4 md:mb-6 xl:mb-8">{competition.eventName}</h1>
                         <div className="grid grid-cols-1 gap-y-2 font-source text-[13px] sm:text-[14px] md:text-[15px] xl:text-[16px] font-normal leading-[18px] sm:leading-[19px] md:leading-[20px] tracking-[0px] align-middle text-[#FFFFFF]">
-                            <span className="flex items-center gap-2 "><EducationIcon  /> {competition.organizer}</span>
+                            <span className="flex items-center gap-2 "><EducationIcon /> {competition.organizer}</span>
                             <span className="flex items-center gap-2 "><MapPin size={16} /> {formatAddress(competition)}</span>
                             <span className="flex items-center gap-2 "><Briefcase size={16} /> {competition.mode}</span>
                             <span className="flex items-center gap-2 "><CalendarDays size={16} /> {competition.eventDate ? new Date(competition.eventDate).toLocaleDateString() : 'N/A'}</span>
@@ -186,12 +208,12 @@ const appliedListColumns = [
                         <div className="bg-white p-3 sm:p-3.5 md:p-4 xl:p-6 rounded-[14px] sm:rounded-[16px] xl:rounded-[24px] min-w-0 xl:min-w-[180px] flex flex-col justify-center text-gray-900 shadow-xl w-full xl:w-auto">
                             <p className="font-source text-[8px] sm:text-[9px] md:text-[10px] xl:text-[10px] font-semibold leading-[13px] sm:leading-[14px] tracking-[0.5px] align-middle uppercase text-[#64748B] mb-1">Revenue Generated</p>
                             <div className="flex items-center gap-1">
-    <IndianRupee  size={24} className="text-[#006098] font-bold" />
+                                <IndianRupee size={24} className="text-[#006098] font-bold" />
 
-    <p className="text-[18px] sm:text-[20px] md:text-[22px] lg:text-[24px] xl:text-[30px] font-bold leading-[24px] sm:leading-[26px] md:leading-[28px] lg:leading-[30px] xl:leading-[36px] tracking-[0px] align-middle text-[#006098] text-source">
-      {registrations?.revenue?.totalAmount || 0}
-    </p>
-  </div>
+                                <p className="text-[18px] sm:text-[20px] md:text-[22px] lg:text-[24px] xl:text-[30px] font-bold leading-[24px] sm:leading-[26px] md:leading-[28px] lg:leading-[30px] xl:leading-[36px] tracking-[0px] align-middle text-[#006098] text-source">
+                                    {registrations?.revenue?.totalAmount || 0}
+                                </p>
+                            </div>
                         </div>
                         <div className="bg-white p-3 sm:p-3.5 md:p-4 xl:p-6 rounded-[14px] sm:rounded-[16px] xl:rounded-[24px] min-w-0 xl:min-w-[180px] flex flex-col justify-center items-start shadow-xl w-full xl:w-auto">
                             <p className="font-source text-[8px] sm:text-[9px] md:text-[10px] xl:text-[10px] font-semibold leading-[13px] sm:leading-[14px] tracking-[0.5px] align-middle uppercase text-[#64748B] mb-1">Days Remaining</p>
@@ -211,46 +233,67 @@ const appliedListColumns = [
                         >
                             Overview
                         </button>
-                        <button
-                            onClick={() => setActiveTab('applied')}
-                            className={`px-[16px] py-[10px] rounded-full font-source text-[16px] font-medium leading-none tracking-normal transition-colors ${activeTab === 'applied'
-                                ? 'bg-[#0989D4] text-[#ffffff]'
-                                : 'text-[#344054] border border-gray-400 bg-white'
-                                }`}
-                        >
-                            Applied List
-                        </button>
+                        {(competition?.status === "approved") &&
+
+                            <button
+                                onClick={() => setActiveTab('applied')}
+                                className={`px-[16px] py-[10px] rounded-full font-source text-[16px] font-medium leading-none tracking-normal transition-colors ${activeTab === 'applied'
+                                    ? 'bg-[#0989D4] text-[#ffffff]'
+                                    : 'text-[#344054] border border-gray-400 bg-white'
+                                    }`}
+                            >
+                                Applied List
+                            </button>
+                        }
                     </div>
                     <div className="flex flex-wrap xl:flex-nowrap gap-3 md:gap-4 items-center">
-                        <span className={`flex items-center gap-2 px-4 py-2 rounded-full text-[12px] font-bold border ${competition.isActive ? 'bg-[#E6F8EE] text-[#0ca678] border-[#c3fae8]' : 'bg-gray-50 text-secondary border-gray-200'}`}>
-                            <div className={`w-2 h-2 rounded-full ${competition.isActive ? 'bg-[#0ca678]' : 'bg-secondary'}`}></div> {competition.isActive ? 'Active' : 'Inactive'}
-                        </span>
-                        <ConfirmActionButton
-  isActive={competition?.isActive}
-  isSubmitting={isSubmitting}
-  onConfirm={handleToggleStatus}
-  activateText="Activate"
-  deactivateText="Deactivate"
-/>
-                        <button
-                            onClick={() => setIsAddPostModalOpen(true)}
-                            className="flex gap-2 items-center bg-white border border-[#D0D5DD] text-gray-700 px-6 py-2.5 rounded-full text-sm font-bold hover:bg-gray-50 transition-all shadow-sm"
-                        >
-                            <Plus size={18} /> Add Post
-                        </button>
-                        <button 
-                            onClick={() =>
-  navigate(
-    dynamicPath("competition-form"),
-    { state: { editData: competition } }
-  )
-}
-                            className="flex gap-2 items-center bg-white border border-[#D0D5DD] text-gray-700 px-6 py-2.5 rounded-full text-sm font-bold hover:bg-gray-50 transition-all shadow-sm"
-                        >
-                            <SquarePen size={18} /> Edit Details
-                        </button>
+                        {
+                            competition.status === "approved" &&
+                            <>
+                                <span className={`flex items-center gap-2 px-4 py-2 rounded-full text-[12px] font-bold border ${competition.isActive ? 'bg-[#E6F8EE] text-[#0ca678] border-[#c3fae8]' : 'bg-gray-50 text-secondary border-gray-200'}`}>
+                                    <div className={`w-2 h-2 rounded-full ${competition.isActive ? 'bg-[#0ca678]' : 'bg-secondary'}`}></div> {competition.isActive ? 'Active' : 'Inactive'}
+                                </span>
+                                <ConfirmActionButton
+                                    isActive={competition?.isActive}
+                                    isSubmitting={isSubmitting}
+                                    onConfirm={handleToggleStatus}
+                                    activateText="Activate"
+                                    deactivateText="Deactivate"
+                                    type="Competition"
+                                />
+                                <button
+                                    onClick={() => setIsAddPostModalOpen(true)}
+                                    className="flex gap-2 items-center bg-white border border-[#D0D5DD] text-gray-700 px-6 py-2.5 rounded-full text-sm font-bold hover:bg-gray-50 transition-all shadow-sm"
+                                >
+                                    <Plus size={18} /> Add Post
+                                </button>
+                                <button
+                                    onClick={() =>
+                                        navigate(
+                                            dynamicPath("competition-form"),
+                                            { state: { editData: competition } }
+                                        )
+                                    }
+                                    className="flex gap-2 items-center bg-white border border-[#D0D5DD] text-gray-700 px-6 py-2.5 rounded-full text-sm font-bold hover:bg-gray-50 transition-all shadow-sm"
+                                >
+                                    <SquarePen size={18} /> Edit Details
+                                </button>
+                            </>}
+                        {
+                            user.role === "admin" && competition.status === "pending" && <StatusActionButtons isSubmitting={statusLoading}  type="Competition" onConfirm={updateStatus} />
+                        }
                     </div>
                 </div>
+
+                {
+                    competition.status === "rejected" && (
+                        <div className="space-y-6">
+                            <p className="text-red-600 font-semibold">
+                                {competition?.rejected_reason}
+                            </p>
+                        </div>
+                    )
+                }
 
                 {activeTab === 'overview' ? (
                     <div className="space-y-6">
@@ -323,10 +366,10 @@ const appliedListColumns = [
                                 <InfoCard title="Round Details">
                                     <div className="grid grid-cols-1 gap-6">
                                         {competition.rounds.map((round, index) => (
-                                            <DataItem 
+                                            <DataItem
                                                 key={index}
-                                                label={`Round ${round.roundNumber}: ${round.roundName}`} 
-                                                value={round.roundDescription} 
+                                                label={`Round ${round.roundNumber}: ${round.roundName}`}
+                                                value={round.roundDescription}
                                             />
                                         ))}
                                     </div>
@@ -351,10 +394,10 @@ const appliedListColumns = [
                                 <InfoCard title="Schedule">
                                     <div className="space-y-4">
                                         {competition.schedule.map((slot, index) => (
-                                            <DataItem 
+                                            <DataItem
                                                 key={index}
-                                                label={slot.name} 
-                                                value={`${slot.startTime} - ${slot.endTime}`} 
+                                                label={slot.name}
+                                                value={`${slot.startTime} - ${slot.endTime}`}
                                             />
                                         ))}
                                     </div>
@@ -363,17 +406,17 @@ const appliedListColumns = [
                         </div>
 
                         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                           <InfoCard title="Allowed Departments">
-  <ul className="list-disc pl-5 space-y-1 text-secondary text-sm">
-    {competition?.allowedDepartments?.length > 0 ? (
-      competition.allowedDepartments.map((dept, index) => (
-        <li key={index}>{dept}</li>
-      ))
-    ) : (
-      <li>Open to all departments</li>
-    )}
-  </ul>
-</InfoCard>
+                            <InfoCard title="Allowed Departments">
+                                <ul className="list-disc pl-5 space-y-1 text-secondary text-sm">
+                                    {competition?.allowedDepartments?.length > 0 ? (
+                                        competition.allowedDepartments.map((dept, index) => (
+                                            <li key={index}>{dept}</li>
+                                        ))
+                                    ) : (
+                                        <li>Open to all departments</li>
+                                    )}
+                                </ul>
+                            </InfoCard>
                             <InfoCard title="Eligibility">
                                 <p className="text-secondary text-sm leading-relaxed">{competition.eligibilityDetails}</p>
                             </InfoCard>
@@ -416,9 +459,9 @@ const appliedListColumns = [
                                             </div>
                                             <p className="text-[16px] font-semibold text-[#1a1a1a]">Rule Book</p>
                                         </div>
-                                        <a 
-                                            href={`${BASE_URL}/${competition.ruleBook}`} 
-                                            target="_blank" 
+                                        <a
+                                            href={`${BASE_URL}/${competition.ruleBook}`}
+                                            target="_blank"
                                             rel="noopener noreferrer"
                                             className="text-secondary hover:text-[#0989D4] transition-colors"
                                         >
@@ -432,15 +475,15 @@ const appliedListColumns = [
                             </div>
                         </InfoCard>
                     </div>
-                )  : (
-  <AppliedListSection
-    data={registrations.list.map((reg) => ({
-      ...reg,
-      registeredAt: new Date(reg.registeredAt).toLocaleDateString('en-GB'),
-    }))}
-    heading={appliedListColumns}
-  />
-)}
+                ) : (
+                    <AppliedListSection
+                        data={registrations.list.map((reg) => ({
+                            ...reg,
+                            registeredAt: new Date(reg.registeredAt).toLocaleDateString('en-GB'),
+                        }))}
+                        heading={appliedListColumns}
+                    />
+                )}
             </section>
 
             {isAddPostModalOpen && (

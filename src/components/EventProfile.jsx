@@ -5,7 +5,7 @@ import {
     IndianRupee
 } from 'lucide-react';
 import AppliedListSection from '../common/AppliedListSection';
-import { getEventById, toggleEventStatus, addEventPost } from '../services/admin/adminServices';
+import { getEventById, toggleEventStatus, addEventPost, updateEventStatus } from '../services/admin/adminServices';
 import { toast } from 'react-toastify';
 import { useMain } from '../context/MainContext';
 import { formatAddress } from '../utils/formatAddress';
@@ -13,6 +13,7 @@ import getRemainingDays from '../utils/getRemainingDays';
 import ConfirmActionButton from '../common/ConfirmActionButton';
 import { useTitle } from '../context/AdminTitle';
 import { EducationIcon } from './icons';
+import StatusActionButtons from '../common/AcceptRejectButtons';
 
 const EventProfile = () => {
     const { id } = useParams();
@@ -21,6 +22,7 @@ const EventProfile = () => {
     const [isAddPostModalOpen, setIsAddPostModalOpen] = useState(false);
     const [isSubmitting, setIsSubmitting] = useState(false);
   const [event, setEvent] = useState(null);
+   const [statusLoading,setStatusLoading]=useState(false)
 const [registrations, setRegistrations] = useState({ count: 0, list: [],revenue:null }); // ✅
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState(null);
@@ -35,7 +37,26 @@ setTitle("Event Profile")
     useEffect(() => {
         fetchEventData();
     }, [id]);
+ const updateStatus = async (status, rejected_reason) => {
+        try {
+            setStatusLoading(true);
+            const response = await updateEventStatus(id, "event", status, rejected_reason);
+            console.log(response)
+            if (response.success) {
+                 setEvent(response.data)
+                toast.success(response.message);
+            }
+            else {
+                toast.error(response.message);
+            }
 
+        } catch (err) {
+            toast.error(err.message);
+            console.error(err);
+        } finally {
+            setStatusLoading(false);
+        }
+    };
 const fetchEventData = async () => {
   try {
     setIsLoading(true);
@@ -221,14 +242,20 @@ const fetchEventData = async () => {
                         >
                             Overview
                         </button>
+                            {(event?.status === "approved") &&
+                            
                         <button
                             onClick={() => setActiveTab('applied')}
                             className={`px-[16px] py-[10px] rounded-full font-source text-[16px] font-medium leading-none tracking-normal transition-colors ${activeTab === 'applied' ? 'bg-[#0989D4] text-[#ffffff]' : 'text-[#344054] border border-gray-400 bg-white'}`}
                         >
                             Applied List
                         </button>
+                            }
                     </div>
                     <div className="flex flex-wrap xl:flex-nowrap gap-3 md:gap-4 items-center">
+                         {
+                            event.status === "approved" &&
+                            <>
                         <span className={`flex items-center gap-2 px-4 py-2 rounded-full text-[12px] font-bold border ${event.isActive ? 'bg-[#E6F8EE] text-[#0ca678] border-[#c3fae8]' : 'bg-gray-50 text-secondary border-gray-200'}`}>
                             <div className={`w-2 h-2 rounded-full ${event.isActive ? 'bg-[#0ca678]' : 'bg-secondary'}`}></div>
                             {event.isActive ? 'Active' : 'Inactive'}
@@ -257,8 +284,21 @@ onClick={() =>
                         >
                             <SquarePen size={18} /> Edit Details
                         </button>
+                            </>}
+                             {
+                                                        user.role === "admin" && event.status === "pending" && <StatusActionButtons isSubmitting={statusLoading} onConfirm={updateStatus} />
+                                                    }
                     </div>
                 </div>
+                {
+                    event.status === "rejected" && (
+                        <div className="space-y-6">
+                            <p className="text-red-600 font-semibold">
+                                {event?.rejected_reason}
+                            </p>
+                        </div>
+                    )
+                }
 
                 {/* Tab Content */}
                 {activeTab === 'overview' ? (

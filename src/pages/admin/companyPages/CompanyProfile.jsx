@@ -276,9 +276,9 @@ useEffect(() => {
               <div className="mt-4 space-y-2 max-w-[760px]">
                 <div className="flex flex-wrap items-center gap-3">
                   <h1 className="text-[30px] font-bold text-primary tracking-tight">{company.companyName}</h1>
-                  <span className={`inline-flex items-center gap-2 px-3.5 py-1 rounded-full text-[14px] font-semibold ${company.isActive ? 'bg-[#ECFDF3] text-[#027A48]' : 'bg-gray-100 text-gray-600'}`}>
-                    <span className={`w-2 h-2 rounded-full ${company.isActive ? 'bg-[#12B76A]' : 'bg-gray-400'}`} />
-                    {company.isActive ? 'Active' : 'Inactive'}
+                  <span className={`inline-flex items-center gap-2 px-3.5 py-1 rounded-full text-[14px] font-semibold ${company.is_active ? 'bg-[#ECFDF3] text-[#027A48]' : 'bg-gray-100 text-gray-600'}`}>
+                    <span className={`w-2 h-2 rounded-full ${company.is_active ? 'bg-[#12B76A]' : 'bg-gray-400'}`} />
+                    {company.is_active ? 'Active' : 'Inactive'}
                   </span>
                 </div>
                 <p className="text-[14px] text-secondary">
@@ -330,6 +330,8 @@ useEffect(() => {
                   </>
                 )}
 {/* bg-[#110E7E] */}
+                {
+                  user?.role!=="admin" && 
                 <button 
                   onClick={() => setIsAddPostModalOpen(true)}
                   className="flex items-center gap-2 px-[20px] py-3 rounded-full  text-[15px] font-bold shadow-md  transition-all active:scale-95"
@@ -337,9 +339,10 @@ useEffect(() => {
                   <Plus size={18} />
                   Add Post
                 </button>
+                }
 {/* border border-[#EAECF0] bg-[#FFFFFF] */}
                 <button 
-                  onClick={() => navigate(`/${module}/company-form`, { state: { editData: company } })}
+                  onClick={() => navigate(`/${user.role}/company-form`, { state: { editData: company } })}
                   className="flex border border-[#EAECF0] bg-[#FFFFFF] items-center gap-2 px-[20px] py-3 rounded-full   text-[15px] font-bold shadow-md  transition-all active:scale-95 "
                 >
                   <Icon src="/icons/Edit.png" size={18} />
@@ -533,9 +536,10 @@ useEffect(() => {
         { title: 'Status', dataIndex: 'status', key: 'status' },
         { title: 'Education', dataIndex: 'education', key: 'education' },
         { title: 'Degree', dataIndex: 'degree', key: 'degree' },
-        { title: 'Job Title', dataIndex: 'jobTitle', key: 'jobTitle' },
+        // { title: 'Job Title', dataIndex: 'jobTitle', key: 'jobTitle' },
         { title: 'Contact', dataIndex: 'contact', key: 'contact' },
-        { title: 'Followed On', dataIndex: 'followedAt', key: 'followedAt' },
+         { title: 'email', dataIndex: 'email', key: 'email' },
+        // { title: 'Followed On', dataIndex: 'followedAt', key: 'followedAt' },
       ]}
       dataSource={filteredPeople?.map((person, i) => ({
         ...person,

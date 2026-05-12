@@ -6,7 +6,9 @@
 @tailwind utilities;
 
 
-
+@theme{
+  --font-source: 'Source Sans 3', sans-serif;
+}
 
 
 

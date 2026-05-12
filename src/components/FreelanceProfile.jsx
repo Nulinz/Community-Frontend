@@ -2,23 +2,47 @@ import React, { useEffect, useState } from 'react';
 import { assets } from '../assets/assets';
 import { useNavigate, useParams } from 'react-router-dom';
 import { toast } from 'react-toastify';
-import { getFreelanceById, toggleFreelanceStatus } from '../services/admin/adminServices';
+import { getFreelanceById, toggleFreelanceStatus, updateJobStatus } from '../services/admin/adminServices';
 import AppliedListSection from '../common/AppliedListSection';
 import ConfirmActionButton from '../common/ConfirmActionButton';
 import { useTitle } from '../context/AdminTitle';
+import { useMain } from '../context/MainContext';
+import StatusActionButtons from '../common/AcceptRejectButtons';
 
 const FreelanceProfile = ({ module = 'admin' }) => {
   const [activeTab, setActiveTab] = useState('overview');
  const [freelance, setFreelance] = useState(null);
 const [applications, setApplications] = useState({ count: 0, list: [] });
   const [isLoading, setIsLoading] = useState(true);
+   const [statusLoading, setStatusLoading] = useState(false)
   const [isTogglingStatus, setIsTogglingStatus] = useState(false);
   const { id } = useParams();
+    const { user, dynamicPath } = useMain()
   const navigate = useNavigate();
   const {setTitle}=useTitle()
   useEffect(()=>{
 setTitle("Freelance Profile")
   },[])
+    const updateStatus = async (status, rejected_reason) => {
+          try {
+              setStatusLoading(true);
+              const response = await updateJobStatus(id, "freelance", status, rejected_reason);
+              console.log(response)
+              if (response.success) {
+                 setFreelance(response.data)
+                  toast.success(response.message);
+              }
+              else {
+                  toast.error(response.message);
+              }
+  
+          } catch (err) {
+              toast.error(err.message);
+              console.error(err);
+          } finally {
+              setStatusLoading(false);
+          }
+      };
   useEffect(() => {
     const fetchFreelance = async () => {
       if (!id) {
@@ -194,6 +218,9 @@ setTitle("Freelance Profile")
             >
               Overview
             </button>
+
+             {(freelance?.status === "approved") &&
+             
             <button
               onClick={() => setActiveTab('applied')}
               className={`px-5 py-2.5 rounded-full text-[15px] font-medium transition-colors ${
@@ -204,15 +231,22 @@ setTitle("Freelance Profile")
             >
               Applied List
             </button>
+             }
           </div>
 
           <div className="flex flex-wrap items-center gap-3">
+                 {
+                            freelance.status === "approved" &&<>
+                           
+                           
             <ConfirmActionButton
   isActive={statusIsActive}
   isSubmitting={isTogglingStatus}
   onConfirm={handleToggleStatus}
   activateText="Activate"
   deactivateText="Deactivate"
+   type='Freelance'
+                  apply="apply"
 />
             <button
               type="button"
@@ -222,9 +256,22 @@ setTitle("Freelance Profile")
               <img src={assets.edit} alt="Edit" className="w-5 h-5 object-contain" />
               Edit Details
             </button>
+                            </>}
+
+               {
+                             user.role === "admin" && freelance.status === "pending"&& <StatusActionButtons   type='Freelance' isSubmitting={statusLoading} onConfirm={updateStatus} />
+                           }             
           </div>
         </div>
-
+               {
+                    freelance.status === "rejected" && (
+                        <div className="space-y-6">
+                            <p className="text-red-600 font-semibold">
+                                {freelance?.rejected_reason}
+                            </p>
+                        </div>
+                    )
+                }
         {activeTab === 'overview' ? (
           <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-4">
             <ListCard title="Project Needs" items={projectNeeds.length ? projectNeeds : fallbackList} />

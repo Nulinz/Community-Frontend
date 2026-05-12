@@ -3,22 +3,48 @@ import { assets } from '../assets/assets';
 import AppliedListSection from './AppliedListSection';
 import { useNavigate, useParams } from 'react-router-dom';
 import { toast } from 'react-toastify';
-import { getInternshipById, toggleInternshipStatus } from '../services/admin/adminServices';
+import { getInternshipById, toggleInternshipStatus, updateJobStatus } from '../services/admin/adminServices';
 import ConfirmActionButton from './ConfirmActionButton';
 import { useTitle } from '../context/AdminTitle';
+import StatusActionButtons from './AcceptRejectButtons';
+import { useMain } from '../context/MainContext';
 
 const JobsProfile = ({ module = 'admin' }) => {
   const [activeTab, setActiveTab] = useState('overview');
-const [internship, setInternship] = useState(null);
-const [applications, setApplications] = useState({ count: 0, list: [] });
+  const [internship, setInternship] = useState(null);
+  const [applications, setApplications] = useState({ count: 0, list: [] });
   const [isLoading, setIsLoading] = useState(true);
+  const [statusLoading, setStatusLoading] = useState(false)
   const [isTogglingStatus, setIsTogglingStatus] = useState(false);
   const { id } = useParams();
+  const { user, dynamicPath } = useMain()
   const navigate = useNavigate();
-  const {setTitle}=useTitle()
-  useEffect(()=>{
-setTitle("Internship Profile")
-  },[])
+  const { setTitle } = useTitle()
+  useEffect(() => {
+    setTitle("Internship Profile")
+  }, [])
+
+  const updateStatus = async (status, rejected_reason) => {
+    try {
+      setStatusLoading(true);
+      const response = await updateJobStatus(id, "internship", status, rejected_reason);
+      console.log(response)
+      if (response.success) {
+        setInternship(response.data)
+        toast.success(response.message);
+      }
+      else {
+        toast.error(response.message);
+      }
+
+    } catch (err) {
+      toast.error(err.message);
+      console.error(err);
+    } finally {
+      setStatusLoading(false);
+    }
+  };
+
   useEffect(() => {
     const fetchInternship = async () => {
       if (!id) {
@@ -28,14 +54,14 @@ setTitle("Internship Profile")
 
       try {
         setIsLoading(true);
-       const response = await getInternshipById(id);
-       console.log(response)
-    if (response.success) {
-      setInternship(response.data.internship);
-      setApplications(response.data.applications || { count: 0, list: [] });
-    } else {
-      setError("Internship not found");
-    }
+        const response = await getInternshipById(id);
+        console.log(response)
+        if (response.success) {
+          setInternship(response.data.internship);
+          setApplications(response.data.applications || { count: 0, list: [] });
+        } else {
+          setError("Internship not found");
+        }
       } catch (error) {
         toast.error(error?.response?.data?.message || 'Failed to load internship profile');
         setInternship(null);
@@ -72,7 +98,7 @@ setTitle("Internship Profile")
   ];
 
   const appliedListData = [];
-
+  console.log(applications?.list)
   const ListCard = ({ title, items }) => (
     <div className="bg-white rounded-[22px] border border-gray-200 shadow-sm p-5 md:p-6">
       <h3 className="text-[16px] md:text-[18px] font-bold text-primary mb-3">{title}</h3>
@@ -147,9 +173,8 @@ setTitle("Internship Profile")
                 <h1 className="font-semibold text-[18px] leading-none tracking-normal text-primary">
                   {internship.jobTitle || '-'}
                 </h1>
-                <span className={`inline-flex items-center gap-2 px-3 py-1 rounded-full text-[12px] font-semibold ${
-                  statusIsActive ? 'bg-[#E6F8EE] text-[#23A55A]' : 'bg-[#F1F5F9] text-[#64748B]'
-                }`}>
+                <span className={`inline-flex items-center gap-2 px-3 py-1 rounded-full text-[12px] font-semibold ${statusIsActive ? 'bg-[#E6F8EE] text-[#23A55A]' : 'bg-[#F1F5F9] text-[#64748B]'
+                  }`}>
                   <span className={`w-2 h-2 rounded-full ${statusIsActive ? 'bg-[#23A55A]' : 'bg-[#64748B]'}`} />
                   {statusLabel}
                 </span>
@@ -185,44 +210,69 @@ setTitle("Internship Profile")
           <div className="flex flex-wrap gap-3">
             <button
               onClick={() => setActiveTab('overview')}
-              className={`px-5 py-2.5 rounded-full text-[15px] font-medium transition-colors ${
-                activeTab === 'overview'
+              className={`px-5 py-2.5 rounded-full text-[15px] font-medium transition-colors ${activeTab === 'overview'
                   ? 'bg-[#0989D4] text-white'
                   : 'bg-white text-[#344054] border border-gray-300'
-              }`}
+                }`}
             >
               Overview
             </button>
-            <button
-              onClick={() => setActiveTab('applied')}
-              className={`px-5 py-2.5 rounded-full text-[15px] font-medium transition-colors ${
-                activeTab === 'applied'
-                  ? 'bg-[#0989D4] text-white'
-                  : 'bg-white text-[#344054] border border-gray-300'
-              }`}
-            >
-              Applied List
-            </button>
+            {(internship?.status === "approved") &&
+
+              <button
+                onClick={() => setActiveTab('applied')}
+                className={`px-5 py-2.5 rounded-full text-[15px] font-medium transition-colors ${activeTab === 'applied'
+                    ? 'bg-[#0989D4] text-white'
+                    : 'bg-white text-[#344054] border border-gray-300'
+                  }`}
+              >
+                Applied List
+              </button>
+            }
           </div>
 
           <div className="flex flex-wrap items-center gap-3">
-           <ConfirmActionButton
-  isActive={statusIsActive}
-  isSubmitting={isTogglingStatus}
-  onConfirm={handleToggleStatus}
-  activateText="Activate"
-  deactivateText="Deactivate"
-/>
-            <button
-              type="button"
-              onClick={() => navigate(`/${module}/jobs/internship-form`, { state: { editData: internship } })}
-              className="inline-flex items-center gap-2 bg-white border border-[#D0D5DD] text-[#344054] px-6 py-2.5 rounded-full text-[15px] font-medium hover:bg-gray-50 transition-colors"
-            >
-              <img src={assets.edit} alt="Edit" className="w-5 h-5 object-contain" />
-              Edit Details
-            </button>
+            {
+              internship.status === "approved" && <>
+
+                <ConfirmActionButton
+                  isActive={statusIsActive}
+                  isSubmitting={isTogglingStatus}
+                  onConfirm={handleToggleStatus}
+                  activateText="Activate"
+                  deactivateText="Deactivate"
+                  type='Internship'
+                  apply="apply"
+
+                />
+                <button
+                  type="button"
+                  onClick={() => navigate(`/${module}/jobs/internship-form`, { state: { editData: internship } })}
+                  className="inline-flex items-center gap-2 bg-white border border-[#D0D5DD] text-[#344054] px-6 py-2.5 rounded-full text-[15px] font-medium hover:bg-gray-50 transition-colors"
+                >
+                  <img src={assets.edit} alt="Edit" className="w-5 h-5 object-contain" />
+                  Edit Details
+                </button>
+              </>
+
+            }
+
+            {
+              user.role === "admin" &&    internship.status === "pending"  && <StatusActionButtons type='Internship' isSubmitting={statusLoading} onConfirm={updateStatus} />
+            }
           </div>
         </div>
+
+        {
+                    internship.status === "rejected" && (
+                        <div className="space-y-6">
+                            <p className="text-red-600 font-semibold">
+                                {internship?.rejected_reason}
+                            </p>
+                        </div>
+                    )
+                }
+
 
         {activeTab === 'overview' ? (
           <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-4">
@@ -235,27 +285,27 @@ setTitle("Internship Profile")
             <TextCard title="Description" text={internship.description || '-'} />
 
             <div className="xl:col-span-3 grid grid-cols-1 md:grid-cols-2 gap-4">
-  
-  <TextCard
-    title="Learning"
-    text={internship.description || '-'}
-  />
 
-  <TextCard
-    title="Certificate Availability"
-    text={internship.certificateAvailability || '-'}
-  />
+              <TextCard
+                title="Learning"
+                text={internship.description || '-'}
+              />
 
-</div>
+              <TextCard
+                title="Certificate Availability"
+                text={internship.certificateAvailability || '-'}
+              />
+
+            </div>
           </div>
         ) : (
-        <AppliedListSection
-  data={applications.list.map((app) => ({
-    ...app,
-    appliedAt: new Date(app.appliedAt).toLocaleDateString('en-GB'),
-  }))}
-  heading={appliedListHeading}
-/>
+          <AppliedListSection
+            data={applications.list.map((app) => ({
+              ...app,
+              appliedAt: new Date(app.appliedAt).toLocaleDateString('en-GB'),
+            }))}
+            heading={appliedListHeading}
+          />
         )}
       </section>
     </div>

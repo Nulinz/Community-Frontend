@@ -5,7 +5,7 @@ import {
     IndianRupee
 } from 'lucide-react';
 import AppliedListSection from '../common/AppliedListSection';
-import { getSeminarById, toggleSeminarStatus, addSeminarPost } from '../services/admin/adminServices';
+import { getSeminarById, toggleSeminarStatus, addSeminarPost, updateEventStatus } from '../services/admin/adminServices';
 import { toast } from 'react-toastify';
 import { useMain } from '../context/MainContext';
 import { formatAddress } from '../utils/formatAddress';
@@ -13,6 +13,7 @@ import getRemainingDays from '../utils/getRemainingDays';
 import ConfirmActionButton from '../common/ConfirmActionButton';
 import { useTitle } from '../context/AdminTitle';
 import { EducationIcon } from './icons';
+import StatusActionButtons from '../common/AcceptRejectButtons';
 
 const SeminarProfile = () => {
     const { id } = useParams();
@@ -21,37 +22,59 @@ const SeminarProfile = () => {
     const [isAddPostModalOpen, setIsAddPostModalOpen] = useState(false);
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [seminar, setSeminar] = useState(null);
-    const [registrations, setRegistrations] = useState({ count: 0, list: [] ,revenue:null});
+    const [statusLoading, setStatusLoading] = useState(false)
+    const [registrations, setRegistrations] = useState({ count: 0, list: [], revenue: null });
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState(null);
     const [selectedFiles, setSelectedFiles] = useState([]);
     const fileInputRef = useRef(null);
-    const {user,dynamicPath}=useMain()
+    const { user, dynamicPath } = useMain()
     const BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
-      const {setTitle}=useTitle()
-      useEffect(()=>{
-    setTitle("Seminar Profile")
-      },[])
+    const { setTitle } = useTitle()
+    useEffect(() => {
+        setTitle("Seminar Profile")
+    }, [])
     useEffect(() => {
         fetchSeminarData();
     }, [id]);
 
-const fetchSeminarData = async () => {
-  try {
-    setIsLoading(true);
-    const response = await getSeminarById(id);
-    if (response.success) {
-      setSeminar(response.data.seminar);
-      setRegistrations(response.data.registrations || { count: 0, list: [],revenue:null });
-    } else {
-      setError("Seminar not found");
-    }
-  } catch (err) {
-    setError("Failed to fetch seminar details");
-  } finally {
-    setIsLoading(false);
-  }
-};
+    const updateStatus = async (status, rejected_reason) => {
+        try {
+            setStatusLoading(true);
+            const response = await updateEventStatus(id, "seminar", status, rejected_reason);
+            console.log(response)
+            if (response.success) {
+                setSeminar(response.data)
+                toast.success(response.message);
+            }
+            else {
+                toast.error(response.message);
+            }
+
+        } catch (err) {
+            toast.error(err.message);
+            console.error(err);
+        } finally {
+            setStatusLoading(false);
+        }
+    };
+
+    const fetchSeminarData = async () => {
+        try {
+            setIsLoading(true);
+            const response = await getSeminarById(id);
+            if (response.success) {
+                setSeminar(response.data.seminar);
+                setRegistrations(response.data.registrations || { count: 0, list: [], revenue: null });
+            } else {
+                setError("Seminar not found");
+            }
+        } catch (err) {
+            setError("Failed to fetch seminar details");
+        } finally {
+            setIsLoading(false);
+        }
+    };
 
     const handleToggleStatus = async () => {
         try {
@@ -183,33 +206,33 @@ const fetchSeminarData = async () => {
                     <div className="z-10">
                         <h1 className="text-[24px] sm:text-[30px] md:text-[34px] lg:text-[38px] xl:text-[48px] font-extrabold leading-tight mb-4 md:mb-6 xl:mb-8">{seminar.eventName}</h1>
                         <div className="grid grid-cols-1 gap-y-2 font-source text-[13px] sm:text-[14px] md:text-[15px] xl:text-[16px] font-normal text-[#FFFFFF]">
-                            <span className="flex items-center gap-2"><EducationIcon  /> {seminar.organizer}</span>
+                            <span className="flex items-center gap-2"><EducationIcon /> {seminar.organizer}</span>
                             <span className="flex items-center gap-2"><MapPin size={16} /> {formatAddress(seminar)}</span>
                             <span className="flex items-center gap-2"><Briefcase size={16} /> {seminar.mode}</span>
                             <span className="flex items-center gap-2"><CalendarDays size={16} /> {seminar.eventDate ? new Date(seminar.eventDate).toLocaleDateString() : 'N/A'}</span>
                         </div>
                     </div>
 
-                     <div className="z-10 grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-3 xl:flex gap-3 md:gap-4 xl:gap-4 items-stretch xl:items-end w-full xl:w-auto">
-                                                                                  <div className="bg-[linear-gradient(119.97deg,_#006098_0%,_#00C1FD_100%)] p-3 sm:p-3.5 md:p-4 xl:p-6 rounded-[14px] sm:rounded-[16px] xl:rounded-[24px] min-w-0 xl:min-w-[180px] flex flex-col justify-center shadow-lg w-full xl:w-auto">
-                                                                                      <p className="font-source text-[8px] sm:text-[9px] md:text-[10px] xl:text-[10px] font-semibold leading-[13px] sm:leading-[14px] tracking-[0.5px] align-middle uppercase text-[#FFFFFF] mb-1">Total Registration</p>
-                                                                                      <p className="text-[18px] sm:text-[20px] md:text-[22px] lg:text-[24px] xl:text-[30px] font-bold leading-[24px] sm:leading-[26px] md:leading-[28px] lg:leading-[30px] xl:leading-[36px] tracking-[0px] align-middle text-[#ffffff] text-source">{registrations.count} <span className='text-[20px] text-gray-300 ' >/{seminar?.totalSeats}</span></p>
-                                                                                  </div>
-                                                                                  <div className="bg-white p-3 sm:p-3.5 md:p-4 xl:p-6 rounded-[14px] sm:rounded-[16px] xl:rounded-[24px] min-w-0 xl:min-w-[180px] flex flex-col justify-center text-gray-900 shadow-xl w-full xl:w-auto">
-                                                                                      <p className="font-source text-[8px] sm:text-[9px] md:text-[10px] xl:text-[10px] font-semibold leading-[13px] sm:leading-[14px] tracking-[0.5px] align-middle uppercase text-[#64748B] mb-1">Revenue Generated</p>
-                                                                                     <div className="flex items-center gap-1">
-                                                                                        <IndianRupee  size={24} className="text-[#006098] font-bold" />
-                                                                                    
-                                                                                        <p className="text-[18px] sm:text-[20px] md:text-[22px] lg:text-[24px] xl:text-[30px] font-bold leading-[24px] sm:leading-[26px] md:leading-[28px] lg:leading-[30px] xl:leading-[36px] tracking-[0px] align-middle text-[#006098] text-source">
-                                                                                          {registrations?.revenue?.totalAmount || 0}
-                                                                                        </p>
-                                                                                      </div>
-                                                                                  </div>
-                                                                                  <div className="bg-white p-3 sm:p-3.5 md:p-4 xl:p-6 rounded-[14px] sm:rounded-[16px] xl:rounded-[24px] min-w-0 xl:min-w-[180px] flex flex-col justify-center items-start shadow-xl w-full xl:w-auto">
-                                                                                      <p className="font-source text-[8px] sm:text-[9px] md:text-[10px] xl:text-[10px] font-semibold leading-[13px] sm:leading-[14px] tracking-[0.5px] align-middle uppercase text-[#64748B] mb-1">Days Remaining</p>
-                                                                                      <p className="text-[18px] sm:text-[20px] md:text-[22px] lg:text-[24px] xl:text-[30px] font-bold leading-[24px] sm:leading-[26px] md:leading-[28px] lg:leading-[30px] xl:leading-[36px] tracking-[0px] align-middle text-[#006098] text-source">{getRemainingDays(seminar.eventDate)}</p>
-                                                                                  </div>
-                                       </div>
+                    <div className="z-10 grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-3 xl:flex gap-3 md:gap-4 xl:gap-4 items-stretch xl:items-end w-full xl:w-auto">
+                        <div className="bg-[linear-gradient(119.97deg,_#006098_0%,_#00C1FD_100%)] p-3 sm:p-3.5 md:p-4 xl:p-6 rounded-[14px] sm:rounded-[16px] xl:rounded-[24px] min-w-0 xl:min-w-[180px] flex flex-col justify-center shadow-lg w-full xl:w-auto">
+                            <p className="font-source text-[8px] sm:text-[9px] md:text-[10px] xl:text-[10px] font-semibold leading-[13px] sm:leading-[14px] tracking-[0.5px] align-middle uppercase text-[#FFFFFF] mb-1">Total Registration</p>
+                            <p className="text-[18px] sm:text-[20px] md:text-[22px] lg:text-[24px] xl:text-[30px] font-bold leading-[24px] sm:leading-[26px] md:leading-[28px] lg:leading-[30px] xl:leading-[36px] tracking-[0px] align-middle text-[#ffffff] text-source">{registrations.count} <span className='text-[20px] text-gray-300 ' >/{seminar?.totalSeats}</span></p>
+                        </div>
+                        <div className="bg-white p-3 sm:p-3.5 md:p-4 xl:p-6 rounded-[14px] sm:rounded-[16px] xl:rounded-[24px] min-w-0 xl:min-w-[180px] flex flex-col justify-center text-gray-900 shadow-xl w-full xl:w-auto">
+                            <p className="font-source text-[8px] sm:text-[9px] md:text-[10px] xl:text-[10px] font-semibold leading-[13px] sm:leading-[14px] tracking-[0.5px] align-middle uppercase text-[#64748B] mb-1">Revenue Generated</p>
+                            <div className="flex items-center gap-1">
+                                <IndianRupee size={24} className="text-[#006098] font-bold" />
+
+                                <p className="text-[18px] sm:text-[20px] md:text-[22px] lg:text-[24px] xl:text-[30px] font-bold leading-[24px] sm:leading-[26px] md:leading-[28px] lg:leading-[30px] xl:leading-[36px] tracking-[0px] align-middle text-[#006098] text-source">
+                                    {registrations?.revenue?.totalAmount || 0}
+                                </p>
+                            </div>
+                        </div>
+                        <div className="bg-white p-3 sm:p-3.5 md:p-4 xl:p-6 rounded-[14px] sm:rounded-[16px] xl:rounded-[24px] min-w-0 xl:min-w-[180px] flex flex-col justify-center items-start shadow-xl w-full xl:w-auto">
+                            <p className="font-source text-[8px] sm:text-[9px] md:text-[10px] xl:text-[10px] font-semibold leading-[13px] sm:leading-[14px] tracking-[0.5px] align-middle uppercase text-[#64748B] mb-1">Days Remaining</p>
+                            <p className="text-[18px] sm:text-[20px] md:text-[22px] lg:text-[24px] xl:text-[30px] font-bold leading-[24px] sm:leading-[26px] md:leading-[28px] lg:leading-[30px] xl:leading-[36px] tracking-[0px] align-middle text-[#006098] text-source">{getRemainingDays(seminar.eventDate)}</p>
+                        </div>
+                    </div>
                 </div>
 
                 {/* Tabs & Actions */}
@@ -221,45 +244,66 @@ const fetchSeminarData = async () => {
                         >
                             Overview
                         </button>
-                        <button
-                            onClick={() => setActiveTab('applied')}
-                            className={`px-[16px] py-[10px] rounded-full font-source text-[16px] font-medium leading-none tracking-normal transition-colors ${activeTab === 'applied' ? 'bg-[#0989D4] text-[#ffffff]' : 'text-[#344054] border border-gray-400 bg-white'}`}
-                        >
-                            Applied List
-                        </button>
+                        {(seminar?.status === "approved") &&
+
+                            <button
+                                onClick={() => setActiveTab('applied')}
+                                className={`px-[16px] py-[10px] rounded-full font-source text-[16px] font-medium leading-none tracking-normal transition-colors ${activeTab === 'applied' ? 'bg-[#0989D4] text-[#ffffff]' : 'text-[#344054] border border-gray-400 bg-white'}`}
+                            >
+                                Applied List
+                            </button>
+                        }
                     </div>
                     <div className="flex flex-wrap xl:flex-nowrap gap-3 md:gap-4 items-center">
-                        <span className={`flex items-center gap-2 px-4 py-2 rounded-full text-[12px] font-bold border ${seminar.isActive ? 'bg-[#E6F8EE] text-[#0ca678] border-[#c3fae8]' : 'bg-gray-50 text-secondary border-gray-200'}`}>
-                            <div className={`w-2 h-2 rounded-full ${seminar.isActive ? 'bg-[#0ca678]' : 'bg-secondary'}`}></div>
-                            {seminar.isActive ? 'Active' : 'Inactive'}
-                        </span>
-                         <ConfirmActionButton
-                                                 isActive={seminar?.isActive}
-                                                 isSubmitting={isSubmitting}
-                                                 onConfirm={handleToggleStatus}
-                                                 activateText="Activate"
-                                                 deactivateText="Deactivate"
-                                               />
-                        <button
-                            onClick={() => { setIsAddPostModalOpen(true); setSelectedFiles([]); }}
-                            className="flex gap-2 items-center bg-white border border-[#D0D5DD] text-gray-700 px-6 py-2.5 rounded-full text-sm font-bold hover:bg-gray-50 transition-all shadow-sm"
-                        >
-                            <Plus size={18} /> Add Post
-                        </button>
-                        <button
-                            onClick={() =>
-  navigate(
-    dynamicPath("seminar-form"),
-    { state: { editData: seminar } }
-  )
-}
-                            className="flex gap-2 items-center bg-white border border-[#D0D5DD] text-gray-700 px-6 py-2.5 rounded-full text-sm font-bold hover:bg-gray-50 transition-all shadow-sm"
-                        >
-                            <SquarePen size={18} /> Edit Details
-                        </button>
+                        {
+                            seminar.status === "approved" &&
+                            <>
+                                <span className={`flex items-center gap-2 px-4 py-2 rounded-full text-[12px] font-bold border ${seminar.isActive ? 'bg-[#E6F8EE] text-[#0ca678] border-[#c3fae8]' : 'bg-gray-50 text-secondary border-gray-200'}`}>
+                                    <div className={`w-2 h-2 rounded-full ${seminar.isActive ? 'bg-[#0ca678]' : 'bg-secondary'}`}></div>
+                                    {seminar.isActive ? 'Active' : 'Inactive'}
+                                </span>
+                                <ConfirmActionButton
+                                    isActive={seminar?.isActive}
+                                    isSubmitting={isSubmitting}
+                                    onConfirm={handleToggleStatus}
+                                    activateText="Activate"
+                                    deactivateText="Deactivate"
+                                    type="Seminar"
+                                />
+                                <button
+                                    onClick={() => { setIsAddPostModalOpen(true); setSelectedFiles([]); }}
+                                    className="flex gap-2 items-center bg-white border border-[#D0D5DD] text-gray-700 px-6 py-2.5 rounded-full text-sm font-bold hover:bg-gray-50 transition-all shadow-sm"
+                                >
+                                    <Plus size={18} /> Add Post
+                                </button>
+                                <button
+                                    onClick={() =>
+                                        navigate(
+                                            dynamicPath("seminar-form"),
+                                            { state: { editData: seminar } }
+                                        )
+                                    }
+                                    className="flex gap-2 items-center bg-white border border-[#D0D5DD] text-gray-700 px-6 py-2.5 rounded-full text-sm font-bold hover:bg-gray-50 transition-all shadow-sm"
+                                >
+                                    <SquarePen size={18} /> Edit Details
+                                </button>
+
+                            </>}
+
+                        {
+                            user.role === "admin"  && <StatusActionButtons isSubmitting={statusLoading} onConfirm={updateStatus} />
+                        }
                     </div>
                 </div>
-
+{
+                    seminar.status === "rejected" && (
+                        <div className="space-y-6">
+                            <p className="text-red-600 font-semibold">
+                                {seminar?.rejected_reason}
+                            </p>
+                        </div>
+                    )
+                }
                 {/* Tab Content */}
                 {activeTab === 'overview' ? (
                     <div className="space-y-6">
@@ -326,7 +370,7 @@ const fetchSeminarData = async () => {
                             <InfoCard title="Venue Details">
                                 <div className="space-y-4">
                                     <DataItem label="Venue Name" value={seminar.venueName} />
-                                       <DataItem label="Address" value={formatAddress(seminar)} />
+                                    <DataItem label="Address" value={formatAddress(seminar)} />
                                 </div>
                             </InfoCard>
                         </div>
@@ -378,17 +422,17 @@ const fetchSeminarData = async () => {
 
                         {/* Row 4: Departments + Eligibility + Description */}
                         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                              <InfoCard title="Allowed Departments">
-  <ul className="list-disc pl-5 space-y-1 text-secondary text-sm">
-    {seminar?.allowedDepartments?.length > 0 ? (
-      seminar.allowedDepartments.map((dept, index) => (
-        <li key={index}>{dept}</li>
-      ))
-    ) : (
-      <li>Open to all departments</li>
-    )}
-  </ul>
-</InfoCard>
+                            <InfoCard title="Allowed Departments">
+                                <ul className="list-disc pl-5 space-y-1 text-secondary text-sm">
+                                    {seminar?.allowedDepartments?.length > 0 ? (
+                                        seminar.allowedDepartments.map((dept, index) => (
+                                            <li key={index}>{dept}</li>
+                                        ))
+                                    ) : (
+                                        <li>Open to all departments</li>
+                                    )}
+                                </ul>
+                            </InfoCard>
                             <InfoCard title="Eligibility">
                                 <p className="text-secondary text-sm leading-relaxed">{seminar.eligibilityDetails}</p>
                             </InfoCard>
@@ -418,13 +462,13 @@ const fetchSeminarData = async () => {
                         </div>
                     </div>
                 ) : (
-                  <AppliedListSection
-  data={registrations.list.map((reg) => ({
-    ...reg,
-    registeredAt: new Date(reg.registeredAt).toLocaleDateString('en-GB'),
-  }))}
-  heading={appliedListColumns}
-/>
+                    <AppliedListSection
+                        data={registrations.list.map((reg) => ({
+                            ...reg,
+                            registeredAt: new Date(reg.registeredAt).toLocaleDateString('en-GB'),
+                        }))}
+                        heading={appliedListColumns}
+                    />
                 )}
             </section>
 
@@ -473,7 +517,7 @@ const fetchSeminarData = async () => {
                                 {selectedFiles.map((file, index) => (
                                     <div key={index} className="relative group w-16 h-16 rounded-md overflow-hidden bg-gray-100 border border-gray-200">
                                         <img src={URL.createObjectURL(file)} alt="preview" className="w-full h-full object-cover" />
-                                        <button 
+                                        <button
                                             onClick={() => removeSelectedFile(index)}
                                             className="absolute top-1 right-1 bg-black/50 text-white rounded-full p-0.5 opacity-0 group-hover:opacity-100 transition-opacity"
                                         >
