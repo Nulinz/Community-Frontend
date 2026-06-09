@@ -2009,7 +2009,8 @@ const inputRef = useRef(null);
         if (field.type === "tel") nextValue = nextValue.replace(/\D/g, "").slice(0, 10);
         if (field.sanitize === "noSpecialChars") nextValue = nextValue.replace(/[^a-zA-Z0-9\s.\-]/g, "");
         if (field.sanitize === "noExtraNum") nextValue = nextValue.replace(/\D/g, "").slice(0, 6);
-        if (field.sanitize === "noAlphabets") nextValue = nextValue.replace(/\D/g, "").slice(0, 10)
+        if (field.sanitize === "noAlphabets") nextValue = nextValue.replace(/\D/g, "").slice(0, 18)
+        if (field.sanitize === "ifsc") nextValue = nextValue.replace(/[^A-Z0-9]/gi, "").slice(0, 11).toUpperCase();
         onChange(nextValue);
       }}
       inputMode={field.type === "tel" ? "numeric" : undefined}

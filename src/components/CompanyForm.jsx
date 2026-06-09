@@ -79,6 +79,7 @@ const companyFormConfig = [
       name: "ifscCode",
       label: "IFSC Code",
       type: "text",
+      sanitize: "ifsc"
     },
   ],
 },

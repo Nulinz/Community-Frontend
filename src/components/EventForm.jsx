@@ -86,7 +86,7 @@ const eventFormConfig = [
       { name: "address", label: "Address", type: "text" },
       { name: "city", label: "City", type: "text" },
       { name: "state", label: "State", type: "text" },
-      { name: "pincode", label: "Pincode", type: "text" },
+      { name: "pincode", label: "Pincode", type: "text", sanitize: "noExtraNum"},
       { name: "geoLocation", label: "Geo location", type: "text", required: false },
     ],
   },
