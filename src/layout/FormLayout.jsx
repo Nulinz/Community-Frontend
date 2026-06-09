@@ -1982,6 +1982,7 @@ const inputRef = useRef(null);
          ref={inputRef}
           type="date"
           value={value}
+          max={field.max}
           readOnly={field.readOnly}
           onChange={(e) => {
             if (field.readOnly) return;
@@ -2006,6 +2007,9 @@ const inputRef = useRef(null);
         if (field.readOnly) return;
         let nextValue = e.target.value;
         if (field.type === "tel") nextValue = nextValue.replace(/\D/g, "").slice(0, 10);
+        if (field.sanitize === "noSpecialChars") nextValue = nextValue.replace(/[^a-zA-Z0-9\s.\-]/g, "");
+        if (field.sanitize === "noExtraNum") nextValue = nextValue.replace(/\D/g, "").slice(0, 6);
+        if (field.sanitize === "noAlphabets") nextValue = nextValue.replace(/\D/g, "").slice(0, 10)
         onChange(nextValue);
       }}
       inputMode={field.type === "tel" ? "numeric" : undefined}
@@ -2200,6 +2204,10 @@ const FormLayout = ({
           if (field.type === "file" && isEdit && typeof value === "string" && value.trim() !== "") continue;
           if (!hasMeaningfulValue(value)) {
             toast.error(`${field.label} is required`);
+            return false;
+          }
+          if (field.sanitize === "validMail" && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)) {
+            toast.error(`${field.label} must be a valid email`);
             return false;
           }
         }

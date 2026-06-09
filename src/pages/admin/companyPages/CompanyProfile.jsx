@@ -316,10 +316,10 @@ useEffect(() => {
                 {user.role === 'admin' && (
                   <>
                    <ConfirmActionButton
-  isActive={company?.is_active}
-  isSubmitting={isSubmitting}
-  onConfirm={handleToggleStatus}
-/>
+                      isActive={company?.is_active}
+                      isSubmitting={isSubmitting}
+                      onConfirm={handleToggleStatus}
+                    />
                     
                     <button
                       onClick={() => setIsPasswordModalOpen(true)}

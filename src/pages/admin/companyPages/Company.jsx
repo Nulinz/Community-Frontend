@@ -63,7 +63,7 @@ setTitle("Company")
         { title: 'Location', dataIndex: 'city', key: 'city' },
         {
             title: 'Status',
-            dataIndex: 'isActive',
+            dataIndex: 'is_active',
             key: 'isActive',
             render: (value) => {
                 const isActive = value === true;

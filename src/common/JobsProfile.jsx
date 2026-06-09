@@ -84,6 +84,11 @@ const JobsProfile = ({ module = 'admin' }) => {
   const statusIsActive = internship?.isActive;
   const responsibilities = Array.isArray(internship?.responsibilities) ? internship.responsibilities : [];
   const eligibility = Array.isArray(internship?.eligibility) ? internship.eligibility : [];
+  const skillSet = Array.isArray(internship?.skill_set) ? internship.skill_set : [];
+  const benefits = Array.isArray(internship?.benefits) ? internship.benefits : [];
+  const learningOutcomes = Array.isArray(internship?.learning_outcomes) ? internship.learning_outcomes : [];
+  const developmentBenefits = Array.isArray(internship?.development_benefits) ? internship.development_benefits : [];
+  const developmentResources = Array.isArray(internship?.development_resources) ? internship.development_resources : [];
   const fallbackList = ['-'];
 
   const appliedListHeading = [
@@ -278,24 +283,22 @@ const JobsProfile = ({ module = 'admin' }) => {
           <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-4">
             <ListCard title="Responsibilities" items={responsibilities.length ? responsibilities : fallbackList} />
             <ListCard title="Eligibility Criteria" items={eligibility.length ? eligibility : fallbackList} />
-            <ListCard title="Skill" items={responsibilities.length ? responsibilities : fallbackList} />
+            <ListCard title="Required Skill Set" items={skillSet.length ? skillSet : fallbackList} />
 
-            <ListCard title="Skill Development Benefits" items={eligibility.length ? eligibility : fallbackList} />
-            <ListCard title="Supported Learning Recourse" items={responsibilities.length ? responsibilities : fallbackList} />
+            <ListCard title="Learning Benefits" items={benefits.length ? benefits : fallbackList} />
+            <ListCard title="Skill Development Benefits" items={developmentBenefits.length ? developmentBenefits : fallbackList} />
+            <ListCard title="Supported Development Resources" items={developmentResources.length ? developmentResources : fallbackList} />
             <TextCard title="Description" text={internship.description || '-'} />
 
             <div className="xl:col-span-3 grid grid-cols-1 md:grid-cols-2 gap-4">
-
               <TextCard
-                title="Learning"
-                text={internship.description || '-'}
+                title="Learning Outcomes"
+                text={learningOutcomes.join(', ') || '-'}
               />
-
               <TextCard
                 title="Certificate Availability"
                 text={internship.certificateAvailability || '-'}
               />
-
             </div>
           </div>
         ) : (

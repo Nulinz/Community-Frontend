@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Plus, Loader2 } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation  } from 'react-router-dom';
 import DynamicTable from '../../../common/DynamicTable';
 import { getAllColleges } from '../../../services/admin/adminServices';
 import { toast } from 'react-toastify';
@@ -8,17 +8,23 @@ import { useTitle } from '../../../context/AdminTitle';
 
 const College = () => {
   const navigate = useNavigate();
+  const location = useLocation();
   const [search, setSearch] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
   const [colleges, setColleges] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const {setTitle}=useTitle()
+
+
   useEffect(()=>{
-setTitle("College")
+    setTitle("College")
   },[])
+
+
   useEffect(() => {
     fetchColleges();
-  }, []);
+  }, [location.state]);
+
 
   const fetchColleges = async () => {
     try {
@@ -77,7 +83,7 @@ setTitle("College")
     },
     {
       title: 'Status',
-      dataIndex: 'isActive',
+      dataIndex: 'is_active',
       key: 'isActive',
       render: (value) => {
         const isActive = value === true;

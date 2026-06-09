@@ -18,7 +18,7 @@ export const getCurrentUser = async () => {
 
 export const loginUser = async ({ phone, password }) => {
   try {
-    const res = await API.post("/users/login", {
+    const res = await API.post("/users/web-login", {
       phone,
       password,
     });

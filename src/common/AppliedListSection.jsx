@@ -21,11 +21,11 @@ const AppliedListSection = ({ data = [] ,heading =[],showFilters}) => {
         return data.filter((item) => {
             const query = search.toLowerCase();
             const matchesSearch =
-                item?.name?.toLowerCase().includes(query) ||
+                (item?.name || item?.fullName)?.toLowerCase().includes(query) ||
                 item?.college?.toLowerCase().includes(query) ||
                 item?.department?.toLowerCase().includes(query) ||
-                item?.contact?.toLowerCase().includes(query) ||
-                item?.mail?.toLowerCase().includes(query) ||
+                (item?.contact || item?.phoneNumber)?.toLowerCase().includes(query) ||
+                (item?.mail || item?.mailId)?.toLowerCase().includes(query) ||
                 item?.location?.toLowerCase().includes(query);
 
             const matchesYear = yearFilter ?String(item.year) === yearFilter : true;
@@ -42,7 +42,7 @@ const AppliedListSection = ({ data = [] ,heading =[],showFilters}) => {
             <DynamicTable
                 columns={heading}
                 dataSource={filteredAppliedList}
-                rowKey="id"
+                rowKey="sNo"
                 showSearch={true}
                 searchPlaceholder="Search ..."
                 onSearch={(value) => {

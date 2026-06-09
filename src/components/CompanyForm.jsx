@@ -11,7 +11,7 @@ const companyFormConfig = [
     title: "Basic Details",
     type: "static",
     fields: [
-      { name: "companyName", label: "Company Name", type: "text" },
+      { name: "companyName", label: "Company Name", type: "text", sanitize: "noSpecialChars" },
       {
         name: "companyType",
         label: "Company Type",
@@ -25,7 +25,7 @@ const companyFormConfig = [
         type: "multiselect",
         options: ["Remote Friendly", "Fast Paced", "Inclusive", "Learning Focused"],
       },
-      { name: "yearFounded", label: "Year Founded", type: "date", required: false },
+      { name: "yearFounded", label: "Year Founded", type: "date", required: false,  max: new Date().toISOString().split("T")[0] },
       { name: "websiteLink", label: "Website Link", type: "text", required: false },
       { name: "companyLogo", label: "Company Logo", type: "file" },
       { name: "coverImage", label: "Cover Image", type: "file" },
@@ -43,11 +43,11 @@ const companyFormConfig = [
     fields: [
       { name: "contactPersonName", label: "Contact Person Name", type: "text" },
       { name: "phoneNumber", label: "Phone Number", type: "tel" },
-      { name: "mailId", label: "Mail Id", type: "email" },
+      { name: "mailId", label: "Mail Id", type: "text", sanitize: "validMail" },
       { name: "address", label: "Address", type: "text" },
       { name: "city", label: "City", type: "text" },
       { name: "state", label: "State", type: "text" },
-      { name: "pincode", label: "Pincode", type: "text" },
+      { name: "pincode", label: "Pincode", type: "text", sanitize: "noExtraNum" },
     ],
   },
   {
@@ -73,6 +73,7 @@ const companyFormConfig = [
       name: "accountNumber",
       label: "Account Number",
       type: "text",
+      sanitize: "noAlphabets"
     },
     {
       name: "ifscCode",

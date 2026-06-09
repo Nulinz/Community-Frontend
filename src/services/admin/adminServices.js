@@ -246,6 +246,11 @@ export const createInternship = async (payload) => {
   return response.data;
 };
 
+export const updateInternship = async (id, data) => {
+  const response = await API.put(`/internship/update/${id}`, data);
+  return response.data;
+};
+
 export const getAllInternships = async (status = "pending") => {
   const response = await API.get("/internship/all", {
     params: { status },

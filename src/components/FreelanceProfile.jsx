@@ -83,6 +83,11 @@ setTitle("Freelance Profile")
   const eligibility = Array.isArray(freelance?.eligibility) ? freelance.eligibility : [];
   const security = Array.isArray(freelance?.security) ? freelance.security : [];
   const referenceWebsite = Array.isArray(freelance?.referenceWebsite) ? freelance.referenceWebsite : [];
+  const skillSet = Array.isArray(freelance?.skill_set) ? freelance.skill_set : [];
+  const rules = Array.isArray(freelance?.rules) ? freelance.rules : [];
+  const paymentStructure = Array.isArray(freelance?.payment_structure) ? freelance.payment_structure : [];
+  const supportingFiles = Array.isArray(freelance?.supporting_files) ? freelance.supporting_files : [];
+  const eligibilityCriteria = Array.isArray(freelance?.eligibility_criteria) ? freelance.eligibility_criteria : [];
   const fallbackList = ['-'];
 
   const appliedListColumns = [
@@ -240,14 +245,14 @@ setTitle("Freelance Profile")
                            
                            
             <ConfirmActionButton
-  isActive={statusIsActive}
-  isSubmitting={isTogglingStatus}
-  onConfirm={handleToggleStatus}
-  activateText="Activate"
-  deactivateText="Deactivate"
-   type='Freelance'
-                  apply="apply"
-/>
+              isActive={statusIsActive}
+              isSubmitting={isTogglingStatus}
+              onConfirm={handleToggleStatus}
+              activateText="Activate"
+              deactivateText="Deactivate"
+              type='Freelance'
+              apply="apply"
+            />
             <button
               type="button"
               onClick={() => navigate(`/${module}/jobs/freelance-form`, { state: { editData: freelance } })}
@@ -279,8 +284,15 @@ setTitle("Freelance Profile")
             <ListCard title="Security" items={security.length ? security : fallbackList} />
 
             <ListCard title="Reference Website" items={referenceWebsite.length ? referenceWebsite : fallbackList} />
+            <ListCard title="Reference Website" items={referenceWebsite.length ? referenceWebsite : fallbackList} />
+            <ListCard title="Required Skill Set" items={skillSet.length ? skillSet : fallbackList} />
+
             <TextCard title="Learning" text={freelance.learning || '-'} />
             <TextCard title="Description" text={freelance.description || '-'} />
+            <ListCard title="Eligibility Criteria" items={eligibilityCriteria.length ? eligibilityCriteria : fallbackList} />
+            <ListCard title="Rules" items={rules.length ? rules : fallbackList} />
+            <ListCard title="Payment Structure" items={paymentStructure.length ? paymentStructure : fallbackList} />
+            <ListCard title="Supporting Files" items={supportingFiles.length ? supportingFiles : fallbackList} />
 
             <div className="xl:col-span-2">
               <TextCard title="Duration" text={freelance.duration || '-'} />

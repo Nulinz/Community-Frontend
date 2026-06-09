@@ -78,6 +78,8 @@ const Login = () => {
       });
       console.log(res)
       if(res?.status){
+        let role = res?.data.user.role
+        if(role==="admin"|| role === "college" || role === "")
         toast.success(res?.message||"Login successfully")
         await fetchCurrentUser()
       }

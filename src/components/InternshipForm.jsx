@@ -1,7 +1,7 @@
 
 import { useLocation, useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
-import { createInternship } from "../services/admin/adminServices";
+import { createInternship, updateInternship  } from "../services/admin/adminServices";
 import { useOrganizerDisplayName } from "../utils/organizer";
 import FormLayout from "../layout/FormLayout";
 import { useState } from "react";
@@ -16,12 +16,7 @@ const internshipFormConfig = [
     fields: [
       { name: "internshipType", label: "Internship Type", type: "radio", options: ["Paid", "Unpaid"] },
       { name: "jobTitle", label: "Job Title", type: "text" },
-      {
-        name: "companyName",
-        label: "Organizer",
-        type: "text",
-        readOnly: true,
-      },
+      { name: "organizer", label: "Organizer", type: "text", readOnly: true },
       { name: "location", label: "Location", type: "text" },
       { name: "mode", label: "Mode", type: "select", options: ["Online", "Offline", "Hybrid"] },
       { name: "totalOpenings", label: "Total Openings", type: "number" },
@@ -82,7 +77,7 @@ const internshipFormConfig = [
     dynamicStyle: "grid-6",
     initialRows: 3,
     showWhen: { field: "internshipType", value: "Unpaid" },
-    fields: [{ name: "development_Benefits", label: "Skill Development Benefits", type: "text", colSpan: "md:col-span-11" }],
+    fields: [{ name: "development_benefits", label: "Skill Development Benefits", type: "text", colSpan: "md:col-span-11" }],
   },
   {
     title: "Supported Development resources",
@@ -112,32 +107,34 @@ const navigate=useNavigate()
   useEffect(()=>{
 setTitle("Internship Form")
   },[])
+
+
 const handleSubmit = async (_, payload) => {
   try {
     setLoading(true);
-
-    const res = await createInternship(payload);
-
+    const res = editData?._id
+      ? await updateInternship(editData._id, payload)
+      : await createInternship(payload);
     if (res?.success) {
-      toast.success("Internship saved successfully");
-      navigate(-1)
+      toast.success(`Internship ${editData?._id ? 'updated' : 'created'} successfully`);
+      navigate(-1);
     } else {
       toast.error(res?.message || "Failed to save internship");
     }
   } catch (error) {
-    toast.error(
-      error?.response?.data?.message || "Server error. Please try again"
-    );
+    toast.error(error?.response?.data?.message || "Server error. Please try again");
   } finally {
     setLoading(false);
   }
 };
+
+
   return (
     <FormLayout
       config={internshipFormConfig}
       editData={editData}
       onSubmit={handleSubmit}
-      staticOverrides={{ companyName: organizerName }}
+      staticOverrides={{ companyName: organizerName, organizer: organizerName }}
       dateFields={["internStartDate", "applicationDeadline"]}
     />
   );

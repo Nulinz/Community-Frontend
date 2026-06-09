@@ -66,6 +66,8 @@ const SeminarProfile = () => {
             if (response.success) {
                 setSeminar(response.data.seminar);
                 setRegistrations(response.data.registrations || { count: 0, list: [], revenue: null });
+                console.log("first reg item:", registrations.list[0]);
+                console.log("full response:", response.data);
             } else {
                 setError("Seminar not found");
             }
@@ -182,8 +184,8 @@ const SeminarProfile = () => {
     };
 
     const appliedListColumns = [
-        { title: '#', dataIndex: 'id', key: 'id' },
-        { title: 'Name', dataIndex: 'name', key: 'name' },
+        { title: '#', dataIndex: 'sNo', key: 'sNo' },
+        { title: 'Name', dataIndex: 'fullName', key: 'fullName' },
         { title: 'College', dataIndex: 'college', key: 'college' },
         { title: 'Department', dataIndex: 'department', key: 'department' },
         { title: 'Year', dataIndex: 'year', key: 'year' },

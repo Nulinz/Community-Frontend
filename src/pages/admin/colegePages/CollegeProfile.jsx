@@ -79,6 +79,7 @@ const handleToggleStatus = async () => {
   try {
     setIsSubmitting(true);
     const response = await toggleCollegeStatus(college._id || college.id);
+    console.log("toggle response:", response);
     if (response.success) {
       toast.success(response.message);
       setCollege((prev) => ({ ...prev, is_active: response.data.is_active }));
@@ -279,11 +280,11 @@ const handleToggleStatus = async () => {
               {user.role === 'admin' && (
                   <>
                   
-  <ConfirmActionButton
-  isActive={college?.is_active}
-  isSubmitting={isSubmitting}
-  onConfirm={handleToggleStatus}
-/>
+            <ConfirmActionButton
+              isActive={college?.is_active}
+              isSubmitting={isSubmitting}
+              onConfirm={handleToggleStatus}
+            />
               <button
                 onClick={() => setIsPasswordModalOpen(true)}
                 className="px-[16px] py-2.5 rounded-full bg-[#0086C9] text-white text-[15px] font-semibold shadow-sm hover:bg-[#026AA2] transition-colors"

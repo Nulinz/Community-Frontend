@@ -33,6 +33,7 @@ const CompetitionProfile = () => {
     const fileInputRef = useRef(null);
     const { user, dynamicPath } = useMain()
     const BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
+    const STATIC_URL = BASE_URL.replace("/api", "");
     const { setTitle } = useTitle()
     useEffect(() => {
         setTitle("Competition Profile")
@@ -183,7 +184,7 @@ const CompetitionProfile = () => {
                     className="relative overflow-hidden rounded-[20px] md:rounded-[22px] xl:rounded-[24px] text-white p-5 pt-8 pb-6 sm:p-6 md:p-7 lg:p-8 xl:p-10 xl:pt-16 xl:pb-10 min-h-[320px] md:min-h-[360px] lg:min-h-[380px] xl:min-h-[400px] flex flex-col xl:flex-row justify-between xl:items-end gap-6 md:gap-7 xl:gap-8 mb-6 md:mb-7 xl:mb-8"
                     style={{
                         backgroundColor: '#0a0f26',
-                        backgroundImage: `linear-gradient(to right, rgba(10, 15, 38, 0.95), rgba(10, 15, 38, 0.4)), url('${competition.coverImage ? `${BASE_URL}/${competition.coverImage}` : 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?auto=format&fit=crop&q=80&w=2000'}')`,
+                        backgroundImage: `linear-gradient(to right, rgba(10, 15, 38, 0.95), rgba(10, 15, 38, 0.4)), url('${competition.coverImage ? `${STATIC_URL}/${competition.coverImage}` : 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?auto=format&fit=crop&q=80&w=2000'}')`,
                         backgroundSize: 'cover',
                         backgroundPosition: 'center'
                     }}
@@ -203,7 +204,7 @@ const CompetitionProfile = () => {
                     <div className="z-10 grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-3 xl:flex gap-3 md:gap-4 xl:gap-4 items-stretch xl:items-end w-full xl:w-auto">
                         <div className="bg-[linear-gradient(119.97deg,_#006098_0%,_#00C1FD_100%)] p-3 sm:p-3.5 md:p-4 xl:p-6 rounded-[14px] sm:rounded-[16px] xl:rounded-[24px] min-w-0 xl:min-w-[180px] flex flex-col justify-center shadow-lg w-full xl:w-auto">
                             <p className="font-source text-[8px] sm:text-[9px] md:text-[10px] xl:text-[10px] font-semibold leading-[13px] sm:leading-[14px] tracking-[0.5px] align-middle uppercase text-[#FFFFFF] mb-1">Total Registration</p>
-                            <p className="text-[18px] sm:text-[20px] md:text-[22px] lg:text-[24px] xl:text-[30px] font-bold leading-[24px] sm:leading-[26px] md:leading-[28px] lg:leading-[30px] xl:leading-[36px] tracking-[0px] align-middle text-[#ffffff] text-source">{registrations?.revenue?.usedSeats} <span className='text-[20px] text-gray-300 ' >/{competition?.totalSeats}</span></p>
+                            <p className="text-[18px] sm:text-[20px] md:text-[22px] lg:text-[24px] xl:text-[30px] font-bold leading-[24px] sm:leading-[26px] md:leading-[28px] lg:leading-[30px] xl:leading-[36px] tracking-[0px] align-middle text-[#ffffff] text-source">{registrations?.count ?? 0} <span className='text-[20px] text-gray-300 ' >/{competition?.totalSeats}</span></p>
                         </div>
                         <div className="bg-white p-3 sm:p-3.5 md:p-4 xl:p-6 rounded-[14px] sm:rounded-[16px] xl:rounded-[24px] min-w-0 xl:min-w-[180px] flex flex-col justify-center text-gray-900 shadow-xl w-full xl:w-auto">
                             <p className="font-source text-[8px] sm:text-[9px] md:text-[10px] xl:text-[10px] font-semibold leading-[13px] sm:leading-[14px] tracking-[0.5px] align-middle uppercase text-[#64748B] mb-1">Revenue Generated</p>
@@ -431,7 +432,7 @@ const CompetitionProfile = () => {
                                 {competition.posts?.map((image, index) => (
                                     <div key={`${image}-${index}`} className="rounded-[18px] overflow-hidden border border-gray-200 bg-gray-50">
                                         <img
-                                            src={`${BASE_URL}/${image}`}
+                                            src={`${STATIC_URL}/${image}`}
                                             alt={`Post ${index + 1}`}
                                             className="w-full aspect-[3/4] object-cover"
                                             loading="lazy"
@@ -460,7 +461,7 @@ const CompetitionProfile = () => {
                                             <p className="text-[16px] font-semibold text-[#1a1a1a]">Rule Book</p>
                                         </div>
                                         <a
-                                            href={`${BASE_URL}/${competition.ruleBook}`}
+                                            href={`${STATIC_URL}/${competition.ruleBook}`}
                                             target="_blank"
                                             rel="noopener noreferrer"
                                             className="text-secondary hover:text-[#0989D4] transition-colors"
