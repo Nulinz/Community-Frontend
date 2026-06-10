@@ -284,7 +284,6 @@ setTitle("Freelance Profile")
             <ListCard title="Security" items={security.length ? security : fallbackList} />
 
             <ListCard title="Reference Website" items={referenceWebsite.length ? referenceWebsite : fallbackList} />
-            <ListCard title="Reference Website" items={referenceWebsite.length ? referenceWebsite : fallbackList} />
             <ListCard title="Required Skill Set" items={skillSet.length ? skillSet : fallbackList} />
 
             <TextCard title="Learning" text={freelance.learning || '-'} />
