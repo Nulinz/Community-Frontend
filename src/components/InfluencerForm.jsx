@@ -29,7 +29,7 @@ const influencerFormConfig = [
         name: "instagram",
         label: "Instagram Profile URL",
         type: "text",
-        required: false,
+        required: true,
         placeholder: "https://instagram.com/username",
       },
       {

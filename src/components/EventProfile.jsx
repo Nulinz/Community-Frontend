@@ -331,6 +331,22 @@ const EventProfile = () => {
                                     <DataItem label="Reg End Date" value={event.registrationEndDate ? new Date(event.registrationEndDate).toLocaleDateString() : 'N/A'} />
                                     <DataItem label="Total Seats" value={event.totalSeats} />
                                     <DataItem label="Event Mode" value={event.mode} />
+                                    <DataItem label="Event Time" value={event.eventStartTime ? `${event.eventStartTime}${event.eventEndTime ? ` - ${event.eventEndTime}` : ''}` : 'N/A'} />
+                                    {event.onlinePlatformLink && (
+                                        <DataItem
+                                            label="Platform / Meeting Link"
+                                            value={
+                                                <a
+                                                    href={event.onlinePlatformLink.startsWith('http') ? event.onlinePlatformLink : `https://${event.onlinePlatformLink}`}
+                                                    target="_blank"
+                                                    rel="noopener noreferrer"
+                                                    className="text-blue-600 hover:underline break-all"
+                                                >
+                                                    {event.onlinePlatformLink}
+                                                </a>
+                                            }
+                                        />
+                                    )}
                                 </div>
                             </InfoCard>
 
@@ -342,14 +358,16 @@ const EventProfile = () => {
                                 </div>
                             </InfoCard>
 
-                            <InfoCard title="Prize Details">
-                                <div className="grid grid-cols-2 xl:grid-cols-4 gap-6">
-                                    <DataItem label="1st Prize" value={event.firstPrize} />
-                                    <DataItem label="2nd Prize" value={event.secondPrize} />
-                                    <DataItem label="3rd Prize" value={event.thirdPrize} />
-                                    <DataItem label="Participation" value={event.participationPrize} />
-                                </div>
-                            </InfoCard>
+                            {(event.prizesAvailable === "Yes" || event.firstPrize || event.secondPrize || event.thirdPrize || event.participationPrize) && (
+                                <InfoCard title="Prize Details">
+                                    <div className="grid grid-cols-2 xl:grid-cols-4 gap-6">
+                                        <DataItem label="1st Prize" value={event.firstPrize || '-'} />
+                                        <DataItem label="2nd Prize" value={event.secondPrize || '-'} />
+                                        <DataItem label="3rd Prize" value={event.thirdPrize || '-'} />
+                                        <DataItem label="Participation" value={event.participationPrize || '-'} />
+                                    </div>
+                                </InfoCard>
+                            )}
 
                             <InfoCard title="Opportunities">
                                 <div className="grid grid-cols-2 xl:grid-cols-3 gap-6">
@@ -453,6 +471,37 @@ const EventProfile = () => {
                                 <p className="text-secondary text-sm leading-relaxed whitespace-pre-wrap">{event.description}</p>
                             </InfoCard>
                         </div>
+
+                        {event.certificateAvailability === "Yes" && (
+                            <InfoCard title="Certificate Information" className="max-w-2xl">
+                                <div className="space-y-4">
+                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                        {event.signatoryName && (
+                                            <DataItem label="Authorized Signatory" value={event.signatoryName} />
+                                        )}
+                                        {event.signatoryDesignation && (
+                                            <DataItem label="Designation" value={event.signatoryDesignation} />
+                                        )}
+                                    </div>
+                                    {event.certificateContentBody && (
+                                        <div>
+                                            <p className="text-xs text-gray-500 font-semibold mb-1">Certificate Body</p>
+                                            <p className="text-secondary text-sm leading-relaxed whitespace-pre-wrap">{event.certificateContentBody}</p>
+                                        </div>
+                                    )}
+                                    {event.signatureUrl && (
+                                        <div>
+                                            <p className="text-xs text-gray-500 font-semibold mb-1">Authorized Signature</p>
+                                            <img
+                                                src={`${BASE_URL}/${event.signatureUrl}`}
+                                                alt="Authorized Signature"
+                                                className="h-16 object-contain rounded border border-gray-200 p-1 bg-white"
+                                            />
+                                        </div>
+                                    )}
+                                </div>
+                            </InfoCard>
+                        )}
 
                         {/* Gallery / Posts */}
                         <div className="md:col-span-2 xl:col-span-3 bg-white p-5 sm:p-6 lg:p-7 rounded-[20px] md:rounded-[24px] shadow-sm border border-gray-100">

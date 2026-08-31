@@ -111,7 +111,7 @@ const Sidebar = () => {
             name: 'Jobs',
             icon: assets.jobs_i,
             subItems: [
-                { name: "Jobs", path: "/admin/jobs/job" },
+                { name: "Jobs / Hiring", path: "/admin/jobs/job" },
                 { name: "Internship", path: "/admin/jobs/internship" },
                 { name: "Projects", path: "/admin/jobs/freelance" },
             ]

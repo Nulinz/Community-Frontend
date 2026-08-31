@@ -24,7 +24,7 @@ const Job = ({ module = 'admin' }) => {
     const { setTitle } = useTitle();
     const { user } = useMain();
 
-    useEffect(() => { setTitle("Jobs"); }, [setTitle]);
+    useEffect(() => { setTitle("Jobs / Hiring"); }, [setTitle]);
 
     useEffect(() => {
         fetchJobs(activeTab);

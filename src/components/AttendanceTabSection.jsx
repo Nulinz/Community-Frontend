@@ -164,6 +164,8 @@ const AttendanceTabSection = ({ eventId, eventType, eventTitle = "", organizerNa
         candidate={selectedCandidate}
         defaultDomain={eventTitle || `${eventType} Participation`}
         organizerName={organizerName}
+        eventId={eventId}
+        eventType={eventType}
       />
     </div>
   );

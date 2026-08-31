@@ -10,9 +10,11 @@ const CompanyLayout = () => {
   const { user, logout, changePassword } = useMain();
   const menuItems = [
     { name: "Dashboard", path: "/company/dashboard", icon: assets.dash_i },
-    { name: 'Jobs', path: '/company/jobs/job', icon: assets.jobs_i },
+    { name: 'Jobs / Hiring', path: '/company/jobs/job', icon: assets.jobs_i },
     { name: 'Internship', path: '/company/jobs/internship', icon: assets.internship },
     { name: 'Projects', path: '/company/jobs/freelance', icon: assets.project },
+    { name: 'Events', path: '/company/events', icon: assets.event_i },
+    { name: 'Competition', path: '/company/competition', icon: assets.competition_i },
     { name: 'Partners', path: '/company/partners', icon: assets.partners },
     { name: 'Profile', path: '/company/company', icon: assets.comp_i },
   ];

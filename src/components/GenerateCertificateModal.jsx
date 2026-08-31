@@ -4,7 +4,15 @@ import { X, Award, Loader2, Download, CheckCircle } from 'lucide-react';
 import { toast } from 'react-toastify';
 import { generateCertificate } from '../services/admin/adminServices';
 
-const GenerateCertificateModal = ({ isOpen, onClose, candidate, defaultDomain = "Event Participation", organizerName = "" }) => {
+const GenerateCertificateModal = ({
+  isOpen,
+  onClose,
+  candidate,
+  defaultDomain = "Event Participation",
+  organizerName = "",
+  eventId = null,
+  eventType = "",
+}) => {
   const [formData, setFormData] = useState({
     name: '',
     domain: '',
@@ -44,6 +52,8 @@ const GenerateCertificateModal = ({ isOpen, onClose, candidate, defaultDomain = 
 
       const resData = await generateCertificate({
         userId: candidateUserId,
+        eventId: eventId || candidate.eventId || candidate.event_id || null,
+        eventType: eventType || candidate.eventType || null,
         name: formData.name.trim(),
         domain: formData.domain.trim(),
         companyName: formData.companyName.trim(),

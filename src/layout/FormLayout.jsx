@@ -1683,13 +1683,12 @@
 
 // // export default FormLayout;
 
-import React, { useState, useEffect } from "react";
-import { Trash2, ChevronDown, Calendar, ChevronDown as MultiIcon } from "lucide-react";
+import React, { useState, useEffect, useRef } from "react";
+import { Trash2, Plus, ChevronDown, Calendar, ChevronDown as MultiIcon, ChevronLeft, ChevronRight } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 import setFileName from "../utils/setFileName";
 import Icon from "../components/icons";
-import { useRef } from "react";
 
 
 const toCleanString = (value) => String(value || "").trim();
@@ -1733,15 +1732,21 @@ const createInitialStaticData = (config, overrides = {}) => {
   config.filter((s) => s.type === "static").forEach((section) => {
     section.fields.forEach((field) => {
       data[field.name] = getInitialFieldValue(field);
+      if (field.conditionalInput) {
+        data[field.conditionalInput.name] = field.conditionalInput.defaultValue !== undefined ? field.conditionalInput.defaultValue : "";
+      }
     });
   });
   return { ...data, ...overrides };
 };
 
-const createEmptyDynamicRow = (section) => {
+const createEmptyDynamicRow = (section, existingRowsCount = 0) => {
   const values = {};
   section.fields.forEach((field) => {
     values[field.name] = getInitialFieldValue(field);
+    if (field.name === "roundNumber" && !values[field.name]) {
+      values[field.name] = `Round ${existingRowsCount + 1}`;
+    }
   });
   return { id: `${Date.now()}-${Math.random()}`, values };
 };
@@ -1749,9 +1754,9 @@ const createEmptyDynamicRow = (section) => {
 const createInitialDynamicData = (config) => {
   const data = {};
   config.filter((s) => s.type === "dynamic").forEach((section) => {
-    const rowCount = section.initialRows || 1;
-    data[section.key] = Array.from({ length: rowCount }, () =>
-      createEmptyDynamicRow(section)
+    const rowCount = section.initialRows !== undefined ? section.initialRows : 1;
+    data[section.key] = Array.from({ length: rowCount }, (_, idx) =>
+      createEmptyDynamicRow(section, idx)
     );
   });
   return data;
@@ -1761,14 +1766,191 @@ const extractDynamicList = (rows = [], fieldName) =>
   rows.map((row) => toCleanString(row?.values?.[fieldName])).filter(Boolean);
 
 // ─── Label ──────────────────────────────────────────────────
-const Label = ({ text, required = true }) => (
-  <label className="block font-source font-semibold text-sm md:text-base leading-none tracking-normal text-primary mb-2">
+const Label = ({ text, required = true, className = "mb-2" }) => (
+  <label className={`block font-source font-semibold text-sm md:text-base leading-none tracking-normal text-primary ${className}`}>
     {text} {required && <span className="text-red-500">*</span>}
   </label>
 );
 
 // ─── Action Button (fixed width) ────────────────────────────
 const ACTION_BTN_CLASS = "h-10 w-20 inline-flex items-center justify-center rounded-md text-sm font-bold transition shrink-0";
+
+// ─── YearPickerInput (Interactive Popover Grid + Direct Typing) ────
+const YearPickerInput = ({ field, value, onChange }) => {
+  const [isOpen, setIsOpen] = useState(false);
+  const containerRef = useRef(null);
+
+  const currentYear = new Date().getFullYear();
+  const maxAllowedYear = field.maxYear || currentYear;
+  const minAllowedYear = field.minYear || 1850;
+
+  // Normalized 4-digit string
+  const normalizedValue = value ? String(value).match(/\b\d{4}\b/)?.[0] || String(value) : "";
+  const numericVal = parseInt(normalizedValue, 10) || currentYear;
+
+  // Start year of the 12-year decade view
+  const [viewStartYear, setViewStartYear] = useState(() => {
+    return Math.floor(numericVal / 12) * 12;
+  });
+
+  // Sync view when value changes or when opened
+  useEffect(() => {
+    if (isOpen) {
+      const target = parseInt(normalizedValue, 10) || currentYear;
+      setViewStartYear(Math.floor(target / 12) * 12);
+    }
+  }, [isOpen, normalizedValue, currentYear]);
+
+  // Click outside to close
+  useEffect(() => {
+    const handleClickOutside = (e) => {
+      if (containerRef.current && !containerRef.current.contains(e.target)) {
+        setIsOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
+  const yearsInView = Array.from({ length: 12 }, (_, i) => viewStartYear + i);
+  const viewEndYear = viewStartYear + 11;
+
+  const handleSelectYear = (yr) => {
+    onChange(String(yr));
+    setIsOpen(false);
+  };
+
+  const handlePrevDecade = (e) => {
+    e.stopPropagation();
+    setViewStartYear((prev) => Math.max(minAllowedYear, prev - 12));
+  };
+
+  const handleNextDecade = (e) => {
+    e.stopPropagation();
+    setViewStartYear((prev) => prev + 12);
+  };
+
+  const handleQuickCurrent = (e) => {
+    e.stopPropagation();
+    handleSelectYear(currentYear);
+  };
+
+  return (
+    <div className="relative w-full" ref={containerRef}>
+      {/* Input Field */}
+      <div className="relative flex items-center">
+        <input
+          type="text"
+          inputMode="numeric"
+          pattern="[0-9]*"
+          maxLength={4}
+          readOnly={field.readOnly}
+          value={normalizedValue}
+          placeholder={field.placeholder || "YYYY (e.g. 1998)"}
+          onChange={(e) => {
+            if (field.readOnly) return;
+            const digits = e.target.value.replace(/\D/g, "").slice(0, 4);
+            onChange(digits);
+          }}
+          onFocus={() => {
+            if (!field.readOnly) setIsOpen(true);
+          }}
+          className="w-full p-2 pr-10 border border-gray-200 rounded bg-[#fcfcfc] focus:ring-1 focus:ring-blue-400 outline-none text-sm h-10 transition font-medium text-gray-800 placeholder-gray-400"
+        />
+
+        {/* Calendar / Year Icon Trigger */}
+        <button
+          type="button"
+          tabIndex={-1}
+          onClick={() => !field.readOnly && setIsOpen((prev) => !prev)}
+          className="absolute right-2 p-1 text-gray-400 hover:text-gray-700 transition rounded"
+          title="Pick Year"
+        >
+          <Icon src="/icons/calendar-days.png" size={16} strokeWidth={2} />
+        </button>
+      </div>
+
+      {/* Interactive Year Grid Popover */}
+      {isOpen && (
+        <div className="absolute left-0 top-full mt-1.5 z-50 w-full min-w-[280px] max-w-[320px] bg-white border border-gray-200 rounded-2xl shadow-xl p-3 animate-in fade-in zoom-in-95 duration-150">
+          {/* Header with Decade Navigation */}
+          <div className="flex items-center justify-between mb-3 px-1">
+            <button
+              type="button"
+              onClick={handlePrevDecade}
+              className="p-1.5 rounded-lg text-gray-500 hover:bg-gray-100 hover:text-gray-900 transition"
+              title="Previous Decade"
+            >
+              <ChevronLeft size={18} />
+            </button>
+
+            <span className="text-sm font-bold text-gray-900">
+              {viewStartYear} – {viewEndYear}
+            </span>
+
+            <button
+              type="button"
+              onClick={handleNextDecade}
+              className="p-1.5 rounded-lg text-gray-500 hover:bg-gray-100 hover:text-gray-900 transition"
+              title="Next Decade"
+            >
+              <ChevronRight size={18} />
+            </button>
+          </div>
+
+          {/* 3x4 Year Grid */}
+          <div className="grid grid-cols-3 gap-2">
+            {yearsInView.map((yr) => {
+              const isSelected = normalizedValue === String(yr);
+              const isCurrent = currentYear === yr;
+              const isFuture = yr > maxAllowedYear;
+              const isTooPast = yr < minAllowedYear;
+              const isDisabled = isFuture || isTooPast;
+
+              return (
+                <button
+                  key={yr}
+                  type="button"
+                  disabled={isDisabled}
+                  onClick={() => handleSelectYear(yr)}
+                  className={`py-2 text-sm font-semibold rounded-xl transition-all ${
+                    isSelected
+                      ? "bg-[#171717] text-white shadow-sm"
+                      : isCurrent
+                      ? "border border-blue-500 text-blue-600 hover:bg-blue-50"
+                      : isDisabled
+                      ? "text-gray-300 cursor-not-allowed"
+                      : "text-gray-700 hover:bg-gray-100 active:bg-gray-200"
+                  }`}
+                >
+                  {yr}
+                </button>
+              );
+            })}
+          </div>
+
+          {/* Footer Quick Actions */}
+          <div className="mt-3 pt-2.5 border-t border-gray-100 flex items-center justify-between text-xs">
+            <button
+              type="button"
+              onClick={handleQuickCurrent}
+              className="text-blue-600 font-semibold hover:underline"
+            >
+              Current Year ({currentYear})
+            </button>
+            <button
+              type="button"
+              onClick={() => setIsOpen(false)}
+              className="text-gray-500 font-medium hover:text-gray-800"
+            >
+              Close
+            </button>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+};
 
 // ─── FormInput ──────────────────────────────────────────────
 const FormInput = ({ field, value, onChange, inputName }) => {
@@ -1817,12 +1999,32 @@ const FormInput = ({ field, value, onChange, inputName }) => {
       return () => document.removeEventListener("mousedown", handleClickOutside);
     }, []);
 
-    const toggleValue = (opt) =>
-      onChange(
-        selectedValues.includes(opt)
-          ? selectedValues.filter((i) => i !== opt)
-          : [...selectedValues, opt]
-      );
+    const allOptions = field.options || [];
+    const nonAllOptions = allOptions.filter((opt) => opt !== "All" && opt !== "All Departments");
+
+    const toggleValue = (opt) => {
+      if (opt === "All" || opt === "All Departments") {
+        const isAllSelected = selectedValues.includes(opt) || (nonAllOptions.length > 0 && nonAllOptions.every((o) => selectedValues.includes(o)));
+        if (isAllSelected) {
+          onChange([]);
+        } else {
+          onChange([...allOptions]);
+        }
+        return;
+      }
+
+      let newSelected;
+      if (selectedValues.includes(opt)) {
+        newSelected = selectedValues.filter((i) => i !== opt && i !== "All" && i !== "All Departments");
+      } else {
+        const withoutAll = selectedValues.filter((i) => i !== "All" && i !== "All Departments");
+        newSelected = [...withoutAll, opt];
+        if (nonAllOptions.length > 0 && nonAllOptions.every((o) => newSelected.includes(o))) {
+          newSelected = [...allOptions];
+        }
+      }
+      onChange(newSelected);
+    };
 
     return (
       <div className="relative w-full" ref={ref}>
@@ -1937,7 +2139,7 @@ const FormInput = ({ field, value, onChange, inputName }) => {
   if (field.type === "file") {
     const isExisting = typeof value === "string" && value !== "";
     const isNew = value instanceof File;
-    const isImage = field.name === "coverImage" || field.name === "collegeLogo" || field.name === "companyLogo";
+    const isImage = field.name === "coverImage" || field.name === "collegeLogo" || field.name === "companyLogo" || field.name === "signatureUrl";
 
     return (
       <div className="space-y-2">
@@ -1979,6 +2181,11 @@ const FormInput = ({ field, value, onChange, inputName }) => {
     );
   }
 
+  // ── interactive year picker ───────────────────────────────
+  if (field.type === "year") {
+    return <YearPickerInput field={field} value={value} onChange={onChange} />;
+  }
+
   // ── date with custom calendar icon ────────────────────────
   if (field.type === "date") {
     const inputRef = useRef(null);
@@ -1987,7 +2194,7 @@ const FormInput = ({ field, value, onChange, inputName }) => {
         <input
           ref={inputRef}
           type="date"
-          value={value}
+          value={value ? (String(value).includes("T") ? String(value).split("T")[0] : String(value)) : ""}
           max={field.max}
           readOnly={field.readOnly}
           onChange={(e) => {
@@ -2034,6 +2241,7 @@ const FormLayout = ({
   staticOverrides,
   submitLabel,
   dateFields,
+  onFieldChange,
 }) => {
   const navigate = useNavigate();
 
@@ -2046,6 +2254,9 @@ const FormLayout = ({
             data[field.name] = editData[field.name] ?? "";
           } else if (field.type === "multiselect") {
             data[field.name] = safeParseArray(editData[field.name]);
+          } else if (field.type === "year") {
+            const val = editData[field.name];
+            data[field.name] = val ? (String(val).match(/\b\d{4}\b/)?.[0] || String(val)) : "";
           } else if (field.type === "date") {
             const val = editData[field.name];
             if (val) {
@@ -2059,6 +2270,10 @@ const FormLayout = ({
             data[field.name] = val !== undefined && val !== null
               ? val
               : getInitialFieldValue(field);
+            if (field.conditionalInput) {
+              const condVal = editData[field.conditionalInput.name];
+              data[field.conditionalInput.name] = condVal !== undefined && condVal !== null ? condVal : "";
+            }
           }
         });
       });
@@ -2068,22 +2283,37 @@ const FormLayout = ({
     return createInitialStaticData(config, staticOverrides);
   });
 
+
   const [dynamicData, setDynamicData] = useState(() => {
     if (editData) {
       const data = {};
       config.filter((s) => s.type === "dynamic").forEach((section) => {
         const list = editData[section.payloadKey || section.key];
         if (Array.isArray(list) && list.length > 0) {
-          data[section.key] = list.map((item) => ({
-            id: item._id || `${Date.now()}-${Math.random()}`,
-            values: typeof item === "object" && !Array.isArray(item)
-              ? { ...item }
-              : { [section.fields[0].name]: item },
-          }));
+          data[section.key] = list.map((item) => {
+            let values = {};
+            if (typeof item === "object" && item !== null && !Array.isArray(item)) {
+              if (section.fields.length === 1) {
+                const singleField = section.fields[0].name;
+                values = {
+                  [singleField]: item[singleField] || item.roundName || item.name || item.department || Object.values(item).find(v => typeof v === 'string') || "",
+                };
+              } else {
+                values = { ...item };
+              }
+            } else {
+              values = { [section.fields[0].name]: item };
+            }
+            return {
+              id: item?._id || `${Date.now()}-${Math.random()}`,
+              values,
+            };
+          });
         } else {
+          const rowCount = section.initialRows !== undefined ? section.initialRows : 1;
           data[section.key] = Array.from(
-            { length: section.initialRows || 1 },
-            () => createEmptyDynamicRow(section)
+            { length: rowCount },
+            (_, idx) => createEmptyDynamicRow(section, idx)
           );
         }
       });
@@ -2108,10 +2338,13 @@ const FormLayout = ({
   const addRow = (sectionKey) => {
     const section = sectionMap[sectionKey];
     if (!section) return;
-    setDynamicData((prev) => ({
-      ...prev,
-      [sectionKey]: [...(prev[sectionKey] || []), createEmptyDynamicRow(section)],
-    }));
+    setDynamicData((prev) => {
+      const currentRows = prev[sectionKey] || [];
+      return {
+        ...prev,
+        [sectionKey]: [...currentRows, createEmptyDynamicRow(section, currentRows.length)],
+      };
+    });
   };
 
   const removeRow = (sectionKey, rowId) => {
@@ -2122,7 +2355,16 @@ const FormLayout = ({
   };
 
   const updateStaticField = (fieldName, value) =>
-    setStaticData((prev) => ({ ...prev, [fieldName]: value }));
+    setStaticData((prev) => {
+      const updated = { ...prev, [fieldName]: value };
+      if (onFieldChange) {
+        const sideEffects = onFieldChange(fieldName, value, updated);
+        if (sideEffects && typeof sideEffects === "object") {
+          return { ...updated, ...sideEffects };
+        }
+      }
+      return updated;
+    });
 
   const updateDynamicField = (sectionKey, rowId, fieldName, value) =>
     setDynamicData((prev) => ({
@@ -2147,6 +2389,11 @@ const FormLayout = ({
             payload[payloadKey] = Array.isArray(rawValue) ? rawValue : [];
           } else {
             payload[payloadKey] = toCleanString(rawValue);
+          }
+          if (field.conditionalInput) {
+            const condKey = field.conditionalInput.payloadKey || field.conditionalInput.name;
+            const condRaw = staticData[field.conditionalInput.name];
+            payload[condKey] = toCleanString(condRaw);
           }
         });
       }
@@ -2194,7 +2441,14 @@ const FormLayout = ({
   const validateForm = () => {
     const isEdit = !!staticData.id;
     for (const section of config) {
-      if (section.showWhen && staticData[section.showWhen.field] !== section.showWhen.value) continue;
+      if (section.showWhen) {
+        const { field: watchField, value } = section.showWhen;
+        const currentValue = staticData[watchField];
+        const isHidden = Array.isArray(value)
+          ? !value.includes(currentValue)
+          : currentValue !== value;
+        if (isHidden) continue;
+      }
 
       if (section.type === "static") {
         for (const field of section.fields) {
@@ -2225,6 +2479,16 @@ const FormLayout = ({
             toast.error(`${field.label} must be exactly 11 characters`);
             return false;
           }
+          if (field.conditionalInput) {
+            const isCondActive = staticData[field.name] === (field.conditionalInput.showWhen || "Yes");
+            if (isCondActive && field.conditionalInput.required === true) {
+              const condValue = staticData[field.conditionalInput.name];
+              if (!hasMeaningfulValue(condValue)) {
+                toast.error(`Please enter details for ${field.label}`);
+                return false;
+              }
+            }
+          }
         }
       }
 
@@ -2232,10 +2496,17 @@ const FormLayout = ({
         const rows = dynamicData[section.key] || [];
         for (let i = 0; i < rows.length; i++) {
           const row = rows[i];
+          const isFirstRow = i === 0;
+          const isRowRequired = section.onlyFirstRowRequired ? isFirstRow : true;
+          const hasAnyValue = section.fields.some((f) => hasMeaningfulValue(row?.values?.[f.name]));
+          
+          if (!isRowRequired && !hasAnyValue) continue;
+
           for (const field of section.fields) {
-            if (field.required === false) continue;
+            const fieldRequired = isRowRequired && field.required !== false;
             const value = row.values[field.name];
-            if (!hasMeaningfulValue(value)) {
+            
+            if (fieldRequired && !hasMeaningfulValue(value)) {
               toast.error(`${section.title} (Row ${i + 1}): ${field.label} is required`);
               return false;
             }
@@ -2286,22 +2557,37 @@ const FormLayout = ({
         className="max-w-[1400px] mx-auto space-y-5 bg-white p-4 md:p-6 lg:p-8 rounded-lg shadow-sm border border-gray-200"
       >
         {config
-          .filter((section) =>
-            !section.showWhen || staticData[section.showWhen.field] === section.showWhen.value
-          )
+          .filter((section) => {
+            if (!section.showWhen) return true;
+            const { field: watchField, value } = section.showWhen;
+            const currentValue = staticData[watchField];
+            return Array.isArray(value)
+              ? value.includes(currentValue)
+              : currentValue === value;
+          })
           .map((section, sectionIndex) => {
             const rows = dynamicData[section.key] || [];
-            const lastRowId = rows.length > 0 ? rows[rows.length - 1].id : null;
 
             return (
               <div key={sectionIndex} className="space-y-6 border-b pb-6 last:border-b-0">
-                <div className="flex flex-col gap-3 md:flex-row md:justify-between md:items-center">
-                  <h2 className="font-source font-semibold text-lg md:text-xl leading-none tracking-normal text-[#000000]">
-                    {section.title}
-                  </h2>
-                  {section.type === "dynamic" && !["grid-6", "row-action"].includes(section.dynamicStyle) && (
-                    <button type="button" onClick={() => addRow(section.key)} className="bg-[#171717] text-white px-5 py-1.5 rounded-md text-sm font-bold flex items-center gap-2">
-                      Add
+                <div className="flex flex-col gap-2 md:flex-row md:justify-between md:items-center">
+                  <div>
+                    <h2 className="font-source font-semibold text-lg md:text-xl leading-none tracking-normal text-[#000000]">
+                      {section.title}
+                    </h2>
+                    {section.subtitle && (
+                      <p className="text-xs md:text-sm text-gray-500 font-medium mt-1">
+                        {section.subtitle}
+                      </p>
+                    )}
+                  </div>
+                  {section.type === "dynamic" && (
+                    <button
+                      type="button"
+                      onClick={() => addRow(section.key)}
+                      className="bg-[#171717] hover:bg-[#2b2b2b] text-white px-4 py-2 rounded-lg text-sm font-semibold flex items-center gap-1.5 transition-colors cursor-pointer shadow-sm"
+                    >
+                      <Plus size={16} /> Add {section.itemLabel || section.title?.replace(/ Details$/i, "").replace(/s$/i, "") || "Item"}
                     </button>
                   )}
                 </div>
@@ -2319,7 +2605,7 @@ const FormLayout = ({
                           : currentValue === value;
                       })
                       .map((field, fieldIndex) => (
-                        <div key={fieldIndex} className={`${field.span === 2 ? "md:col-span-2" : ""} min-w-0`}>
+                        <div key={fieldIndex} className={`${field.span === 2 ? "md:col-span-2" : ""} min-w-0 flex flex-col justify-start`}>
                           <Label text={field.label} required={field.required !== false} />
                           <FormInput
                             field={field}
@@ -2327,6 +2613,23 @@ const FormLayout = ({
                             onChange={(value) => updateStaticField(field.name, value)}
                             inputName={field.name}
                           />
+                          {field.conditionalInput && staticData[field.name] === (field.conditionalInput.showWhen || "Yes") && (
+                            <div className="mt-3">
+                              <Label
+                                text={field.conditionalInput.label || `${field.label.replace(/ Opportunity$/i, "")} Details`}
+                                required={field.conditionalInput.required === true}
+                              />
+                              <FormInput
+                                field={{
+                                  ...field.conditionalInput,
+                                  placeholder: field.conditionalInput.placeholder || `Enter ${field.label.toLowerCase()} details...`,
+                                }}
+                                value={staticData[field.conditionalInput.name]}
+                                onChange={(value) => updateStaticField(field.conditionalInput.name, value)}
+                                inputName={field.conditionalInput.name}
+                              />
+                            </div>
+                          )}
                         </div>
                       ))}
                   </div>
@@ -2335,113 +2638,110 @@ const FormLayout = ({
                 {/* DYNAMIC: grid-6 */}
                 {section.type === "dynamic" && section.dynamicStyle === "grid-6" && (
                   <div className="space-y-4">
-                    {Array.from(
-                      { length: Math.ceil((dynamicData[section.key] || []).length / 3) },
-                      (_, chunkIndex) => (dynamicData[section.key] || []).slice(chunkIndex * 3, chunkIndex * 3 + 3)
-                    ).map((chunk, chunkIndex) => {
-                      const chunkLastId = chunk[chunk.length - 1]?.id;
-                      const isLastChunk = chunkIndex === Math.ceil((dynamicData[section.key] || []).length / 3) - 1;
-                      return (
-                        <div key={`${section.key}-chunk-${chunkIndex}`} className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-[repeat(3,minmax(0,1fr))_auto] gap-4 items-end">
-                          {chunk.map((rowData, indexInChunk) => {
-                            const itemIndex = chunkIndex * 3 + indexInChunk + 1;
-                            const baseField = section.fields[0];
-                            return (
-                              <div key={rowData.id}>
-                                <Label text={`${section.title} (${itemIndex})`} required={baseField.required !== false} />
-                                <FormInput
-                                  field={baseField}
-                                  value={rowData.values[baseField.name]}
-                                  onChange={(value) => updateDynamicField(section.key, rowData.id, baseField.name, value)}
-                                  inputName={`${section.key}_${rowData.id}_${baseField.name}`}
-                                />
+                    {(dynamicData[section.key] || []).length === 0 ? (
+                      <div className="border border-dashed border-gray-300 rounded-xl p-6 text-center bg-gray-50/60 flex flex-col items-center justify-center">
+                        <p className="text-sm text-gray-500 mb-3">
+                          No {section.itemLabel ? `${section.itemLabel.toLowerCase()}s` : "items"} added yet.
+                        </p>
+                        <button
+                          type="button"
+                          onClick={() => addRow(section.key)}
+                          className="inline-flex items-center gap-2 px-4 py-2 bg-[#171717] hover:bg-[#2b2b2b] text-white text-sm font-semibold rounded-lg transition-colors cursor-pointer shadow-sm"
+                        >
+                          <Plus size={16} /> Add {section.itemLabel || section.fields?.[0]?.label || section.title?.replace(/ Details$/i, "").replace(/s$/i, "") || "Item"}
+                        </button>
+                      </div>
+                    ) : (
+                      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4 md:gap-6">
+                        {(dynamicData[section.key] || []).map((rowData, index) => {
+                          const baseField = section.fields[0];
+                          const itemLabelText = section.itemLabel || baseField?.label || section.title;
+                          const totalItems = (dynamicData[section.key] || []).length;
+                          return (
+                            <div key={rowData.id} className="relative min-w-0">
+                              <div className="flex items-center justify-between mb-1.5 min-h-[22px]">
+                                <Label text={`${itemLabelText} ${index + 1}`} required={baseField?.required !== false} className="mb-0" />
+                                {totalItems > 1 && (
+                                  <button
+                                    type="button"
+                                    onClick={() => removeRow(section.key, rowData.id)}
+                                    className="text-red-500 hover:bg-red-50 p-1 rounded transition-colors cursor-pointer"
+                                    title={`Delete ${itemLabelText} ${index + 1}`}
+                                  >
+                                    <Trash2 size={15} />
+                                  </button>
+                                )}
                               </div>
-                            );
-                          })}
-                          {/* Action column: Add on first chunk, Delete only on last chunk, spacer otherwise */}
-                          <div className="flex items-end justify-start lg:justify-center">
-                            {chunkIndex === 0 ? (
-                              <button
-                                type="button"
-                                onClick={() => addRow(section.key)}
-                                className={`${ACTION_BTN_CLASS} bg-[#171717] text-white`}
-                              >
-                                Add
-                              </button>
-                            ) : isLastChunk ? (
-                              <button
-                                type="button"
-                                onClick={() => {
-                                  const allRows = dynamicData[section.key] || [];
-                                  const lastRow = allRows[allRows.length - 1];
-                                  if (lastRow) removeRow(section.key, lastRow.id);
-                                }}
-                                className={`${ACTION_BTN_CLASS} text-red-500 hover:scale-110`}
-                              >
-                                <Trash2 size={18} />
-                              </button>
-                            ) : (
-                              /* spacer to keep grid alignment */
-                              <div className={ACTION_BTN_CLASS} />
-                            )}
-                          </div>
-                        </div>
-                      );
-                    })}
+                              <FormInput
+                                field={baseField}
+                                value={rowData.values[baseField.name]}
+                                onChange={(value) => updateDynamicField(section.key, rowData.id, baseField.name, value)}
+                                inputName={`${section.key}_${rowData.id}_${baseField.name}`}
+                              />
+                            </div>
+                          );
+                        })}
+                      </div>
+                    )}
                   </div>
                 )}
 
                 {/* DYNAMIC: row-action */}
                 {section.type === "dynamic" && section.dynamicStyle === "row-action" && (
                   <div className="space-y-4">
-                    {(dynamicData[section.key] || []).map((rowData, rowIndex) => {
-                      const isLastRow = rowData.id === lastRowId;
-                      return (
+                    {(dynamicData[section.key] || []).length === 0 ? (
+                      <div className="border border-dashed border-gray-300 rounded-xl p-6 text-center bg-gray-50/60 flex flex-col items-center justify-center">
+                        <p className="text-sm text-gray-500 mb-3">
+                          No {section.itemLabel ? `${section.itemLabel.toLowerCase()}s` : "items"} added yet.
+                        </p>
+                        <button
+                          type="button"
+                          onClick={() => addRow(section.key)}
+                          className="inline-flex items-center gap-2 px-4 py-2 bg-[#171717] hover:bg-[#2b2b2b] text-white text-sm font-semibold rounded-lg transition-colors cursor-pointer shadow-sm"
+                        >
+                          + Add {section.itemLabel || section.title?.replace(/ Details$/i, "").replace(/s$/i, "") || "Item"}
+                        </button>
+                      </div>
+                    ) : (
+                      (dynamicData[section.key] || []).map((rowData, rowIndex) => (
                         <div key={rowData.id} className={`grid grid-cols-1 ${section.fields.length >= 4 ? "md:grid-cols-2 lg:grid-cols-[repeat(4,minmax(0,1fr))_auto]" : "md:grid-cols-2 lg:grid-cols-[repeat(3,minmax(0,1fr))_auto]"} gap-4 items-end`}>
-                          {section.fields.map((field, fieldIndex) => (
-                            <div key={fieldIndex}>
-                              <Label text={field.label} required={field.required !== false} />
-                              <FormInput
-                                field={field}
-                                value={rowData.values[field.name]}
-                                onChange={(value) => updateDynamicField(section.key, rowData.id, field.name, value)}
-                                inputName={`${section.key}_${rowData.id}_${field.name}`}
-                              />
-                            </div>
-                          ))}
+                          {section.fields.map((field, fieldIndex) => {
+                            const isFieldRequired = section.onlyFirstRowRequired
+                              ? rowIndex === 0 && field.required !== false
+                              : field.required !== false;
+                            return (
+                              <div key={fieldIndex}>
+                                <Label text={field.label} required={isFieldRequired} />
+                                <FormInput
+                                  field={field}
+                                  value={rowData.values[field.name]}
+                                  onChange={(value) => updateDynamicField(section.key, rowData.id, field.name, value)}
+                                  inputName={`${section.key}_${rowData.id}_${field.name}`}
+                                />
+                              </div>
+                            );
+                          })}
                           <div className="flex items-end justify-start lg:justify-center">
-                            {rowIndex === 0 ? (
-                              <button
-                                type="button"
-                                onClick={() => addRow(section.key)}
-                                className={`${ACTION_BTN_CLASS} bg-[#171717] text-white`}
-                              >
-                                Add
-                              </button>
-                            ) : isLastRow ? (
-                              <button
-                                type="button"
-                                onClick={() => removeRow(section.key, rowData.id)}
-                                className={`${ACTION_BTN_CLASS} text-red-500 hover:scale-110`}
-                              >
-                                <Trash2 size={18} />
-                              </button>
-                            ) : (
-                              /* spacer — same width, no icon */
-                              <div className={ACTION_BTN_CLASS} />
-                            )}
+                            <button
+                              type="button"
+                              onClick={() => removeRow(section.key, rowData.id)}
+                              className={`${ACTION_BTN_CLASS} text-red-500 hover:text-red-700 hover:bg-red-50 rounded-lg p-2 transition-colors cursor-pointer`}
+                              title="Delete row"
+                            >
+                              <Trash2 size={18} />
+                            </button>
                           </div>
                         </div>
-                      );
-                    })}
+                      ))
+                    )}
                   </div>
                 )}
 
                 {/* DYNAMIC: default (col-span) */}
                 {section.type === "dynamic" && !section.dynamicStyle && (
                   <div className="space-y-4">
-                    {(dynamicData[section.key] || []).map((rowData, rowIndex) => {
-                      const isLastRow = rowData.id === lastRowId;
+                    {rows.map((rowData, rowIndex) => {
+                      const isLastRow = rowIndex === rows.length - 1;
                       return (
                         <div key={rowData.id} className="grid grid-cols-1 md:grid-cols-12 gap-4 items-end">
                           {section.fields.map((field, fieldIndex) => (

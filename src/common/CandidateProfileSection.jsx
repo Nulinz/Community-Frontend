@@ -87,6 +87,8 @@ const CandidateProfileSection = ({
         null;
       const resData = await generateCertificate({
         userId: candidateUserId,
+        eventId: candidate.eventId || candidate.event_id || candidate.conferenceId || candidate.competitionId || candidate.internshipId || candidate.jobId || null,
+        eventType: candidate.eventType || candidate.jobType || null,
         name: certForm.name.trim(),
         domain: certForm.domain.trim(),
         companyName: certForm.companyName.trim(),

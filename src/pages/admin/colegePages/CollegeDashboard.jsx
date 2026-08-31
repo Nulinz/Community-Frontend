@@ -78,16 +78,16 @@ const CollegeDashboard = () => {
 
   // ── Metric card config ────────────────────────────────────────────────────
   const metricCards = [
-    { key: 'conferences', title: 'Total Conferences', highlighted: true },
+    { key: 'events', title: 'Total Events', highlighted: true },
     { key: 'competitions', title: 'Total Competitions' },
     { key: 'seminars', title: 'Total Seminars' },
-    { key: 'events', title: 'Total Events' },
+    { key: 'conferences', title: 'Total Conferences' },
     { key: 'today_events', title: 'Today Events' },
-    { key: 'upcoming_events', title: 'Upcoming Events' },
-    { key: 'live_events', title: 'Live Events' },
+    // { key: 'live_events', title: 'Live Events' },
     { key: 'total_registrations', title: 'Total Registrations' },
     { key: 'total_attendance', title: 'Total Attendance' },
-    { key: 'certificates', title: 'Certificates' },
+    { key: 'upcoming_events', title: 'Upcoming Events' },
+    // { key: 'certificates', title: 'Certificates' },
   ];
 
   // ── Table columns ─────────────────────────────────────────────────────────

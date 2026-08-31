@@ -1,3 +1,4 @@
+import loginBg from "./images/loginBg.png"
 import login_bg from "./images/login_bg.png"
 import logo from "./images/logo.svg"
 import gradEnvyLogo from "./images/gradenvyLogo.png"
@@ -24,6 +25,7 @@ import project from "./images/project.png"
 import internship from "./images/internship.png"
 
 export const assets ={
+   loginBg,
    login_bg,
    landing_bg,
    landing_logo,

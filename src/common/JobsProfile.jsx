@@ -193,14 +193,36 @@ const JobsProfile = ({ module = 'admin', jobType = 'Internship' }) => {
 
   const statusLabel = internship?.isActive ? 'Active' : 'Inactive';
   const statusIsActive = internship?.isActive;
-  const responsibilities = Array.isArray(internship?.responsibilities) ? internship.responsibilities : [];
-  const eligibility = Array.isArray(internship?.eligibility) ? internship.eligibility : [];
-  const skillSet = Array.isArray(internship?.skill_set) ? internship.skill_set : [];
-  const benefits = Array.isArray(internship?.benefits) ? internship.benefits : [];
-  const learningOutcomes = Array.isArray(internship?.learning_outcomes) ? internship.learning_outcomes : [];
-  const developmentBenefits = Array.isArray(internship?.development_benefits) ? internship.development_benefits : [];
-  const developmentResources = Array.isArray(internship?.development_resources) ? internship.development_resources : [];
-  const fallbackList = ['-'];
+  const cleanList = (val) => {
+    if (!Array.isArray(val)) return [];
+    return val
+      .map((item) => (typeof item === 'string' ? item.trim() : item))
+      .filter((item) => Boolean(item) && item !== '-');
+  };
+
+  const responsibilities = cleanList(internship?.responsibilities);
+  const eligibility = cleanList(internship?.eligibility);
+  const skillSet = cleanList(internship?.skill_set);
+  const benefits = cleanList(internship?.benefits);
+  const learningOutcomes = cleanList(internship?.learning_outcomes);
+  const developmentBenefits = cleanList(internship?.development_benefits);
+  const developmentResources = cleanList(internship?.development_resources);
+  const description = String(internship?.description || '').trim();
+  const certificateAvailability = String(internship?.certificateAvailability || '').trim();
+  const jobCategory = String(internship?.jobCategory || '').trim();
+
+  const formatSalary = (data) => {
+    if (!data) return '-';
+    if (data.internshipType === 'Unpaid') return 'Unpaid';
+    if (data.salaryType === 'Negotiable') return 'Negotiable';
+    if (data.salaryType === 'Not disclosed') return 'Not disclosed';
+    if (data.salaryType === 'Range') {
+      if (data.salaryMin && data.salaryMax) return `₹${data.salaryMin} - ₹${data.salaryMax}`;
+      if (data.salaryMin) return `From ₹${data.salaryMin}`;
+      if (data.salaryMax) return `Up to ₹${data.salaryMax}`;
+    }
+    return data.salary ? `₹${data.salary}` : 'Not disclosed';
+  };
 
   const appliedListHeading = [
     { title: '#', dataIndex: 'sNo', key: 'sNo' },
@@ -308,6 +330,24 @@ const JobsProfile = ({ module = 'admin', jobType = 'Internship' }) => {
     setSelectedCandidateProfile(candidateRecord);
   };
 
+  // --- Render Candidate Profile View if a candidate is clicked ---
+  if (selectedCandidateProfile && attendanceSubView === 'candidate') {
+    return (
+      <div className="bg-[#f8f9fa] min-h-screen">
+        <CandidateProfileSection
+          candidate={selectedCandidateProfile ? {
+            ...selectedCandidateProfile,
+            internshipName: selectedCandidateProfile.internshipName || internship?.internshipName || internship?.title || internship?.jobTitle || internship?.internship_title || internship?.profileRole || ''
+          } : {}}
+          isSelected={false}
+          onBack={() => {
+            setSelectedCandidateProfile(null);
+          }}
+        />
+      </div>
+    );
+  }
+
   if (selectedCandidateProfile) {
     const isSelectedCandidate = activeTab === 'selected' || selectedCandidateProfile.status === 'selected';
 
@@ -363,7 +403,7 @@ const JobsProfile = ({ module = 'admin', jobType = 'Internship' }) => {
 
         {/* Dynamic Top Header Section (Displayed in Internship & Attendance View, Hidden ONLY in Add Attendance) */}
         {!isAddAttendance && (
-          <div className="flex flex-col xl:flex-row xl:items-center justify-between gap-6 pb-6 border-b border-gray-200">
+          <div className="flex flex-col xl:flex-row justify-between xl:items-start gap-6 border-b border-gray-200 pb-6">
             <div className="flex gap-4 md:gap-6">
               <div className="w-[86px] h-[86px] md:w-[118px] md:h-[118px] rounded-[12px] border border-gray-300 flex items-center justify-center bg-white p-2">
                 <img src={assets.logo} alt="Company logo" className="w-[54px] md:w-[84px] h-auto object-contain" />
@@ -389,7 +429,9 @@ const JobsProfile = ({ module = 'admin', jobType = 'Internship' }) => {
                     <p className="font-jakarta font-medium text-[14px] text-[#344054]">
                       {internship.totalOpenings ?? 0} Openings
                     </p>
-                    <p className="font-jakarta font-medium text-[14px] text-[#344054]">Rs {internship.salary ?? 0}</p>
+                    <p className="font-jakarta font-medium text-[14px] text-[#344054]">
+                      {formatSalary(internship)}
+                    </p>
                   </>
                 )}
               </div>
@@ -532,19 +574,36 @@ const JobsProfile = ({ module = 'admin', jobType = 'Internship' }) => {
         {/* Tab Body View */}
         {activeTab === 'overview' ? (
           <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-4 pt-2">
-            <ListCard title="Responsibilities" items={responsibilities.length ? responsibilities : fallbackList} />
-            <ListCard title="Eligibility Criteria" items={eligibility.length ? eligibility : fallbackList} />
-            <ListCard title="Required Skill Set" items={skillSet.length ? skillSet : fallbackList} />
-
-            <ListCard title="Learning Benefits" items={benefits.length ? benefits : fallbackList} />
-            <ListCard title="Skill Development Benefits" items={developmentBenefits.length ? developmentBenefits : fallbackList} />
-            <ListCard title="Supported Development Resources" items={developmentResources.length ? developmentResources : fallbackList} />
-            <TextCard title="Description" text={internship.description || '-'} />
-
-            <div className="xl:col-span-3 grid grid-cols-1 md:grid-cols-2 gap-4">
-              <TextCard title="Learning Outcomes" text={learningOutcomes.join(', ') || '-'} />
-              <TextCard title="Certificate Availability" text={internship.certificateAvailability || '-'} />
-            </div>
+            {responsibilities.length > 0 && (
+              <ListCard title="Responsibilities" items={responsibilities} />
+            )}
+            {eligibility.length > 0 && (
+              <ListCard title="Eligibility Criteria" items={eligibility} />
+            )}
+            {skillSet.length > 0 && (
+              <ListCard title="Required Skill Set" items={skillSet} />
+            )}
+            {benefits.length > 0 && (
+              <ListCard title="Learning Benefits" items={benefits} />
+            )}
+            {developmentBenefits.length > 0 && (
+              <ListCard title="Skill Development Benefits" items={developmentBenefits} />
+            )}
+            {developmentResources.length > 0 && (
+              <ListCard title="Supported Development Resources" items={developmentResources} />
+            )}
+            {description.length > 0 && (
+              <TextCard title="Description" text={description} />
+            )}
+            {learningOutcomes.length > 0 && (
+              <TextCard title="Learning Outcomes" text={learningOutcomes.join(', ')} />
+            )}
+            {certificateAvailability.length > 0 && (
+              <TextCard title="Certificate Provided" text={certificateAvailability} />
+            )}
+            {jobCategory.length > 0 && (
+              <TextCard title="Job Category / Department" text={jobCategory} />
+            )}
           </div>
         ) : activeTab === 'applied' ? (
           <div className="pt-2">

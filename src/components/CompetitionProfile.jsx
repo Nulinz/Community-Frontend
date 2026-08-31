@@ -323,8 +323,25 @@ const CompetitionProfile = () => {
                                     <DataItem label="Registration Type" value={competition.registrationType} />
                                     <DataItem label="Reg Start Date" value={competition.registrationStartDate ? new Date(competition.registrationStartDate).toLocaleDateString() : 'N/A'} />
                                     <DataItem label="Reg End Date" value={competition.registrationEndDate ? new Date(competition.registrationEndDate).toLocaleDateString() : 'N/A'} />
-                                    <DataItem label="Total Seats" value={competition.totalSeats} />
+                                    <DataItem label="Event Date" value={competition.eventEndDate ? `${new Date(competition.eventDate).toLocaleDateString()} - ${new Date(competition.eventEndDate).toLocaleDateString()}` : (competition.eventDate ? new Date(competition.eventDate).toLocaleDateString() : 'N/A')} />
+                                    <DataItem label="Event Time" value={competition.eventStartTime ? `${competition.eventStartTime}${competition.eventEndTime ? ` - ${competition.eventEndTime}` : ''}` : 'N/A'} />
+                                    <DataItem label="Total Seats" value={competition.totalSeats ? competition.totalSeats : 'Unlimited / Not specified'} />
                                     <DataItem label="Event Mode" value={competition.mode} />
+                                    {competition.onlinePlatformLink && (
+                                        <DataItem
+                                            label="Platform / Meeting Link"
+                                            value={
+                                                <a
+                                                    href={competition.onlinePlatformLink.startsWith('http') ? competition.onlinePlatformLink : `https://${competition.onlinePlatformLink}`}
+                                                    target="_blank"
+                                                    rel="noopener noreferrer"
+                                                    className="text-blue-600 hover:underline break-all"
+                                                >
+                                                    {competition.onlinePlatformLink}
+                                                </a>
+                                            }
+                                        />
+                                    )}
                                 </div>
                             </InfoCard>
 
@@ -336,21 +353,51 @@ const CompetitionProfile = () => {
                                 </div>
                             </InfoCard>
 
-                            <InfoCard title="Prize Details">
-                                <div className="grid grid-cols-2 xl:grid-cols-4 gap-6">
-                                    <DataItem label="1st Prize" value={competition.firstPrize} />
-                                    <DataItem label="2nd Prize" value={competition.secondPrize} />
-                                    <DataItem label="3rd Prize" value={competition.thirdPrize} />
-                                    <DataItem label="Participation" value={competition.participationPrize} />
-                                </div>
-                            </InfoCard>
+                            {(competition.prizesAvailable === "Yes" || competition.firstPrize || competition.secondPrize || competition.thirdPrize || competition.participationPrize) && (
+                                <InfoCard title="Prize Details">
+                                    <div className="grid grid-cols-2 xl:grid-cols-4 gap-6">
+                                        <DataItem label="1st Prize" value={competition.firstPrize || '-'} />
+                                        <DataItem label="2nd Prize" value={competition.secondPrize || '-'} />
+                                        <DataItem label="3rd Prize" value={competition.thirdPrize || '-'} />
+                                        <DataItem label="Participation" value={competition.participationPrize || '-'} />
+                                    </div>
+                                </InfoCard>
+                            )}
 
                             <InfoCard title="Opportunities">
-                                <div className="grid grid-cols-2 xl:grid-cols-3 gap-6">
-                                    <DataItem label="Internship" value={competition.internshipOpportunity} />
-                                    <DataItem label="Placement" value={competition.placementOpportunity} />
-                                    <DataItem label="Industry Exposure" value={competition.industryExposure} />
-                                    <DataItem label="Industry Partners" value={competition.industryPartners} />
+                                <div className="grid grid-cols-2 xl:grid-cols-4 gap-6">
+                                    <DataItem
+                                        label="Internship"
+                                        value={
+                                            competition.internshipOpportunity === "Yes" && competition.internshipOpportunityDetails
+                                                ? `Yes — ${competition.internshipOpportunityDetails}`
+                                                : competition.internshipOpportunity
+                                        }
+                                    />
+                                    <DataItem
+                                        label="Placement"
+                                        value={
+                                            competition.placementOpportunity === "Yes" && competition.placementOpportunityDetails
+                                                ? `Yes — ${competition.placementOpportunityDetails}`
+                                                : competition.placementOpportunity
+                                        }
+                                    />
+                                    <DataItem
+                                        label="Industry Exposure"
+                                        value={
+                                            competition.industryExposure === "Yes" && competition.industryExposureDetails
+                                                ? `Yes — ${competition.industryExposureDetails}`
+                                                : competition.industryExposure
+                                        }
+                                    />
+                                    <DataItem
+                                        label="Industry Partners"
+                                        value={
+                                            competition.industryPartners === "Yes" && competition.industryPartnersDetails
+                                                ? `Yes — ${competition.industryPartnersDetails}`
+                                                : competition.industryPartners
+                                        }
+                                    />
                                 </div>
                             </InfoCard>
                         </div>
@@ -430,7 +477,7 @@ const CompetitionProfile = () => {
                                 <ul className="list-disc pl-5 space-y-1 text-secondary text-sm">
                                     {competition?.allowedDepartments?.length > 0 ? (
                                         competition.allowedDepartments.map((dept, index) => (
-                                            <li key={index}>{dept}</li>
+                                            <li key={index}>{dept === "All" ? "All Departments" : dept}</li>
                                         ))
                                     ) : (
                                         <li>Open to all departments</li>
@@ -494,6 +541,37 @@ const CompetitionProfile = () => {
                                 )}
                             </div>
                         </InfoCard>
+
+                        {competition.certificateAvailability === "Yes" && (
+                            <InfoCard title="Certificate Information" className="max-w-2xl">
+                                <div className="space-y-4">
+                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                        {competition.signatoryName && (
+                                            <DataItem label="Authorized Signatory" value={competition.signatoryName} />
+                                        )}
+                                        {competition.signatoryDesignation && (
+                                            <DataItem label="Designation" value={competition.signatoryDesignation} />
+                                        )}
+                                    </div>
+                                    {competition.certificateContentBody && (
+                                        <div>
+                                            <p className="text-xs text-gray-500 font-semibold mb-1">Certificate Body</p>
+                                            <p className="text-secondary text-sm leading-relaxed whitespace-pre-wrap">{competition.certificateContentBody}</p>
+                                        </div>
+                                    )}
+                                    {competition.signatureUrl && (
+                                        <div>
+                                            <p className="text-xs text-gray-500 font-semibold mb-1">Authorized Signature</p>
+                                            <img
+                                                src={`${STATIC_URL}/${competition.signatureUrl}`}
+                                                alt="Authorized Signature"
+                                                className="h-16 object-contain rounded border border-gray-200 p-1 bg-white"
+                                            />
+                                        </div>
+                                    )}
+                                </div>
+                            </InfoCard>
+                        )}
                     </div>
                 ) : activeTab === 'applied' ? (
                     <AppliedListSection

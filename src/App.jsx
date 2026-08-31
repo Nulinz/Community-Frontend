@@ -176,6 +176,12 @@ const App = () => {
               <Route path="company-profile/:id" element={<CompanyProfile module="company" />} />
               <Route path="company-profile" element={<CompanyProfile module="company" />} />
               <Route path="partners" element={<Partners />} />
+              <Route path="events" element={<Event />} />
+              <Route path="events-form" element={<EventForm />} />
+              <Route path="event-profile/:id" element={<EventProfile />} />
+              <Route path="competition" element={<Competition />} />
+              <Route path="competition-form" element={<CompetitionForm />} />
+              <Route path="competition-profile/:id" element={<CompetitionProfile />} />
               <Route path="jobs/internship" element={<Internship module="company" />} />
               <Route path="jobs/internship-form" element={<InternshipForm />} />
               <Route path="jobs/internship-profile/:id" element={<JobsProfile module="company" jobType="Internship" />} />

@@ -17,11 +17,39 @@ const collegeFormConfig = [
         name: "collegeType",
         label: "College Type",
         type: "select",
-        options: [ "Government", "Private", "Autonomous"],
+        options: ["Government", "Private", "Autonomous"],
       },
-      { name: "establishedYear", label: "Established Year", type: "date", required: false },
+      { name: "establishedYear", label: "Established Year", type: "year" },
       { name: "affiliatedUniversity", label: "Affiliated University", type: "text", required: false },
-      { name: "totalDepartments", label: "Total Departments", type: "number", required: false },
+      {
+        name: "aisheCode",
+        label: "Institution / AISHE Code",
+        type: "text",
+        placeholder: "e.g. C-12345 (Optional)",
+        required: false,
+      },
+      {
+        name: "accreditation",
+        label: "Accreditation / Recognition",
+        type: "multiselect",
+        options: [
+          "NAAC",
+          "NBA",
+          "AICTE Approved",
+          "UGC Recognized",
+          "Autonomous",
+          "NIRF",
+          "Other",
+        ],
+        required: false,
+      },
+      {
+        name: "officialWebsite",
+        label: "Official Website",
+        type: "text",
+        placeholder: "https://www.examplecollege.edu.in",
+        required: true,
+      },
       { name: "collegeLogo", label: "College Logo", type: "file" },
     ],
   },
@@ -30,45 +58,15 @@ const collegeFormConfig = [
     type: "static",
     fields: [
       { name: "contactPersonName", label: "Contact Person Name", type: "text" },
+      { name: "designation", label: "Designation", type: "text", placeholder: "e.g. Placement Officer / Principal / Dean" },
+      { name: "mailId", label: "Official Email", type: "text", placeholder: "e.g. contact@examplecollege.edu.in" },
       { name: "phoneNumber", label: "Phone Number", type: "tel" },
-      { name: "mailId", label: "Mail Id", type: "text" },
       { name: "address", label: "Address", type: "text" },
       { name: "city", label: "City", type: "text" },
       { name: "state", label: "State", type: "text" },
       { name: "pincode", label: "Pincode", type: "text" },
     ],
   },
-    {
-  title: "Account Details",
-  type: "static",
-  fields: [
-    {
-      name: "accountHolderName",
-      label: "Account Holder Name",
-      type: "text",
-    },
-    {
-      name: "bankName",
-      label: "Bank Name",
-      type: "text",
-    },
-    {
-      name: "branchName",
-      label: "Branch Name",
-      type: "text",
-    },
-    {
-      name: "accountNumber",
-      label: "Account Number",
-      type: "text",
-    },
-    {
-      name: "ifscCode",
-      label: "IFSC Code",
-      type: "text",
-    },
-  ],
-},
   {
     title: "Departments",
     type: "dynamic",
@@ -93,20 +91,61 @@ const collegeFormConfig = [
         label: "Placement Available",
         type: "radio",
         options: ["Yes", "No"],
-        required: false,
       },
       { name: "totalStudents", label: "Total Students", type: "number" },
     ],
   },
   {
-    title: "About Us & Certificate Settings",
+    title: "About College",
     type: "static",
     fields: [
       { name: "aboutUs", label: "About Us", type: "textarea", span: 2 },
-      { name: "signatoryName", label: "Authorized Signatory Name", type: "text" },
-      { name: "signatoryDesignation", label: "Authorized Signatory Designation", type: "text" },
-      { name: "signatureUrl", label: "Authorized Signature Image", type: "file", span: 2 },
-      { name: "certificateContentBody", label: "Custom Certificate Body Text", type: "textarea", span: 2, placeholder: "e.g., has successfully completed the program in..." },
+    ],
+  },
+  {
+    title: "Certificate Settings",
+    type: "static",
+    fields: [
+      { name: "signatoryName", label: "Authorized Signatory", type: "text", required: false },
+      { name: "signatoryDesignation", label: "Designation", type: "text", required: false },
+      { name: "signatureUrl", label: "Signature", type: "file", span: 2, required: false },
+      { name: "certificateContentBody", label: "Certificate Body", type: "textarea", span: 2, placeholder: "e.g., has successfully completed the program in...", required: false },
+    ],
+  },
+  {
+    title: "Payment & Payout",
+    type: "static",
+    fields: [
+      {
+        name: "accountHolderName",
+        label: "Account Holder",
+        type: "text",
+        required: false,
+      },
+      {
+        name: "bankName",
+        label: "Bank",
+        type: "text",
+        required: false,
+      },
+      {
+        name: "branchName",
+        label: "Branch",
+        type: "text",
+        required: false,
+      },
+      {
+        name: "accountNumber",
+        label: "Account Number",
+        type: "text",
+        required: false,
+      },
+      {
+        name: "ifscCode",
+        label: "IFSC",
+        type: "text",
+        required: false,
+      },
     ],
   },
 ];
@@ -116,12 +155,13 @@ const CollegeForm = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const editData = location.state?.editData;
-  // ✅ Remap email/phone aliases from editData before passing to FormLayout
+  // ✅ Remap email/phone/designation aliases from editData before passing to FormLayout
   const normalizedEditData = editData
     ? {
         ...editData,
         mailId: editData.mailId || editData.email || "",
         phoneNumber: editData.phoneNumber || editData.phone || "",
+        designation: editData.designation || editData.contactPersonDesignation || "",
       }
     : undefined;
 

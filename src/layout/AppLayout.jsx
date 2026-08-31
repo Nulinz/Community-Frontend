@@ -1,13 +1,16 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useRef, useState, useCallback } from "react";
 import { Outlet, NavLink, useLocation } from "react-router-dom";
 import { ChevronRight, KeyRound, LogOut, X, Menu, ChevronDown, EyeOff, Eye } from "lucide-react";
 import { changePassword } from "../services/auth/authServices";
 import { toast } from "react-toastify";
 import { useTitle } from "../context/AdminTitle";
-// ─────────────────────────────────────────────
-// ProfileMenu (inline – no separate file needed)
-// ─────────────────────────────────────────────
-const ProfileMenu = ({ user, onLogout, isMobile = false }) => {
+
+/**
+ * ProfileMenu Component
+ * Handles the user avatar dropdown menu (view profile details, change password, logout)
+ * and corresponding modals. Fully responsive with safe viewport-bounded dropdown positioning.
+ */
+const ProfileMenu = ({ user, onLogout }) => {
   const [isOpen, setIsOpen] = useState(false);
   const [isLogoutModalOpen, setIsLogoutModalOpen] = useState(false);
   const [isChangePasswordModalOpen, setIsChangePasswordModalOpen] = useState(false);
@@ -18,7 +21,7 @@ const ProfileMenu = ({ user, onLogout, isMobile = false }) => {
   const menuRef = useRef(null);
   const [loading, setLoading] = useState(false);
 
-  // ── NEW: visibility state for each password field ──
+  // Password visibility states
   const [showOld, setShowOld] = useState(false);
   const [showNew, setShowNew] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
@@ -36,7 +39,6 @@ const ProfileMenu = ({ user, onLogout, isMobile = false }) => {
     setNewPassword("");
     setConfirmPassword("");
     setFormError("");
-    // ── reset visibility on form reset ──
     setShowOld(false);
     setShowNew(false);
     setShowConfirm(false);
@@ -74,11 +76,6 @@ const ProfileMenu = ({ user, onLogout, isMobile = false }) => {
     }
   };
 
-  const dropdownPositionClass = isMobile
-    ? "-left-[200px] top-full mt-2"
-    : "right-0 top-full mt-2";
-
-  // ── NEW: password field config with per-field show/toggle ──
   const passwordFields = [
     { label: "Old Password", value: oldPassword, setter: setOldPassword, show: showOld, toggle: () => setShowOld((p) => !p) },
     { label: "New Password", value: newPassword, setter: setNewPassword, show: showNew, toggle: () => setShowNew((p) => !p) },
@@ -91,33 +88,38 @@ const ProfileMenu = ({ user, onLogout, isMobile = false }) => {
         <button
           type="button"
           onClick={() => setIsOpen((p) => !p)}
-          className="flex items-center gap-3 rounded-xl px-2 py-1.5 transition hover:bg-gray-50"
+          className="flex items-center gap-2.5 rounded-xl p-1 sm:px-2.5 sm:py-1.5 transition hover:bg-gray-100/80 active:bg-gray-200/60"
+          aria-expanded={isOpen}
+          aria-haspopup="true"
         >
-          <div className="w-9 h-9 rounded-full bg-orange-100 flex items-center justify-center border border-gray-200 flex-shrink-0">
-            <span className="text-base font-semibold text-orange-600">
+          <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-orange-100 flex items-center justify-center border border-gray-200 flex-shrink-0 shadow-xs">
+            <span className="text-sm sm:text-base font-semibold text-orange-600">
               {user?.name?.charAt(0)?.toUpperCase() || "U"}
             </span>
           </div>
-          {!isMobile && (
-            <div className="text-left hidden sm:block">
-              <p className="text-sm font-bold text-gray-900 leading-none">{user?.name || "User"}</p>
-              <p className="text-[12px] text-blue-600 font-medium capitalize">{user?.role || "User"}</p>
-            </div>
-          )}
+          <div className="text-left hidden sm:block">
+            <p className="text-sm font-bold text-gray-900 leading-tight max-w-[120px] md:max-w-[160px] truncate">
+              {user?.name || "User"}
+            </p>
+            <p className="text-[11px] md:text-[12px] text-blue-600 font-medium capitalize">
+              {user?.role || "User"}
+            </p>
+          </div>
         </button>
 
+        {/* Dropdown positioned cleanly inside right screen edge on all devices */}
         {isOpen && (
-          <div className={`absolute w-[240px] rounded-2xl border border-[#E5E7EB] bg-white shadow-xl z-50 ${dropdownPositionClass}`}>
+          <div className="absolute right-0 top-full mt-2 w-[220px] sm:w-[240px] max-w-[calc(100vw-1.5rem)] rounded-2xl border border-[#E5E7EB] bg-white shadow-xl z-50 animate-in fade-in zoom-in-95 duration-100">
             <div className="px-4 py-3 border-b border-[#E5E7EB]">
-              <p className="text-sm font-semibold text-gray-900">{user?.name || "User"}</p>
+              <p className="text-sm font-semibold text-gray-900 truncate">{user?.name || "User"}</p>
               <p className="text-xs text-blue-600 capitalize">{user?.role || "User"}</p>
             </div>
             <button
               type="button"
               onClick={() => { setIsOpen(false); resetPasswordForm(); setIsChangePasswordModalOpen(true); }}
-              className="w-full flex items-center justify-between px-4 py-3 text-left hover:bg-gray-50"
+              className="w-full flex items-center justify-between px-4 py-3 text-left hover:bg-gray-50 transition"
             >
-              <span className="flex items-center gap-3 text-[15px] text-gray-800">
+              <span className="flex items-center gap-3 text-[14px] sm:text-[15px] text-gray-800">
                 <KeyRound size={16} />
                 Change Password
               </span>
@@ -126,7 +128,7 @@ const ProfileMenu = ({ user, onLogout, isMobile = false }) => {
             <button
               type="button"
               onClick={() => { setIsOpen(false); setIsLogoutModalOpen(true); }}
-              className="w-full flex items-center gap-3 px-4 py-3 text-left border-t border-[#E5E7EB] hover:bg-gray-50 text-[15px] text-gray-800 rounded-b-2xl"
+              className="w-full flex items-center gap-3 px-4 py-3 text-left border-t border-[#E5E7EB] hover:bg-gray-50 text-[14px] sm:text-[15px] text-red-600 font-medium rounded-b-2xl transition"
             >
               <LogOut size={16} />
               Logout
@@ -137,28 +139,33 @@ const ProfileMenu = ({ user, onLogout, isMobile = false }) => {
 
       {/* ── Logout Modal ── */}
       {isLogoutModalOpen && (
-        <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/45 p-4">
-          <div className="w-full max-w-[470px] rounded-2xl bg-white shadow-2xl">
-            <div className="flex items-center justify-end p-4 pb-0">
-              <button type="button" onClick={() => setIsLogoutModalOpen(false)} className="text-gray-500 hover:text-gray-700">
-                <X size={22} />
+        <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/45 backdrop-blur-xs p-4">
+          <div className="w-full max-w-[460px] rounded-2xl bg-white shadow-2xl p-5 sm:p-7">
+            <div className="flex items-center justify-end">
+              <button
+                type="button"
+                onClick={() => setIsLogoutModalOpen(false)}
+                className="text-gray-400 hover:text-gray-700 p-1 rounded-lg transition"
+                aria-label="Close"
+              >
+                <X size={20} />
               </button>
             </div>
-            <div className="px-8 pb-8 text-center">
-              <h3 className="text-[20px] font-bold text-gray-900">Ready to head out?</h3>
-              <p className="mt-2 text-[15px] text-gray-500">You&apos;re about to log out. See you next time!</p>
-              <div className="mt-8 flex gap-4">
+            <div className="text-center px-2 pb-2">
+              <h3 className="text-lg sm:text-[20px] font-bold text-gray-900">Ready to head out?</h3>
+              <p className="mt-2 text-sm sm:text-[15px] text-gray-500">You&apos;re about to log out. See you next time!</p>
+              <div className="mt-6 sm:mt-8 flex flex-col-reverse sm:flex-row gap-3">
                 <button
                   type="button"
                   onClick={handleLogoutConfirm}
-                  className="flex-1 rounded-xl border border-gray-300 px-2 py-3 text-[15px] font-semibold text-gray-700 hover:bg-gray-50"
+                  className="flex-1 rounded-xl border border-gray-300 px-4 py-2.5 text-sm sm:text-[15px] font-semibold text-gray-700 hover:bg-gray-50 transition"
                 >
                   Logout
                 </button>
                 <button
                   type="button"
                   onClick={() => setIsLogoutModalOpen(false)}
-                  className="flex-1 rounded-xl bg-[#171717] px-2 py-3 text-[15px] font-semibold text-white hover:bg-[#171717]"
+                  className="flex-1 rounded-xl bg-[#171717] px-4 py-2.5 text-sm sm:text-[15px] font-semibold text-white hover:bg-black transition"
                 >
                   Stay Logged In
                 </button>
@@ -170,30 +177,29 @@ const ProfileMenu = ({ user, onLogout, isMobile = false }) => {
 
       {/* ── Change Password Modal ── */}
       {isChangePasswordModalOpen && (
-        <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/45 p-4">
-          <div className="w-full max-w-[520px] rounded-2xl bg-white shadow-2xl">
-            <div className="flex items-center justify-end p-4 pb-0">
+        <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/45 backdrop-blur-xs p-4">
+          <div className="w-full max-w-[500px] max-h-[90vh] overflow-y-auto rounded-2xl bg-white shadow-2xl p-5 sm:p-7">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-lg sm:text-[20px] font-bold text-gray-900">Change Password</h3>
               <button
                 type="button"
                 onClick={() => { setIsChangePasswordModalOpen(false); resetPasswordForm(); }}
-                className="text-gray-500 hover:text-gray-700"
+                className="text-gray-400 hover:text-gray-700 p-1 rounded-lg transition"
+                aria-label="Close"
               >
-                <X size={22} />
+                <X size={20} />
               </button>
             </div>
-            <div className="space-y-4 px-8 pb-8">
-              <h3 className="text-[20px] font-bold text-gray-900">Change Password</h3>
-
-              {/* ── UPDATED: password fields with show/hide toggle ── */}
+            <div className="space-y-4">
               {passwordFields.map(({ label, value, setter, show, toggle }) => (
                 <div key={label}>
-                  <label className="mb-2 block text-[14px] font-semibold text-gray-800">{label}</label>
+                  <label className="mb-1.5 block text-xs sm:text-sm font-semibold text-gray-800">{label}</label>
                   <div className="relative">
                     <input
                       type={show ? "text" : "password"}
                       value={value}
                       onChange={(e) => setter(e.target.value)}
-                      className="w-full rounded-lg border border-gray-300 px-3 py-2.5 pr-10 text-base outline-none focus:border-[#171717]"
+                      className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm sm:text-base outline-none focus:border-[#171717] transition"
                     />
                     <button
                       type="button"
@@ -207,12 +213,12 @@ const ProfileMenu = ({ user, onLogout, isMobile = false }) => {
                 </div>
               ))}
 
-              {formError && <p className="text-sm text-red-500">{formError}</p>}
-              <div className="pt-2 flex gap-4">
+              {formError && <p className="text-xs sm:text-sm text-red-500 font-medium">{formError}</p>}
+              <div className="pt-2 flex flex-col-reverse sm:flex-row gap-3">
                 <button
                   type="button"
                   onClick={() => { setIsChangePasswordModalOpen(false); resetPasswordForm(); }}
-                  className="flex-1 rounded-xl border border-gray-300 px-4 py-2 text-base font-semibold text-gray-700 hover:bg-gray-50"
+                  className="flex-1 rounded-xl border border-gray-300 px-4 py-2.5 text-sm sm:text-base font-semibold text-gray-700 hover:bg-gray-50 transition"
                 >
                   Cancel
                 </button>
@@ -220,7 +226,7 @@ const ProfileMenu = ({ user, onLogout, isMobile = false }) => {
                   type="button"
                   onClick={handleChangePasswordSave}
                   disabled={loading}
-                  className="flex-1 rounded-xl bg-[#171717] px-4 py-2 text-base font-semibold text-white hover:bg-[#171717] disabled:opacity-60"
+                  className="flex-1 rounded-xl bg-[#171717] px-4 py-2.5 text-sm sm:text-base font-semibold text-white hover:bg-black disabled:opacity-60 transition"
                 >
                   {loading ? "Saving..." : "Save"}
                 </button>
@@ -233,21 +239,15 @@ const ProfileMenu = ({ user, onLogout, isMobile = false }) => {
   );
 };
 
-// ─────────────────────────────────────────────
-// AppLayout — the single reusable layout
-//
-// Props:
-//   menuItems        : [{ name, path, icon }]  — nav links (only thing that changes)
-//   logo             : string                  — logo src
-//   user             : { name, role }          — from useMain()
-//   onLogout         : async fn               — from useMain()
-//   onChangePassword : async fn({ oldPassword, newPassword, confirmPassword })
-//
-// Title is derived automatically from the current route segment,
-// matching exactly what your original AdminLayout did:
-//   /admin/company  →  "Company"
-//   /college/events →  "Events"
-// ─────────────────────────────────────────────
+/**
+ * AppLayout Component
+ * Standard layout scaffold powering Admin, College, Company, and Influencer sections.
+ *
+ * Responsiveness Architecture:
+ * - Desktop (>= 768px): Fixed sticky left sidebar, clear header with route title & user profile.
+ * - Mobile / Tablet (< 768px): Slide-in drawer navigation with backdrop, touch-friendly hamburger button,
+ *   brand logo, auto-truncating route title, and profile menu without horizontal layout breakages.
+ */
 const AppLayout = ({
   menuItems = [],
   logo,
@@ -258,12 +258,14 @@ const AppLayout = ({
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
   const location = useLocation();
-  const { title } = useTitle()
-  // Auto-derive title from last path segment — same logic as your AdminLayout
-  const pageTitle = location.pathname.split("/").filter(Boolean).pop() || "Dashboard";
+  const { title } = useTitle();
+  
+  // Auto-derive fallback title from last route segment if context title is not set
+  const pageTitle = title || location.pathname.split("/").filter(Boolean).pop() || "Dashboard";
 
   const mainRef = useRef(null);
 
+  // Close sidebar and reset scroll on navigation change
   useEffect(() => {
     setSidebarOpen(false);
     window.scrollTo(0, 0);
@@ -273,13 +275,31 @@ const AppLayout = ({
     }
   }, [location.pathname, location.search]);
 
-  // Prevent body scroll when mobile drawer is open
+  // Prevent background body scrolling when mobile drawer is open
   useEffect(() => {
-    document.body.style.overflow = sidebarOpen ? "hidden" : "";
-    return () => { document.body.style.overflow = ""; };
+    if (sidebarOpen) {
+      document.body.style.overflow = "hidden";
+    } else {
+      document.body.style.overflow = "";
+    }
+    return () => {
+      document.body.style.overflow = "";
+    };
   }, [sidebarOpen]);
 
-  // Track which sub-menus are expanded — auto-open if current path is inside that group
+  // Handle ESC key press to close sidebar drawer
+  const handleKeyDown = useCallback((e) => {
+    if (e.key === "Escape" && sidebarOpen) {
+      setSidebarOpen(false);
+    }
+  }, [sidebarOpen]);
+
+  useEffect(() => {
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [handleKeyDown]);
+
+  // Track expanded state for nested sub-menu items
   const [expandedMenus, setExpandedMenus] = useState(() => {
     const initial = {};
     menuItems.forEach((item) => {
@@ -303,7 +323,7 @@ const AppLayout = ({
   };
 
   const NavItems = ({ onLinkClick }) => (
-    <nav className="flex-1 space-y-1 px-3">
+    <nav className="space-y-1 px-3">
       {menuItems.map((item) => {
         const hasSubItems = !!item.subItems;
         const isExpanded = expandedMenus[item.name];
@@ -319,7 +339,7 @@ const AppLayout = ({
                 <button
                   type="button"
                   onClick={() => toggleMenu(item.name)}
-                  className={`w-full flex items-center justify-between px-4 py-3 rounded-lg text-[15px] font-medium transition-all duration-200 relative
+                  className={`w-full flex items-center justify-between px-3.5 sm:px-4 py-2.5 sm:py-3 rounded-lg text-sm sm:text-[15px] font-medium transition-all duration-200 relative
                     ${isCategoryActive ? "bg-blue-50 text-[#171717]" : "text-gray-700 hover:bg-gray-50 hover:text-[#171717]"}`}
                 >
                   <div className="flex items-center gap-3">
@@ -331,31 +351,29 @@ const AppLayout = ({
                       size={15}
                       className={`transition-transform duration-200 ${isExpanded ? "rotate-180" : ""}`}
                     />
-                    {/* Blue right-side indicator when a child is active */}
                     {isCategoryActive && (
                       <div className="absolute right-0 top-1/2 -translate-y-1/2 w-[4px] h-8 bg-[#171717] rounded-l-full" />
                     )}
                   </div>
                 </button>
 
-                {/* ── Sub-items with curved connector ── */}
+                {/* ── Sub-items with connector ── */}
                 {isExpanded && (
-                  <div className="ml-9 mt-1 space-y-1 border-l border-gray-200 relative">
+                  <div className="ml-7 sm:ml-9 mt-1 space-y-1 border-l border-gray-200 relative">
                     {item.subItems.map((sub) => (
                       <NavLink
                         key={sub.name}
                         to={sub.path}
                         onClick={onLinkClick}
                         className={({ isActive }) =>
-                          `flex items-center px-6 py-2.5 text-[14px] font-medium transition-colors relative
-                          ${isActive ? "text-[#171717]" : "text-gray-600 hover:text-[#171717]"}`
+                          `flex items-center px-5 sm:px-6 py-2 sm:py-2.5 text-xs sm:text-[14px] font-medium transition-colors relative
+                          ${isActive ? "text-[#171717] font-semibold" : "text-gray-600 hover:text-[#171717]"}`
                         }
                       >
                         {({ isActive }) => (
                           <>
-                            {/* Curved connector line */}
                             <div className={`absolute -left-[1px] top-0 bottom-0 w-[1px] ${isActive ? "bg-[#171717]" : "bg-transparent"}`}>
-                              <div className="absolute rounded top-1/2 left-0 w-3 h-[1px] bg-gray-200" />
+                              <div className="absolute rounded top-1/2 left-0 w-2.5 sm:w-3 h-[1px] bg-gray-200" />
                             </div>
                             <span>{sub.name}</span>
                           </>
@@ -371,8 +389,8 @@ const AppLayout = ({
                 to={item.path}
                 onClick={onLinkClick}
                 className={({ isActive }) =>
-                  `flex items-center gap-3 px-4 py-3 rounded-lg text-[15px] font-medium transition-all duration-200
-                  ${isActive ? "bg-blue-50 text-[#171717]" : "text-gray-700 hover:bg-gray-50 hover:text-[#171717]"}`
+                  `flex items-center gap-3 px-3.5 sm:px-4 py-2.5 sm:py-3 rounded-lg text-sm sm:text-[15px] font-medium transition-all duration-200
+                  ${isActive ? "bg-blue-50 text-[#171717] font-semibold" : "text-gray-700 hover:bg-gray-50 hover:text-[#171717]"}`
                 }
               >
                 {({ isActive }) => (
@@ -393,92 +411,95 @@ const AppLayout = ({
     <div className="flex h-screen overflow-hidden bg-[#F9FAFB]">
 
       {/* ════════════ DESKTOP SIDEBAR ════════════ */}
-      <aside className="hidden md:flex w-[260px] h-screen sticky top-0 bg-white border-r-2 border-[#E5E7EB] flex-col py-6 overflow-y-auto flex-shrink-0">
-        <div className="px-6 mb-10 flex justify-center">
-          {logo && <img src={logo} alt="Logo" className="h-11 w-auto object-contain" />}
+      <aside className="hidden md:flex w-[260px] h-screen sticky top-0 bg-white border-r border-[#E5E7EB] flex-col py-6 flex-shrink-0">
+        <div className="px-6 mb-8 flex justify-center flex-shrink-0">
+          {logo && <img src={logo} alt="Logo" className="h-10 w-auto object-contain" />}
         </div>
-        <NavItems />
+        <div className="flex-1 overflow-y-auto pb-8">
+          <NavItems />
+        </div>
       </aside>
 
       {/* ════════════ MOBILE DRAWER OVERLAY ════════════ */}
-
       {sidebarOpen && (
         <div
-          className="fixed inset-0 z-40 bg-black/40 md:hidden"
+          className="fixed inset-0 z-40 bg-black/45 backdrop-blur-xs md:hidden transition-opacity"
           onClick={() => setSidebarOpen(false)}
+          aria-hidden="true"
         />
       )}
 
       {/* ════════════ MOBILE DRAWER ════════════ */}
       <aside
-        className={`fixed top-0 left-0 z-50 h-full w-[260px] bg-white border-r-2 border-[#E5E7EB] flex flex-col py-6 overflow-y-auto transition-transform duration-300 ease-in-out md:hidden ${sidebarOpen ? "translate-x-0" : "-translate-x-full"
-          }`}
+        className={`fixed top-0 left-0 z-50 h-full w-[270px] max-w-[85vw] bg-white border-r border-[#E5E7EB] flex flex-col py-5 shadow-2xl transition-transform duration-300 ease-in-out md:hidden ${
+          sidebarOpen ? "translate-x-0" : "-translate-x-full"
+        }`}
+        role="dialog"
+        aria-modal="true"
+        aria-label="Navigation Sidebar"
       >
         {/* Drawer header */}
-        <div className="px-6 mb-10 flex items-center justify-between">
-          {logo && <img src={logo} alt="Logo" className="h-10 w-auto object-contain" />}
+        <div className="px-5 mb-6 flex items-center justify-between flex-shrink-0">
+          {logo && <img src={logo} alt="Logo" className="h-9 w-auto object-contain" />}
           <button
             type="button"
             onClick={() => setSidebarOpen(false)}
-            className="text-gray-500 hover:text-gray-700 p-1 rounded-lg hover:bg-gray-100"
+            aria-label="Close sidebar"
+            className="text-gray-500 hover:text-gray-800 p-1.5 rounded-lg hover:bg-gray-100 transition"
           >
             <X size={20} />
           </button>
         </div>
-        <NavItems onLinkClick={() => setSidebarOpen(false)} />
+
+        {/* Scrollable menu items */}
+        <div className="flex-1 overflow-y-auto pb-10">
+          <NavItems onLinkClick={() => setSidebarOpen(false)} />
+        </div>
       </aside>
 
       {/* ════════════ MAIN CONTENT AREA ════════════ */}
-      <div className="flex-1 flex flex-col min-w-0 h-screen">
+      <div className="flex-1 flex flex-col min-w-0 h-screen overflow-hidden">
 
         {/* ── Header ── */}
-        <header className="flex items-center justify-between px-4 sm:px-8 py-3 bg-white border-b-2 border-[#E5E7EB] flex-shrink-0">
-          <div className="flex items-center gap-3">
-            {/* Hamburger — mobile only */}
+        <header className="flex items-center justify-between px-3 sm:px-6 md:px-8 py-3 bg-white border-b border-[#E5E7EB] flex-shrink-0 relative z-30">
+          <div className="flex items-center gap-2 sm:gap-3 min-w-0">
+            {/* Hamburger button — mobile/tablet only */}
             <button
               type="button"
               onClick={() => setSidebarOpen(true)}
-              className="md:hidden p-2 rounded-lg text-gray-600 hover:bg-gray-100 transition"
+              aria-label="Open navigation menu"
+              className="md:hidden p-1.5 rounded-lg text-gray-600 hover:bg-gray-100 hover:text-gray-900 transition flex-shrink-0"
             >
               <Menu size={22} />
             </button>
-            {/* Logo in header — mobile only (when drawer is closed) */}
+
+            {/* Mobile Logo */}
             {logo && (
               <img
                 src={logo}
                 alt="Logo"
-                className="h-8 w-auto object-contain md:hidden"
+                className="h-7 sm:h-8 w-auto object-contain md:hidden flex-shrink-0"
               />
             )}
-            <h1 className="text-lg font-bold text-gray-800 capitalize hidden sm:block">{title}</h1>
+
+            {/* Title with truncation protection to prevent header overflow */}
+            <h1 className="text-base sm:text-lg md:text-xl font-bold text-gray-800 capitalize truncate max-w-[150px] xs:max-w-[200px] sm:max-w-[320px] md:max-w-none">
+              {pageTitle}
+            </h1>
           </div>
 
-          {/* Desktop ProfileMenu */}
-          <div className="hidden md:block">
+          {/* Profile Menu (Avatar + Dropdown) */}
+          <div className="flex items-center gap-2 flex-shrink-0">
             <ProfileMenu
               user={user}
               onLogout={onLogout}
               onChangePassword={onChangePassword}
-              isMobile={false}
-            />
-          </div>
-
-          {/* Mobile: title center + avatar right */}
-          <h1 className="text-base font-bold text-gray-800 capitalize sm:hidden absolute left-1/2 -translate-x-1/2">
-            {title}
-          </h1>
-          <div className="md:hidden">
-            <ProfileMenu
-              user={user}
-              onLogout={onLogout}
-              onChangePassword={onChangePassword}
-              isMobile={true}
             />
           </div>
         </header>
 
         {/* ── Page Content ── */}
-        <main ref={mainRef} className="scroll-reset-target flex-1 overflow-y-auto p-3">
+        <main ref={mainRef} className="scroll-reset-target flex-1 overflow-y-auto overflow-x-hidden p-3 sm:p-4 md:p-6 bg-[#F9FAFB]">
           <Outlet />
         </main>
 
@@ -487,4 +508,4 @@ const AppLayout = ({
   );
 };
 
-export default AppLayout;
+export default AppLayout;

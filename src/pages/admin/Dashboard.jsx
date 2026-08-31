@@ -1,8 +1,4 @@
-﻿
-
-
-
-import { useEffect, useState } from 'react';
+﻿import { useEffect, useState } from 'react';
 import DynamicTable from '../../common/DynamicTable';
 import { assets } from '../../assets/assets';
 import { apiGetAdminDashboard } from '../../services/admin/adminServices';
@@ -51,13 +47,14 @@ const Dashboard = () => {
   // ── Metric card config (maps to API stats keys) ───────────────────────────
   const metricCards = [
     { key: 'companies', title: 'Total Companies', highlighted: true },
+    { key: 'internships', title: 'Active Internship' },
+    { key: 'freelances', title: 'Active Projects' },
+    { key: 'jobs', title: 'Active Jobs' },
     { key: 'colleges', title: 'Total College' },
     { key: 'competitions', title: 'Active Competition' },
     { key: 'conferences', title: 'Active Conference' },
     { key: 'events', title: 'Active Events' },
     { key: 'seminars', title: 'Active Seminar' },
-    { key: 'internships', title: 'Active Internship' },
-    { key: 'freelances', title: 'Active Projects' },
   ];
 
   // ── Table columns ─────────────────────────────────────────────────────────

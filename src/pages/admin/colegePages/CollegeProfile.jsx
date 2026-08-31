@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { LockKeyhole, SquarePen, X, Loader2 } from 'lucide-react';
+import { LockKeyhole, SquarePen, X, Loader2, Globe } from 'lucide-react';
 import { assets } from '../../../assets/assets';
 import DynamicTable from '../../../common/DynamicTable';
 import { getCollegeById, toggleCollegeStatus, setCollegePassword } from '../../../services/admin/adminServices';
@@ -235,8 +235,25 @@ const CollegeProfile = () => {
                 </div>
                 <div className="space-y-1">
                   <p className="text-[16px] font-semibold text-secondary">{college.collegeType}</p>
-                  <p className="text-[14px] text-secondary font-medium">{college.affiliatedUniversity}</p>
+                  <p className="text-[14px] text-secondary font-medium">
+                    {college.affiliatedUniversity}
+                    {college.aisheCode && (
+                      <span className="ml-2 inline-flex items-center px-2 py-0.5 rounded text-xs font-semibold bg-gray-100 text-gray-700">
+                        AISHE: {college.aisheCode}
+                      </span>
+                    )}
+                  </p>
                   <p className="text-[14px] text-secondary font-medium">{college.city}, {college.state}</p>
+                  {college.officialWebsite && (
+                    <a
+                      href={college.officialWebsite.startsWith('http') ? college.officialWebsite : `https://${college.officialWebsite}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center gap-1.5 text-[13px] text-blue-600 hover:text-blue-800 hover:underline font-medium pt-1 transition-colors"
+                    >
+                      <Globe size={14} /> {college.officialWebsite.replace(/^https?:\/\//i, '')}
+                    </a>
+                  )}
                 </div>
               </div>
             </div>
@@ -303,10 +320,26 @@ const CollegeProfile = () => {
             <div className="animate-in fade-in slide-in-from-bottom-2 duration-500">
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
                 <SectionCard title="Contact Information">
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-8">
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-6">
                     <DetailItem label="Contact Person Name" value={college.contactPersonName} />
-                    <DetailItem label="Phone Number" value={college.phone} />
-                    <DetailItem label="Mail ID" value={college.email} />
+                    <DetailItem label="Designation" value={college.designation || college.contactPersonDesignation || 'N/A'} />
+                    <DetailItem label="Official Email" value={college.email || college.mailId} />
+                    <DetailItem label="Phone Number" value={college.phone || college.phoneNumber} />
+                    <DetailItem
+                      label="Official Website"
+                      value={
+                        college.officialWebsite ? (
+                          <a
+                            href={college.officialWebsite.startsWith('http') ? college.officialWebsite : `https://${college.officialWebsite}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-blue-600 hover:text-blue-800 hover:underline break-all"
+                          >
+                            {college.officialWebsite}
+                          </a>
+                        ) : 'N/A'
+                      }
+                    />
                   </div>
                   <div className="pt-2 border-t border-gray-100 mt-2">
                     <DetailItem label="Address" value={`${college.address}, ${college.city}, ${college.state} - ${college.pincode}`} />
@@ -314,10 +347,19 @@ const CollegeProfile = () => {
                 </SectionCard>
 
                 <SectionCard title="Academic Details">
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                     <DetailItem label="Courses Available" value={Array.isArray(college.coursesAvailable) ? college.coursesAvailable.join(', ') : (college.coursesAvailable || 'N/A')} />
-                    <DetailItem label="Placement Available" value={college.placementAvailable} />
-                    <DetailItem label="Total Students" value={college.totalStudents} />
+                    <DetailItem label="Placement Available" value={college.placementAvailable || 'N/A'} />
+                    <DetailItem label="Total Students" value={college.totalStudents || 'N/A'} />
+                    <DetailItem label="AISHE / Institution ID" value={college.aisheCode || 'N/A'} />
+                    <DetailItem
+                      label="Accreditation / Recognition"
+                      value={
+                        college.accreditation && (Array.isArray(college.accreditation) ? college.accreditation.length > 0 : Boolean(college.accreditation))
+                          ? (Array.isArray(college.accreditation) ? college.accreditation.join(', ') : String(college.accreditation))
+                          : 'N/A'
+                      }
+                    />
                   </div>
                 </SectionCard>
               </div>

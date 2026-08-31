@@ -1,22 +1,23 @@
 import React from 'react';
+import loginBg from '../assets/images/loginBg.png';
 
 /**
  * AuthBase - Shared layout wrapper for all authentication screens.
  *
  * Props:
- *   backgroundImage  {string}  - Unsplash (or any) URL for the full-bleed background.
- *   maxWidth         {string}  - Tailwind max-w class for the card  (default "max-w-md")
- *   children         {node}   - Form content rendered inside the glass card.
+ *   backgroundImage  {string}  - Full-bleed background image URL or imported asset.
+ *   maxWidth         {string}  - Tailwind max-w class for the card (default "max-w-md")
+ *   children         {node}    - Form content rendered inside the glass card.
  */
 export default function AuthBase({
-  // backgroundImage = "/login_bg.png",
+  backgroundImage = loginBg,
   maxWidth = "max-w-md",
   children,
 }) {
   return (
     <div
       className="min-h-screen flex items-center justify-center p-4 relative !bg-cover !bg-center bg-no-repeat"
-      // style={{ backgroundImage: `url(${backgroundImage})` }}
+      style={{ backgroundImage: `url(${backgroundImage})` }}
     >
       {/* Dark overlay */}
       <div className="absolute inset-0 bg-black/50 backdrop-blur-[2px]" />
@@ -29,4 +30,4 @@ export default function AuthBase({
       </div>
     </div>
   );
-}
+}

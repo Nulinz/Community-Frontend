@@ -332,11 +332,35 @@ const SeminarProfile = () => {
                             <InfoCard title="Basic Details">
                                 <div className="grid grid-cols-2 xl:grid-cols-3 gap-6">
                                     <DataItem label="Event Type" value={seminar.eventType} />
+                                    <DataItem label="Event Date" value={seminar.eventDate ? new Date(seminar.eventDate).toLocaleDateString() : 'N/A'} />
+                                    <DataItem
+                                        label="Event Time"
+                                        value={
+                                            seminar.eventStartTime && seminar.eventEndTime
+                                                ? `${seminar.eventStartTime} - ${seminar.eventEndTime}`
+                                                : seminar.eventStartTime || seminar.eventEndTime || '-'
+                                        }
+                                    />
                                     <DataItem label="Registration Type" value={seminar.registrationType} />
                                     <DataItem label="Reg Start Date" value={seminar.registrationStartDate ? new Date(seminar.registrationStartDate).toLocaleDateString() : 'N/A'} />
                                     <DataItem label="Reg End Date" value={seminar.registrationEndDate ? new Date(seminar.registrationEndDate).toLocaleDateString() : 'N/A'} />
                                     <DataItem label="Total Seats" value={seminar.totalSeats} />
                                     <DataItem label="Event Mode" value={seminar.mode} />
+                                    {seminar.onlinePlatformLink && (
+                                        <DataItem
+                                            label="Platform / Meeting Link"
+                                            value={
+                                                <a
+                                                    href={seminar.onlinePlatformLink.startsWith('http') ? seminar.onlinePlatformLink : `https://${seminar.onlinePlatformLink}`}
+                                                    target="_blank"
+                                                    rel="noopener noreferrer"
+                                                    className="text-blue-600 hover:underline break-all"
+                                                >
+                                                    {seminar.onlinePlatformLink}
+                                                </a>
+                                            }
+                                        />
+                                    )}
                                 </div>
                             </InfoCard>
 
@@ -369,14 +393,16 @@ const SeminarProfile = () => {
 
                         {/* Row 2: Food + Team + Venue */}
                         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
-                            <InfoCard title="Food & Accommodation">
-                                <div className="grid grid-cols-2 gap-4">
-                                    <DataItem label="Food Provided" value={seminar.foodProvide} />
-                                    <DataItem label="Food Type" value={seminar.vegNonVeg} />
-                                    <DataItem label="Accommodation" value={seminar.accommodationProvide} />
-                                    <DataItem label="Midnight Snacks" value={seminar.midnightSnacks} />
-                                </div>
-                            </InfoCard>
+                            {(seminar.mode === "Offline" || seminar.mode === "Hybrid") && (
+                                <InfoCard title="Food & Accommodation">
+                                    <div className="grid grid-cols-2 gap-4">
+                                        <DataItem label="Food Provided" value={seminar.foodProvide} />
+                                        <DataItem label="Food Type" value={seminar.vegNonVeg} />
+                                        <DataItem label="Accommodation" value={seminar.accommodationProvide} />
+                                        <DataItem label="Midnight Snacks" value={seminar.midnightSnacks} />
+                                    </div>
+                                </InfoCard>
+                            )}
 
                             <InfoCard title="Team Rules">
                                 <div className="grid grid-cols-2 gap-4">
@@ -386,12 +412,14 @@ const SeminarProfile = () => {
                                 </div>
                             </InfoCard>
 
-                            <InfoCard title="Venue Details">
-                                <div className="space-y-4">
-                                    <DataItem label="Venue Name" value={seminar.venueName} />
-                                    <DataItem label="Address" value={formatAddress(seminar)} />
-                                </div>
-                            </InfoCard>
+                            {(seminar.mode === "Offline" || seminar.mode === "Hybrid") && (
+                                <InfoCard title="Venue Details">
+                                    <div className="space-y-4">
+                                        <DataItem label="Venue Name" value={seminar.venueName} />
+                                        <DataItem label="Address" value={formatAddress(seminar)} />
+                                    </div>
+                                </InfoCard>
+                            )}
                         </div>
 
                         {/* Row 3: Rounds + Contact + Schedule */}
@@ -459,6 +487,38 @@ const SeminarProfile = () => {
                                 <p className="text-secondary text-sm leading-relaxed whitespace-pre-wrap">{seminar.description}</p>
                             </InfoCard>
                         </div>
+
+                        {/* Certificate Information */}
+                        {seminar.certificateAvailability === "Yes" && (
+                            <InfoCard title="Certificate Information" className="max-w-2xl">
+                                <div className="space-y-4">
+                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                        {seminar.signatoryName && (
+                                            <DataItem label="Authorized Signatory" value={seminar.signatoryName} />
+                                        )}
+                                        {seminar.signatoryDesignation && (
+                                            <DataItem label="Designation" value={seminar.signatoryDesignation} />
+                                        )}
+                                    </div>
+                                    {seminar.certificateContentBody && (
+                                        <div>
+                                            <p className="text-xs text-gray-500 font-semibold mb-1">Certificate Body</p>
+                                            <p className="text-secondary text-sm leading-relaxed whitespace-pre-wrap">{seminar.certificateContentBody}</p>
+                                        </div>
+                                    )}
+                                    {seminar.signatureUrl && (
+                                        <div>
+                                            <p className="text-xs text-gray-500 font-semibold mb-1">Authorized Signature</p>
+                                            <img
+                                                src={`${BASE_URL}/${seminar.signatureUrl}`}
+                                                alt="Authorized Signature"
+                                                className="h-16 object-contain rounded border border-gray-200 p-1 bg-white"
+                                            />
+                                        </div>
+                                    )}
+                                </div>
+                            </InfoCard>
+                        )}
 
                         {/* Gallery / Posts */}
                         <div className="md:col-span-2 xl:col-span-3 bg-white p-5 sm:p-6 lg:p-7 rounded-[20px] md:rounded-[24px] shadow-sm border border-gray-100">

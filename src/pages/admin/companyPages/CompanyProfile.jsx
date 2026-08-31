@@ -285,8 +285,10 @@ const CompanyProfile = ({ module }) => {
                 <p className="text-[14px] text-secondary">
                   <span className='text-[16px] font-semibold'>{company.companyTagLine} .</span> {company.city}, {company.state}
                 </p>
-                <p className="text-[14px] text-secondary font-medium">
-                  <span className='text-[16px] font-semibold'>Year Founded: {company.yearFounded ? new Date(company.yearFounded).getFullYear() : 'N/A'}</span> {company.websiteLink && <a href={company.websiteLink.startsWith('http') ? company.websiteLink : `https://${company.websiteLink}`} target="_blank" rel="noopener noreferrer" className="text-blue-600 ml-2 hover:underline">{company.websiteLink}</a>}
+                <p className="text-[14px] text-secondary font-medium flex flex-wrap items-center gap-2">
+                  <span className='text-[16px] font-semibold'>Year Founded: {company.yearFounded ? (String(company.yearFounded).match(/\b\d{4}\b/)?.[0] || company.yearFounded) : 'N/A'}</span>
+                  {company.websiteLink && <a href={company.websiteLink.startsWith('http') ? company.websiteLink : `https://${company.websiteLink}`} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">{company.websiteLink}</a>}
+                  {company.linkedinUrl && <a href={company.linkedinUrl.startsWith('http') ? company.linkedinUrl : `https://${company.linkedinUrl}`} target="_blank" rel="noopener noreferrer" className="text-[#0A66C2] font-semibold hover:underline">LinkedIn Page</a>}
                 </p>
                 <p className="text-[16px] text-secondary font-normal leading-[1.7] max-w-2xl mt-4">
                   {company.aboutUs ? (
@@ -391,10 +393,40 @@ const CompanyProfile = ({ module }) => {
           <div className="grid grid-cols-1 xl:grid-cols-2 gap-5 pt-6">
             <div className="space-y-5">
               <SectionCard title="Contact Information">
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-8">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
                   <DetailItem label="Contact Person Name" value={company.contactPersonName} />
                   <DetailItem label="Phone" value={company.phone} />
                   <DetailItem label="Email" value={company.email} />
+                  {/* <DetailItem
+                    label="Website"
+                    value={
+                      company.websiteLink ? (
+                        <a
+                          href={company.websiteLink.startsWith('http') ? company.websiteLink : `https://${company.websiteLink}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-blue-600 hover:underline break-all"
+                        >
+                          {company.websiteLink}
+                        </a>
+                      ) : 'N/A'
+                    }
+                  /> */}
+                  <DetailItem
+                    label="LinkedIn Page"
+                    value={
+                      company.linkedinUrl ? (
+                        <a
+                          href={company.linkedinUrl.startsWith('http') ? company.linkedinUrl : `https://${company.linkedinUrl}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-blue-600 hover:underline break-all"
+                        >
+                          {company.linkedinUrl}
+                        </a>
+                      ) : 'N/A'
+                    }
+                  />
                 </div>
                 <div className="pt-2 border-t border-gray-100 mt-2">
                   <DetailItem
@@ -433,7 +465,7 @@ const CompanyProfile = ({ module }) => {
             </div>
 
             <div className="space-y-5">
-              <SectionCard title="About Us">
+              <SectionCard title="About the Company">
                 <p className="text-[14px] md:text-[15px] text-secondary leading-[1.8] font-medium whitespace-pre-wrap">
                   {company.aboutUs}
                 </p>
@@ -447,17 +479,17 @@ const CompanyProfile = ({ module }) => {
                 </SectionCard>
               )}
 
-              {company.learningBenefits?.length > 0 && (
+              {/* {company.learningBenefits?.length > 0 && (
                 <SectionCard title="Learning Benefits">
                   <InfoList items={company.learningBenefits} />
                 </SectionCard>
-              )}
+              )} */}
 
-              {company.learningOutcomes?.length > 0 && (
+              {/* {company.learningOutcomes?.length > 0 && (
                 <SectionCard title="Learning Outcomes">
                   <InfoList items={company.learningOutcomes} />
                 </SectionCard>
-              )}
+              )} */}
             </div>
           </div>
         )}

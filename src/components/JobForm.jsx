@@ -13,19 +13,58 @@ const jobFormConfig = [
     fields: [
       { name: "jobType", label: "Job Type", type: "radio", options: ["Full Time", "Part Time", "Contract"] },
       { name: "jobTitle", label: "Job Title", type: "text" },
-      { name: "organizer", label: "Organizer", type: "text", readOnly: true },
-      { name: "location", label: "Location", type: "text" },
-      { name: "mode", label: "Mode", type: "select", options: ["Online", "Offline", "Hybrid"] },
-      { name: "totalOpenings", label: "Total Openings", type: "number" },
+      { name: "jobCategory", label: "Job Category / Department", type: "text", placeholder: "e.g. Software Engineering, Marketing, Finance", },
+      { name: "organizer", label: "Organizer", type: "text", },
+      { name: "mode", label: "Mode", type: "select", options: ["On-site", "Hybrid", "Remote"] },
+      {
+        name: "location",
+        label: "Location",
+        type: "text",
+        placeholder: "e.g. Bangalore, Chennai",
+        showWhen: { field: "mode", value: ["On-site", "Hybrid"] },
+      },
       {
         name: "duration",
         label: "Duration",
         type: "select",
         options: ["No Fixed Duration", "1 Year", "2 Years", "Permanent"],
+        showWhen: { field: "jobType", value: "Contract" },
       },
-      { name: "jobStartDate", label: "Job Start Date", type: "date" },
+      { name: "totalOpenings", label: "Total Openings", type: "number" },
+      { name: "jobStartDate", label: "Job Start Date", type: "date", required: false },
       { name: "applicationDeadline", label: "Application Deadline", type: "date" },
-      { name: "salary", label: "Salary", type: "number" },
+      {
+        name: "salaryType",
+        label: "Salary",
+        type: "select",
+        options: ["Fixed amount", "Range", "Negotiable", "Not disclosed"],
+        defaultValue: "Fixed amount",
+        required: false
+      },
+      {
+        name: "salary",
+        label: "Fixed Salary (₹)",
+        type: "number",
+        placeholder: "e.g. 600000",
+        required: false,
+        showWhen: { field: "salaryType", value: "Fixed amount" },
+      },
+      {
+        name: "salaryMin",
+        label: "Minimum Salary (₹)",
+        type: "number",
+        placeholder: "e.g. 400000",
+        required: false,
+        showWhen: { field: "salaryType", value: "Range" },
+      },
+      {
+        name: "salaryMax",
+        label: "Maximum Salary (₹)",
+        type: "number",
+        placeholder: "e.g. 800000",
+        required: false,
+        showWhen: { field: "salaryType", value: "Range" },
+      },
     ],
   },
   {
@@ -33,7 +72,7 @@ const jobFormConfig = [
     type: "dynamic",
     key: "responsibilities",
     dynamicStyle: "grid-6",
-    initialRows: 3,
+    initialRows: 1,
     fields: [{ name: "responsibilities", label: "Responsibility", type: "text", colSpan: "md:col-span-11" }],
   },
   {
@@ -41,7 +80,7 @@ const jobFormConfig = [
     type: "dynamic",
     key: "eligibility",
     dynamicStyle: "grid-6",
-    initialRows: 3,
+    initialRows: 1,
     fields: [{ name: "eligibility", label: "Eligibility Criteria", type: "text", colSpan: "md:col-span-11" }],
   },
   {
@@ -49,47 +88,47 @@ const jobFormConfig = [
     type: "dynamic",
     key: "skill_set",
     dynamicStyle: "grid-6",
-    initialRows: 3,
+    initialRows: 1,
     fields: [{ name: "skill_set", label: "Required skill set", type: "text", colSpan: "md:col-span-11" }],
   },
+  // {
+  //   title: "Learning Benefits",
+  //   type: "dynamic",
+  //   key: "benefits",
+  //   dynamicStyle: "grid-6",
+  //   initialRows: 3,
+  //   fields: [{ name: "benefits", label: "Learning Benefits", type: "text", colSpan: "md:col-span-11" }],
+  // },
+  // {
+  //   title: "Learning outcomes",
+  //   type: "dynamic",
+  //   key: "learning_outcomes",
+  //   dynamicStyle: "grid-6",
+  //   initialRows: 3,
+  //   fields: [{ name: "learning_outcomes", label: "Learning outcomes", type: "text", colSpan: "md:col-span-11" }],
+  // },
+  // {
+  //   title: "Skill Development Benefits",
+  //   type: "dynamic",
+  //   key: "development_benefits",
+  //   dynamicStyle: "grid-6",
+  //   initialRows: 3,
+  //   fields: [{ name: "development_benefits", label: "Skill Development Benefits", type: "text", colSpan: "md:col-span-11" }],
+  // },
+  // {
+  //   title: "Supported Development resources",
+  //   type: "dynamic",
+  //   key: "development_resources",
+  //   dynamicStyle: "grid-6",
+  //   initialRows: 3,
+  //   fields: [{ name: "development_resources", label: "Supported Development resources", type: "text", colSpan: "md:col-span-11" }],
+  // },
   {
-    title: "Learning Benefits",
-    type: "dynamic",
-    key: "benefits",
-    dynamicStyle: "grid-6",
-    initialRows: 3,
-    fields: [{ name: "benefits", label: "Learning Benefits", type: "text", colSpan: "md:col-span-11" }],
-  },
-  {
-    title: "Learning outcomes",
-    type: "dynamic",
-    key: "learning_outcomes",
-    dynamicStyle: "grid-6",
-    initialRows: 3,
-    fields: [{ name: "learning_outcomes", label: "Learning outcomes", type: "text", colSpan: "md:col-span-11" }],
-  },
-  {
-    title: "Skill Development Benefits",
-    type: "dynamic",
-    key: "development_benefits",
-    dynamicStyle: "grid-6",
-    initialRows: 3,
-    fields: [{ name: "development_benefits", label: "Skill Development Benefits", type: "text", colSpan: "md:col-span-11" }],
-  },
-  {
-    title: "Supported Development resources",
-    type: "dynamic",
-    key: "development_resources",
-    dynamicStyle: "grid-6",
-    initialRows: 3,
-    fields: [{ name: "development_resources", label: "Supported Development resources", type: "text", colSpan: "md:col-span-11" }],
-  },
-  {
-    title: "Project Description",
+    title: "Job Description",
     type: "static",
     fields: [
       { name: "description", label: "Description", type: "textarea", span: 2 },
-      { name: "certificateAvailability", label: "Certificate Availability", type: "textarea", span: 2 },
+      // { name: "certificateAvailability", label: "Certificate Availability", type: "textarea", span: 2 },
     ],
   },
 ];
@@ -109,9 +148,26 @@ const JobForm = () => {
   const handleSubmit = async (_, payload) => {
     try {
       setLoading(true);
+      const cleanPayload = { ...payload };
+      if ((cleanPayload.mode === "Remote" || cleanPayload.mode === "Online") && !cleanPayload.location) {
+        cleanPayload.location = "Remote";
+      }
+      if (cleanPayload.jobType !== "Contract") {
+        cleanPayload.duration = "";
+      }
+      if (cleanPayload.salaryType === "Fixed amount") {
+        cleanPayload.salaryMin = 0;
+        cleanPayload.salaryMax = 0;
+      } else if (cleanPayload.salaryType === "Range") {
+        cleanPayload.salary = Number(cleanPayload.salaryMin) || 0;
+      } else {
+        cleanPayload.salary = 0;
+        cleanPayload.salaryMin = 0;
+        cleanPayload.salaryMax = 0;
+      }
       const res = editData?._id
-        ? await updateJob(editData._id, payload)
-        : await createJob(payload);
+        ? await updateJob(editData._id, cleanPayload)
+        : await createJob(cleanPayload);
       if (res?.status || res?.success) {
         toast.success(`Job ${editData?._id ? 'updated' : 'created'} successfully`);
         navigate(-1);

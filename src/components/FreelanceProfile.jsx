@@ -79,16 +79,31 @@ const FreelanceProfile = ({ module = 'admin' }) => {
 
   const statusLabel = freelance?.isActive ? 'Active' : 'Inactive';
   const statusIsActive = freelance?.isActive;
-  const projectNeeds = Array.isArray(freelance?.projectNeeds) ? freelance.projectNeeds : [];
-  const eligibility = Array.isArray(freelance?.eligibility) ? freelance.eligibility : [];
-  const security = Array.isArray(freelance?.security) ? freelance.security : [];
-  const referenceWebsite = Array.isArray(freelance?.referenceWebsite) ? freelance.referenceWebsite : [];
-  const skillSet = Array.isArray(freelance?.skill_set) ? freelance.skill_set : [];
-  const rules = Array.isArray(freelance?.rules) ? freelance.rules : [];
-  const paymentStructure = Array.isArray(freelance?.payment_structure) ? freelance.payment_structure : [];
-  const supportingFiles = Array.isArray(freelance?.supporting_files) ? freelance.supporting_files : [];
-  const eligibilityCriteria = Array.isArray(freelance?.eligibility_criteria) ? freelance.eligibility_criteria : [];
-  const fallbackList = ['-'];
+  const cleanList = (val) => {
+    if (!Array.isArray(val)) return [];
+    return val
+      .map((item) => (typeof item === 'string' ? item.trim() : item))
+      .filter((item) => Boolean(item) && item !== '-');
+  };
+
+  const projectNeeds = cleanList(freelance?.projectNeeds);
+  const eligibility = cleanList(freelance?.eligibility);
+  const security = cleanList(freelance?.security);
+  const referenceWebsite = cleanList(freelance?.referenceWebsite);
+  const skillSet = cleanList(freelance?.skill_set);
+  const rules = cleanList(freelance?.rules);
+  const paymentStructure = cleanList(freelance?.payment_structure);
+  const milestones = Array.isArray(freelance?.milestones) ? freelance.milestones.filter(m => m && (m.milestoneName || m.amount)) : [];
+  const supportingFiles = cleanList(freelance?.supporting_files);
+  const eligibilityCriteria = cleanList(freelance?.eligibility_criteria);
+  const learning = String(freelance?.learning || '').trim();
+  const description = String(freelance?.description || '').trim();
+  const budget = String(freelance?.budget || (freelance?.salary ? `Rs ${freelance.salary}` : '')).trim();
+  const budgetType = String(freelance?.budgetType || '').trim();
+  const paymentMethod = String(freelance?.paymentMethod || '').trim();
+  const paymentStructureText = String(freelance?.paymentStructure || '').trim();
+  const duration = String(freelance?.duration || '').trim();
+  const certificateAvailability = String(freelance?.certificateAvailability || '').trim();
 
   const appliedListColumns = [
     { title: '#', dataIndex: 'sNo', key: 'sNo' },
@@ -186,24 +201,23 @@ const FreelanceProfile = ({ module = 'admin' }) => {
               <p className="font-jakarta font-semibold text-[16px] text-secondary">{freelance.companyName || '-'}</p>
               <p className="font-jakarta font-medium text-[14px] text-[#344054]">{freelance.mode || '-'}</p>
               <p className="font-jakarta font-medium text-[14px] text-[#344054]">
-                {freelance.totalOpenings ?? 0} Openings
+                {freelance.budget ? freelance.budget : `Rs ${freelance.salary ?? 0}`} {freelance.budgetType ? `(${freelance.budgetType})` : ''}
               </p>
-              <p className="font-jakarta font-medium text-[14px] text-[#344054]">Rs {freelance.salary ?? 0}</p>
             </div>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 w-full xl:w-auto">
-            <div className="rounded-[18px] bg-[linear-gradient(119.97deg,_#171717_0%,_#171717_100%)] text-white p-4 md:p-5 min-h-[100px] md:min-h-[130px] flex flex-col justify-center sm:min-w-[150px]">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 w-full xl:w-auto">
+            {/* <div className="rounded-[18px] bg-[linear-gradient(119.97deg,_#171717_0%,_#171717_100%)] text-white p-4 md:p-5 min-h-[100px] md:min-h-[130px] flex flex-col justify-center sm:min-w-[150px]">
               <p className="uppercase tracking-[1px] text-[10px] md:text-[11px] font-bold mb-3">Total Openings</p>
               <p className="text-[28px] md:text-[40px] leading-none font-bold">{freelance.totalOpenings ?? 0}</p>
-            </div>
+            </div> */}
 
-            <div className="rounded-[18px] bg-white border border-gray-200 text-[#0C5F94] p-4 md:p-5 min-h-[100px] md:min-h-[130px] flex flex-col justify-center sm:min-w-[150px]">
-              <p className="uppercase tracking-[1px] text-[10px] md:text-[11px] font-bold mb-3 text-[#7D89A0]">Job Start Date</p>
+            <div className="rounded-[18px] bg-white border border-gray-200 text-[#171717] p-4 md:p-5 min-h-[100px] md:min-h-[130px] flex flex-col justify-center sm:min-w-[150px]">
+              <p className="uppercase tracking-[1px] text-[10px] md:text-[11px] font-bold mb-3 text-[#7D89A0]">Project Start Date</p>
               <p className="text-[18px] md:text-[26px] leading-none font-bold">{formatDate(freelance.jobStartDate)}</p>
             </div>
 
-            <div className="rounded-[18px] bg-white border border-gray-200 text-[#0C5F94] p-4 md:p-5 min-h-[100px] md:min-h-[130px] flex flex-col justify-center sm:min-w-[150px]">
+            <div className="rounded-[18px] bg-white border border-gray-200 text-[#171717] p-4 md:p-5 min-h-[100px] md:min-h-[130px] flex flex-col justify-center sm:min-w-[150px]">
               <p className="uppercase tracking-[1px] text-[10px] md:text-[11px] font-bold mb-3 text-[#7D89A0]">Application Deadline</p>
               <p className="text-[18px] md:text-[26px] leading-none font-bold">{formatDate(freelance.applicationDeadline)}</p>
             </div>
@@ -222,8 +236,7 @@ const FreelanceProfile = ({ module = 'admin' }) => {
               Overview
             </button>
 
-            {(freelance?.status === "approved") &&
-
+            {user?.role === "admin" && freelance?.status === "approved" && (
               <button
                 onClick={() => setActiveTab('applied')}
                 className={`px-5 py-2.5 rounded-full text-[15px] font-medium transition-colors ${activeTab === 'applied'
@@ -233,7 +246,7 @@ const FreelanceProfile = ({ module = 'admin' }) => {
               >
                 Applied List
               </button>
-            }
+            )}
           </div>
 
           <div className="flex flex-wrap items-center gap-3">
@@ -274,28 +287,7 @@ const FreelanceProfile = ({ module = 'admin' }) => {
             </div>
           )
         }
-        {activeTab === 'overview' ? (
-          <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-4">
-            <ListCard title="Project Needs" items={projectNeeds.length ? projectNeeds : fallbackList} />
-            <ListCard title="Eligibility" items={eligibility.length ? eligibility : fallbackList} />
-            <ListCard title="Security" items={security.length ? security : fallbackList} />
-
-            <ListCard title="Reference Website" items={referenceWebsite.length ? referenceWebsite : fallbackList} />
-            <ListCard title="Required Skill Set" items={skillSet.length ? skillSet : fallbackList} />
-
-            <TextCard title="Learning" text={freelance.learning || '-'} />
-            <TextCard title="Description" text={freelance.description || '-'} />
-            <ListCard title="Eligibility Criteria" items={eligibilityCriteria.length ? eligibilityCriteria : fallbackList} />
-            <ListCard title="Rules" items={rules.length ? rules : fallbackList} />
-            <ListCard title="Payment Structure" items={paymentStructure.length ? paymentStructure : fallbackList} />
-            <ListCard title="Supporting Files" items={supportingFiles.length ? supportingFiles : fallbackList} />
-
-            <div className="xl:col-span-2">
-              <TextCard title="Duration" text={freelance.duration || '-'} />
-            </div>
-            <TextCard title="Certificate Availability" text={freelance.certificateAvailability || '-'} />
-          </div>
-        ) : (
+        {activeTab === 'applied' && user?.role === "admin" && freelance?.status === "approved" ? (
           <AppliedListSection
             data={applications.list.map((app) => ({
               ...app,
@@ -303,6 +295,79 @@ const FreelanceProfile = ({ module = 'admin' }) => {
             }))}
             heading={appliedListColumns}
           />
+        ) : (
+          <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-4">
+            {projectNeeds.length > 0 && (
+              <ListCard title="Project Needs" items={projectNeeds} />
+            )}
+            {eligibility.length > 0 && (
+              <ListCard title="Eligibility" items={eligibility} />
+            )}
+            {security.length > 0 && (
+              <ListCard title="Security" items={security} />
+            )}
+            {referenceWebsite.length > 0 && (
+              <ListCard title="Reference Website" items={referenceWebsite} />
+            )}
+            {skillSet.length > 0 && (
+              <ListCard title="Required Skill Set" items={skillSet} />
+            )}
+            {learning.length > 0 && (
+              <TextCard title="Learning" text={learning} />
+            )}
+            {description.length > 0 && (
+              <TextCard title="Description" text={description} />
+            )}
+            {eligibilityCriteria.length > 0 && (
+              <ListCard title="Eligibility Criteria" items={eligibilityCriteria} />
+            )}
+            {budget.length > 0 && (
+              <TextCard title="Budget / Budget Range" text={budget} />
+            )}
+            {budgetType.length > 0 && (
+              <TextCard title="Budget Type" text={budgetType} />
+            )}
+            {paymentMethod.length > 0 && (
+              <TextCard title="Payment Method" text={paymentMethod} />
+            )}
+            {paymentStructureText.length > 0 && (
+              <TextCard title="Payment Structure" text={paymentStructureText} />
+            )}
+            {duration.length > 0 && (
+              <TextCard title="Duration" text={duration} />
+            )}
+            {certificateAvailability.length > 0 && (
+              <TextCard title="Certificate Availability" text={certificateAvailability} />
+            )}
+
+            {milestones.length > 0 && (
+              <div className="lg:col-span-2 xl:col-span-3 bg-white rounded-[22px] border border-gray-200 shadow-sm p-5 md:p-6">
+                <h3 className="text-[16px] md:text-[18px] font-bold text-primary mb-3">Milestone Details</h3>
+                <div className="overflow-x-auto">
+                  <table className="w-full text-left text-sm text-secondary">
+                    <thead className="bg-gray-50 text-[14px] font-semibold text-primary uppercase">
+                      <tr>
+                        <th className="px-4 py-2">#</th>
+                        <th className="px-4 py-2">Milestone Name</th>
+                        <th className="px-4 py-2">Amount</th>
+                        <th className="px-4 py-2">Due Date</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-gray-100">
+                      {milestones.map((m, idx) => (
+                        <tr key={idx}>
+                          <td className="px-4 py-2 font-medium">{idx + 1}</td>
+                          <td className="px-4 py-2 font-medium">{m.milestoneName || '-'}</td>
+                          <td className="px-4 py-2 font-medium">{m.amount ? `Rs ${m.amount}` : '-'}</td>
+                          <td className="px-4 py-2 font-medium">{formatDate(m.dueDate)}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            )}
+          </div>
         )}
       </section>
     </div>

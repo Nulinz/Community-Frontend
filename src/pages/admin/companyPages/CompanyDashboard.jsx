@@ -48,9 +48,10 @@ const CompanyDashboard = () => {
   // ── Metric card config (maps to API stats keys) ───────────────────────────
   const metricCards = [
 
-    { key: 'totalFollowers', title: 'Total followers', highlighted: true },
+    { key: 'activeJobs', title: 'Active Jobs', highlighted: true },
     { key: 'activeInternships', title: 'Active Internship' },
     { key: 'activeFreelances', title: 'Active Projects' },
+    { key: 'totalFollowers', title: 'Total followers' },
   ];
 
   // ── Table columns ─────────────────────────────────────────────────────────
@@ -117,7 +118,7 @@ const CompanyDashboard = () => {
   return (
     <div className="space-y-5">
       {/* ── Metric Cards ── */}
-      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
         {metricCards.map((card) => {
           const isHighlighted = card.highlighted;
           const data = stats?.[card.key];

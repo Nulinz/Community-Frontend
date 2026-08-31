@@ -340,6 +340,21 @@ const ConferenceProfile = () => {
                                     <DataItem label="Reg End Date" value={conference.registrationEndDate ? new Date(conference.registrationEndDate).toLocaleDateString() : 'N/A'} />
                                     <DataItem label="Total Seats" value={conference.totalSeats} />
                                     <DataItem label="Event Mode" value={conference.mode} />
+                                    {conference.onlinePlatformLink && (
+                                        <DataItem
+                                            label="Platform / Meeting Link"
+                                            value={
+                                                <a
+                                                    href={conference.onlinePlatformLink.startsWith('http') ? conference.onlinePlatformLink : `https://${conference.onlinePlatformLink}`}
+                                                    target="_blank"
+                                                    rel="noopener noreferrer"
+                                                    className="text-blue-600 hover:underline break-all"
+                                                >
+                                                    {conference.onlinePlatformLink}
+                                                </a>
+                                            }
+                                        />
+                                    )}
                                 </div>
                             </InfoCard>
 
@@ -351,14 +366,16 @@ const ConferenceProfile = () => {
                                 </div>
                             </InfoCard>
 
-                            <InfoCard title="Prize Details">
-                                <div className="grid grid-cols-2 xl:grid-cols-4 gap-6">
-                                    <DataItem label="1st Prize" value={conference.firstPrize} />
-                                    <DataItem label="2nd Prize" value={conference.secondPrize} />
-                                    <DataItem label="3rd Prize" value={conference.thirdPrize} />
-                                    <DataItem label="Participation" value={conference.participationPrize} />
-                                </div>
-                            </InfoCard>
+                            {(conference.prizesAvailable === "Yes" || conference.firstPrize || conference.secondPrize || conference.thirdPrize || conference.participationPrize) && (
+                                <InfoCard title="Prize Details">
+                                    <div className="grid grid-cols-2 xl:grid-cols-4 gap-6">
+                                        <DataItem label="1st Prize" value={conference.firstPrize || '-'} />
+                                        <DataItem label="2nd Prize" value={conference.secondPrize || '-'} />
+                                        <DataItem label="3rd Prize" value={conference.thirdPrize || '-'} />
+                                        <DataItem label="Participation" value={conference.participationPrize || '-'} />
+                                    </div>
+                                </InfoCard>
+                            )}
 
                             <InfoCard title="Opportunities">
                                 <div className="grid grid-cols-2 xl:grid-cols-3 gap-6">
@@ -445,7 +462,7 @@ const ConferenceProfile = () => {
                                 <ul className="list-disc pl-5 space-y-1 text-secondary text-sm">
                                     {conference?.allowedDepartments?.length > 0 ? (
                                         conference?.allowedDepartments.map((dept, index) => (
-                                            <li key={index}>{dept}</li>
+                                            <li key={index}>{dept === "All" ? "All Departments" : dept}</li>
                                         ))
                                     ) : (
                                         <li>Open to all departments</li>
@@ -478,6 +495,37 @@ const ConferenceProfile = () => {
                                 )}
                             </div>
                         </div>
+
+                        {conference.certificateAvailability === "Yes" && (
+                            <InfoCard title="Certificate Information" className="max-w-2xl">
+                                <div className="space-y-4">
+                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                        {conference.signatoryName && (
+                                            <DataItem label="Authorized Signatory" value={conference.signatoryName} />
+                                        )}
+                                        {conference.signatoryDesignation && (
+                                            <DataItem label="Designation" value={conference.signatoryDesignation} />
+                                        )}
+                                    </div>
+                                    {conference.certificateContentBody && (
+                                        <div>
+                                            <p className="text-xs text-gray-500 font-semibold mb-1">Certificate Body</p>
+                                            <p className="text-secondary text-sm leading-relaxed whitespace-pre-wrap">{conference.certificateContentBody}</p>
+                                        </div>
+                                    )}
+                                    {conference.signatureUrl && (
+                                        <div>
+                                            <p className="text-xs text-gray-500 font-semibold mb-1">Authorized Signature</p>
+                                            <img
+                                                src={`${BASE_URL}/${conference.signatureUrl}`}
+                                                alt="Authorized Signature"
+                                                className="h-16 object-contain rounded border border-gray-200 p-1 bg-white"
+                                            />
+                                        </div>
+                                    )}
+                                </div>
+                            </InfoCard>
+                        )}
                     </div>
                 ) : activeTab === 'applied' ? (
                     <AppliedListSection

@@ -56,7 +56,12 @@ setTitle("Company")
             render: (_text, _record, index) => index + 1
         },
         { title: 'Company Name', dataIndex: 'companyName', key: 'companyName' },
-        { title: 'Industry', dataIndex: 'companyType', key: 'companyType' },
+        { 
+            title: 'Industry', 
+            dataIndex: 'industry', 
+            key: 'industry',
+            render: (_text, record) => record.industry || record.companyType || 'N/A'
+        },
         { title: 'Contact Person', dataIndex: 'contactPersonName', key: 'contactPersonName' },
         { title: 'Mobile Number', dataIndex: 'phone', key: 'phone' },
         { title: 'Mail Id', dataIndex: 'email', key: 'email' },

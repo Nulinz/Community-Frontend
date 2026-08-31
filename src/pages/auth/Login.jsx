@@ -109,7 +109,7 @@ const Login = () => {
         <div className="text-center">
           {/* Static Logo from public folder */}
           <img
-            src={assets.gradEnvyLogo}
+            src={assets.landing_logo}
             alt="Nulinz Logo"
             className="mx-auto h-14 w-auto mb-1"
           />
@@ -151,7 +151,7 @@ const Login = () => {
           </button>
           <div className="flex items-center justify-between text-[13px]">
             <span className="text-gray-400">Did you forget your password?</span>
-            <Link to="/auth/forgot-password" className="font-semibold text-white underline underline-offset-4 hover:text-[#171717] transition-colors">
+            <Link to="/auth/forgot-password" className="font-semibold text-white underline underline-offset-4 hover:text-white transition-colors">
               Forgot Password
             </Link>
           </div>
