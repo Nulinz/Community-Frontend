@@ -9,7 +9,7 @@ const Sidebar = () => {
     { name: 'Internship', path: '/company/jobs/internship', icon: assets.internship },
     { name: 'Projects', path: '/company/jobs/freelance', icon: assets.project },
     { name: 'Events', path: '/company/events', icon: assets.event_i },
-    { name: 'Competition', path: '/company/competition', icon: assets.competition_i },
+    { name: 'Competition / Hackathon', path: '/company/competition', icon: assets.competition_i },
     { name: 'Partners', path: '/company/partners', icon: assets.partners },
     { name: 'Profile', path: '/company/company', icon: assets.comp_i },
   ];

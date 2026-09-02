@@ -218,19 +218,65 @@ const FormInput = ({ field, value, onChange, inputName }) => {
   }
 
   if (field.type === "file") {
+    const isLogo = field.name === "collegeLogo" || field.name === "companyLogo" || field.name?.toLowerCase().includes("logo") || field.label?.toLowerCase().includes("logo");
+
+    const handleFileChange = (e) => {
+      const selectedFile = e.target.files?.[0] || null;
+      if (!selectedFile) {
+        onChange(null);
+        return;
+      }
+
+      const hasDimensions = !!field.dimensions || isLogo;
+      if (hasDimensions && selectedFile.type?.startsWith("image/")) {
+        const targetW = field.dimensions?.width || (isLogo ? 512 : undefined);
+        const targetH = field.dimensions?.height || (isLogo ? 512 : undefined);
+
+        if (targetW && targetH) {
+          const img = new window.Image();
+          const objectUrl = URL.createObjectURL(selectedFile);
+
+          img.onload = () => {
+            URL.revokeObjectURL(objectUrl);
+            if (img.width !== targetW || img.height !== targetH) {
+              toast.error(
+                `${field.label || "Image"} dimensions must be exactly ${targetW} × ${targetH} px. (Selected: ${img.width} × ${img.height} px)`
+              );
+              e.target.value = "";
+              return;
+            }
+            onChange(selectedFile);
+          };
+
+          img.onerror = () => {
+            URL.revokeObjectURL(objectUrl);
+            toast.error("Invalid image file");
+            e.target.value = "";
+          };
+
+          img.src = objectUrl;
+          return;
+        }
+      }
+      onChange(selectedFile);
+    };
+
     return (
-      <div className="flex border border-gray-200 rounded overflow-hidden h-10 w-full font-source transition focus-within:border-blue-400">
-        <label className="bg-[#171717] text-xs md:text-sm text-white px-3 md:px-5 py-2.5 font-medium cursor-pointer whitespace-nowrap hover:bg-[#171717] transition">
-          Choose File
-          <input
-            type="file"
-            className="hidden"
-            onChange={(e) => onChange(e.target.files?.[0] || null)}
-          />
-        </label>
-        <span className="flex-1 min-w-0 bg-[#fcfcfc] px-3 md:px-4 py-2.5 text-gray-400 text-xs truncate">
-          {value?.name || "No File Chosen"}
-        </span>
+      <div className="space-y-1.5">
+        <div className="flex border border-gray-200 rounded overflow-hidden h-10 w-full font-source transition focus-within:border-blue-400">
+          <label className="bg-[#171717] text-xs md:text-sm text-white px-3 md:px-5 py-2.5 font-medium cursor-pointer whitespace-nowrap hover:bg-[#171717] transition">
+            Choose File
+            <input
+              type="file"
+              className="hidden"
+              onChange={handleFileChange}
+              accept="image/*"
+            />
+          </label>
+          <span className="flex-1 min-w-0 bg-[#fcfcfc] px-3 md:px-4 py-2.5 text-gray-400 text-xs truncate">
+            {value?.name || "No File Chosen"}
+          </span>
+        </div>
       </div>
     );
   }

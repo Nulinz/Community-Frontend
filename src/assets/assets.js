@@ -23,6 +23,11 @@ import gradEnvyGlobe from "./images/gradEnvyGlobe.png"
 import landingLaptop from "./images/landingLaptop.png"
 import project from "./images/project.png"
 import internship from "./images/internship.png"
+import GlobeGif from "./images/GlobeGif.gif"
+import phone_mockup from "./images/phone_mockup.png"
+import appstore_img from "./images/appstore_img.png"
+import playstore_img from "./images/playstore_img.png"
+import loader from "./images/loader.gif"
 
 export const assets ={
    loginBg,
@@ -30,6 +35,11 @@ export const assets ={
    landing_bg,
    landing_logo,
    gradEnvyGlobe,
+   GlobeGif,
+   phone_mockup,
+   appstore_img,
+   playstore_img,
+   loader,
    landingLaptop,
    logo,
    doc,

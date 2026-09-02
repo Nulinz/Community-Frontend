@@ -9,9 +9,15 @@ import { useTitle } from "../context/AdminTitle";
 /**
  * Freelance / Project form configuration.
  * Defines the static metadata and dynamic specification sections for creating
- * or editing freelance project listings. Location is conditionally rendered
- * only when the mode is 'Offline' or 'Hybrid'.
+ * or editing freelance project listings.
  */
+const PROJECT_TYPE_MIN_BUDGET = {
+  "Small Project": 1000,
+  "Standard Project": 2500,
+  "Medium Project": 5000,
+  "Advanced Project": 10000,
+};
+
 const freelanceFormConfig = [
   {
     title: "Basic Details",
@@ -23,19 +29,31 @@ const freelanceFormConfig = [
         label: "Organizer",
         type: "text",
       },
-      { name: "mode", label: "Mode", type: "select", options: ["Online", "Offline", "Hybrid"] },
       {
-        name: "location",
-        label: "Location",
-        type: "text",
-        // Location is only required/displayed for physical attendance modes (Offline & Hybrid)
-        showWhen: { field: "mode", value: ["Offline", "Hybrid"] },
+        name: "projectType",
+        label: "Project Type",
+        type: "select",
+        options: [
+          "Small Project",
+          "Standard Project",
+          "Medium Project",
+          "Advanced Project",
+        ],
       },
       {
         name: "duration",
         label: "Duration",
         type: "select",
-        options: ["No Fixed Duration", "1 Month", "3 Months", "6 Months"],
+        options: [
+          "No Fixed Duration",
+          "1 Day",
+          "3 Days",
+          "5 Days",
+          "1 Week",
+          "2 Weeks",
+          "3 Weeks",
+          "4 Weeks",
+        ],
       },
       { name: "applicationDeadline", label: "Application Deadline", type: "date" },
       { name: "jobStartDate", label: "Expected Timeline", type: "date" },
@@ -48,9 +66,9 @@ const freelanceFormConfig = [
     fields: [
       {
         name: "budget",
-        label: "Budget / Budget Range",
-        type: "text",
-        required: false,
+        label: "Budget (INR)",
+        type: "number",
+        placeholder: "Enter budget in INR",
       },
     ],
   },
@@ -72,15 +90,7 @@ const freelanceFormConfig = [
     initialRows: 1,
     fields: [{ name: "eligibilityCriteria", label: "Eligibility ", type: "text", colSpan: "md:col-span-11" }],
   },
-  {
-    title: "Eligibility Criteria",
-    type: "dynamic",
-    key: "eligibility_criteria",
-    payloadKey: "eligibility_criteria",
-    dynamicStyle: "grid-6",
-    initialRows: 1,
-    fields: [{ name: "eligibilityCriteria", label: "Eligibility Criteria", type: "text", colSpan: "md:col-span-11" }],
-  },
+
   {
     title: "Security",
     type: "dynamic",
@@ -88,7 +98,7 @@ const freelanceFormConfig = [
     payloadKey: "security",
     dynamicStyle: "grid-6",
     initialRows: 1,
-    fields: [{ name: "securityInfo", label: "Security", type: "text", colSpan: "md:col-span-11" }],
+    fields: [{ name: "securityInfo", label: "Security", type: "text", colSpan: "md:col-span-11", required:false }],
   }, {
     title: "Required Skills", 
     type: "dynamic",
@@ -104,7 +114,7 @@ const freelanceFormConfig = [
     payloadKey: "referenceWebsite",
     dynamicStyle: "grid-6",
     initialRows: 1,
-    fields: [{ name: "reference", label: "Reference Links", type: "text", colSpan: "md:col-span-11" }],
+    fields: [{ name: "reference", label: "Reference Links", type: "text", colSpan: "md:col-span-11", required: false }],
   },
   {
     title: "Project Attachments",
@@ -113,7 +123,7 @@ const freelanceFormConfig = [
     payloadKey: "supporting_files",
     dynamicStyle: "grid-6",
     initialRows: 1,
-    fields: [{ name: "supporting_files", label: "Project Attachments", type: "text", colSpan: "md:col-span-11" }],
+    fields: [{ name: "supporting_files", label: "Project Attachments", type: "text", colSpan: "md:col-span-11", required: false }],
   },
   // {
   //   title: "Payment / Milestones",
@@ -156,8 +166,20 @@ const FreelanceForm = () => {
     setTitle("Projects Form")
   },[])
 
-const handleSubmit = async (_, payload) => {
+const handleSubmit = async (_, payload, staticData) => {
   try {
+    const selectedType = payload?.projectType || staticData?.projectType;
+    const rawBudget = payload?.budget || staticData?.budget || "";
+    const numericBudget = parseFloat(String(rawBudget).replace(/[^0-9.]/g, ""));
+
+    const minAllowed = PROJECT_TYPE_MIN_BUDGET[selectedType];
+    if (minAllowed && (!numericBudget || numericBudget < minAllowed)) {
+      toast.error(
+        `Minimum budget for ${selectedType} must be at least ₹${minAllowed.toLocaleString("en-IN")}`
+      );
+      return;
+    }
+
     const res = await createFreelance(payload); // JSON payload
     
     if (res?.success) {

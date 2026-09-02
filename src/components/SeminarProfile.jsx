@@ -36,7 +36,7 @@ const SeminarProfile = () => {
     const BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
     const { setTitle } = useTitle()
     useEffect(() => {
-        setTitle("Seminar Profile")
+        setTitle("Seminar / Workshop Profile")
     }, [])
     useEffect(() => {
         fetchSeminarData();

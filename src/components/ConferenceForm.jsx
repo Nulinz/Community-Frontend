@@ -30,7 +30,21 @@ const conferenceFormConfig = [
       { name: "registrationStartDate", label: "Registration Start Date", type: "date" },
       { name: "registrationEndDate", label: "Registration End Date", type: "date" },
       { name: "totalSeats", label: "Total Seats", type: "number", required: false },
-      { name: "coverImage", label: "Cover Image", type: "file" },
+      {
+        name: "externalRegistrationLink",
+        label: "External Registration Form (If any)",
+        type: "text",
+        placeholder: "e.g. https://forms.gle/... or external registration URL",
+        required: false,
+        hint: "If you have an external registration form (e.g. Google Form or external portal), you can provide the link here for participants to register.",
+      },
+      {
+        name: "coverImage",
+        label: "Cover Image",
+        type: "file",
+        dimensions: { width: 350, height: 290 },
+        hint: "Required dimensions: 350 × 290 px (W × H).",
+      },
     ],
   },
   // {

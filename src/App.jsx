@@ -62,159 +62,161 @@ import InfluencerSubscriptionList from "./pages/influencer/InfluencerSubscriptio
 import InfluencerProfileTab from "./pages/influencer/InfluencerProfileTab";
 
 const App = () => {
-  const {fetchCurrentUser,isHomeLoading} =useMain()
+  const { fetchCurrentUser, isHomeLoading } = useMain();
 
   useEffect(() => {
     fetchCurrentUser();
   }, []);
-  if(isHomeLoading){
-    return <div className="flex flex-col items-center justify-center min-h-screen gap-3">
-            <Loader2 className="w-8 h-8 text-blue-600 animate-spin" />
-            <p className="text-secondary font-medium mt-2">Loading </p>
-          </div>
+
+  if (isHomeLoading) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-screen gap-3">
+        <Loader2 className="w-8 h-8 text-blue-600 animate-spin" />
+        <p className="text-secondary font-medium mt-2">Loading </p>
+      </div>
+    );
   }
+
   return (
+    <BrowserRouter>
+      <ScrollToTop />
+      <ScrollHandler />
+      <Routes>
 
-      <BrowserRouter>
-      <ScrollToTop/>
-
-        <ScrollHandler />
-        <Routes>
-
-          {/* Root & Landing routes */}
-          <Route path="/" element={<LandingPage />} />
-          <Route path="/landing" element={<LandingPage />} />
-          <Route path="/privacy-policy" element={<PrivacyPolicy />} />
-          <Route path="/privacy" element={<PrivacyPolicy />} />
-          <Route path="/job" element={<MobileJobRedirect />} />
-          <Route path="/event" element={<MobileEventRedirect />} />
-          {/* Auth routes */}
-          <Route element={<MainLayout />}>
-            <Route path="/auth" element={<HomeLayout />}>
-              <Route index element={<Navigate to="login" replace />} />
-              <Route path="login" element={<Login />} />
-              <Route path="forgot-password" element={<ForgotPassword />} />
-              <Route path="change-password" element={<ChangePassword />} />
-            </Route>
+        {/* Root & Landing routes */}
+        <Route path="/" element={<LandingPage />} />
+        <Route path="/landing" element={<LandingPage />} />
+        <Route path="/privacy-policy" element={<PrivacyPolicy />} />
+        <Route path="/privacy" element={<PrivacyPolicy />} />
+        <Route path="/job" element={<MobileJobRedirect />} />
+        <Route path="/event" element={<MobileEventRedirect />} />
+        {/* Auth routes */}
+        <Route element={<MainLayout />}>
+          <Route path="/auth" element={<HomeLayout />}>
+            <Route index element={<Navigate to="login" replace />} />
+            <Route path="login" element={<Login />} />
+            <Route path="forgot-password" element={<ForgotPassword />} />
+            <Route path="change-password" element={<ChangePassword />} />
           </Route>
-            <Route element={<MainLayout />}>
-            <Route path="/admin" element={
-    
-                <AdminLayout />
-          
-              }>
-              <Route index element={<Navigate to="dashboard" replace />} />
-              <Route path="dashboard" element={<Dashboard />} />
-              <Route path="company" element={<Company module="admin" />} />
-              <Route path="company-form" element={<CompanyForm module="admin" />} />
-              <Route path="company-profile/:id" element={<CompanyProfile module="admin" />} />
-              <Route path="conference-profile/:id" element={<ConferenceProfile />} />
-              <Route path="college" element={<College />} />
-              <Route path="college-form" element={<CollegeForm />} />
-              <Route path="profile" element={<CompanyProfile module="company" />} />
-              <Route path="college-profile/:id" element={<CollegeProfile />} />
-              <Route path="competition" element={<Competition />} />
-              <Route path="competition-form" element={<CompetitionForm />} />
-              <Route path="competition-profile/:id" element={<CompetitionProfile />} />
-              <Route path="conference" element={<Conference />} />
-              <Route path="conference-form" element={<ConferenceForm />} />
-              <Route path="events" element={<Event />} />
-              <Route path="events-form" element={<EventForm />} />
-              <Route path="event-profile/:id" element={<EventProfile />} />
-              <Route path="seminar" element={<Seminar />} />
-              <Route path="seminar-form" element={<SeminarForm />} />
-              <Route path="seminar-profile/:id" element={<SeminarProfile />} />
-              <Route path="add-form" element={<ProfileForm />} />
-              <Route path="jobs/add-form" element={<ProfileForm />} />
-              <Route path="jobs/internship" element={<Internship />} />
-              <Route path="jobs/internship-form" element={<InternshipForm />} />
-              <Route path="jobs/internship-profile/:id" element={<JobsProfile jobType="Internship" />} />
-              <Route path="jobs/job" element={<Job />} />
-              <Route path="jobs/job-form" element={<JobForm />} />
-              <Route path="jobs/job-profile/:id" element={<JobsProfile jobType="Job" />} />
-              <Route path="jobs/freelance" element={<Freelance />} />
-              <Route path="jobs/freelance-form" element={<FreelanceForm />} />
-              <Route path="jobs/freelance-profile/:id" element={<FreelanceProfile />} />
-              <Route path="users" element={<Users />} />
-              <Route path="subscriptions" element={<Subscriptions />} />
-              <Route path="influencer" element={<InfluencerList />} />
-              <Route path="influencer-form" element={<InfluencerForm />} />
-              <Route path="influencer-profile/:id" element={<InfluencerProfile />} />
-            </Route>
-      
-</Route>
-          {/* College routes */}
-          <Route  element={<MainLayout />}>
-            <Route path="/college" element={<CollegeLayout />}>
-              <Route index element={<Navigate to="dashboard" replace />} />
-              <Route path="dashboard" element={<CollegeDashboard />} />
-              <Route path="college" element={<College />} />
-              <Route path="college-form" element={<CollegeForm />} />
-              <Route path="conference" element={<Conference />} />
-              <Route path="conference-profile/:id" element={<ConferenceProfile />} />
-              <Route path="conference-form" element={<ConferenceForm />} />
-              <Route path="competition" element={<Competition />} />
-              <Route path="competition-form" element={<CompetitionForm />} />
-              <Route path="competition-profile/:id" element={<CompetitionProfile />} />
-              <Route path="events" element={<Event />} />
-              <Route path="events-form" element={<EventForm />} />
-              <Route path="event-profile/:id" element={<EventProfile />} />
-              <Route path="seminar" element={<Seminar />} />
-              <Route path="seminar-form" element={<SeminarForm />} />
-              <Route path="seminar-profile/:id" element={<SeminarProfile />} />
-              <Route path="profile" element={<CollegeProfile />} />
-            </Route>
+        </Route>
+        <Route element={<MainLayout />}>
+          <Route path="/admin" element={
+
+            <AdminLayout />
+
+          }>
+            <Route index element={<Navigate to="dashboard" replace />} />
+            <Route path="dashboard" element={<Dashboard />} />
+            <Route path="company" element={<Company module="admin" />} />
+            <Route path="company-form" element={<CompanyForm module="admin" />} />
+            <Route path="company-profile/:id" element={<CompanyProfile module="admin" />} />
+            <Route path="conference-profile/:id" element={<ConferenceProfile />} />
+            <Route path="college" element={<College />} />
+            <Route path="college-form" element={<CollegeForm />} />
+            <Route path="profile" element={<CompanyProfile module="company" />} />
+            <Route path="college-profile/:id" element={<CollegeProfile />} />
+            <Route path="competition" element={<Competition />} />
+            <Route path="competition-form" element={<CompetitionForm />} />
+            <Route path="competition-profile/:id" element={<CompetitionProfile />} />
+            <Route path="conference" element={<Conference />} />
+            <Route path="conference-form" element={<ConferenceForm />} />
+            <Route path="events" element={<Event />} />
+            <Route path="events-form" element={<EventForm />} />
+            <Route path="event-profile/:id" element={<EventProfile />} />
+            <Route path="seminar" element={<Seminar />} />
+            <Route path="seminar-form" element={<SeminarForm />} />
+            <Route path="seminar-profile/:id" element={<SeminarProfile />} />
+            <Route path="add-form" element={<ProfileForm />} />
+            <Route path="jobs/add-form" element={<ProfileForm />} />
+            <Route path="jobs/internship" element={<Internship />} />
+            <Route path="jobs/internship-form" element={<InternshipForm />} />
+            <Route path="jobs/internship-profile/:id" element={<JobsProfile jobType="Internship" />} />
+            <Route path="jobs/job" element={<Job />} />
+            <Route path="jobs/job-form" element={<JobForm />} />
+            <Route path="jobs/job-profile/:id" element={<JobsProfile jobType="Job" />} />
+            <Route path="jobs/freelance" element={<Freelance />} />
+            <Route path="jobs/freelance-form" element={<FreelanceForm />} />
+            <Route path="jobs/freelance-profile/:id" element={<FreelanceProfile />} />
+            <Route path="users" element={<Users />} />
+            <Route path="subscriptions" element={<Subscriptions />} />
+            <Route path="influencer" element={<InfluencerList />} />
+            <Route path="influencer-form" element={<InfluencerForm />} />
+            <Route path="influencer-profile/:id" element={<InfluencerProfile />} />
           </Route>
 
-          {/* Company routes */}
-          <Route path="/company" element={<MainLayout />}>
-            <Route element={<CompanyLayout />}>
-              <Route index element={<Navigate to="dashboard" replace />} />
-              <Route path="dashboard" element={<CompanyDashboard/>} />
-              <Route path="company" element={<CompanyProfile module="company" />} />
-              <Route path="company-form" element={<CompanyForm module="company" />} />
-              <Route path="company-profile/:id" element={<CompanyProfile module="company" />} />
-              <Route path="company-profile" element={<CompanyProfile module="company" />} />
-              <Route path="partners" element={<Partners />} />
-              <Route path="events" element={<Event />} />
-              <Route path="events-form" element={<EventForm />} />
-              <Route path="event-profile/:id" element={<EventProfile />} />
-              <Route path="competition" element={<Competition />} />
-              <Route path="competition-form" element={<CompetitionForm />} />
-              <Route path="competition-profile/:id" element={<CompetitionProfile />} />
-              <Route path="jobs/internship" element={<Internship module="company" />} />
-              <Route path="jobs/internship-form" element={<InternshipForm />} />
-              <Route path="jobs/internship-profile/:id" element={<JobsProfile module="company" jobType="Internship" />} />
-              <Route path="jobs/job" element={<Job module="company" />} />
-              <Route path="jobs/job-form" element={<JobForm />} />
-              <Route path="jobs/job-profile/:id" element={<JobsProfile module="company" jobType="Job" />} />
-              <Route path="jobs/freelance" element={<Freelance module="company" />} />
-              <Route path="jobs/freelance-form" element={<FreelanceForm />} />
-              <Route path="jobs/freelance-profile/:id" element={<FreelanceProfile module="company" />} />
-            </Route>
+        </Route>
+        {/* College routes */}
+        <Route element={<MainLayout />}>
+          <Route path="/college" element={<CollegeLayout />}>
+            <Route index element={<Navigate to="dashboard" replace />} />
+            <Route path="dashboard" element={<CollegeDashboard />} />
+            <Route path="college" element={<College />} />
+            <Route path="college-form" element={<CollegeForm />} />
+            <Route path="conference" element={<Conference />} />
+            <Route path="conference-profile/:id" element={<ConferenceProfile />} />
+            <Route path="conference-form" element={<ConferenceForm />} />
+            <Route path="competition" element={<Competition />} />
+            <Route path="competition-form" element={<CompetitionForm />} />
+            <Route path="competition-profile/:id" element={<CompetitionProfile />} />
+            <Route path="events" element={<Event />} />
+            <Route path="events-form" element={<EventForm />} />
+            <Route path="event-profile/:id" element={<EventProfile />} />
+            <Route path="seminar" element={<Seminar />} />
+            <Route path="seminar-form" element={<SeminarForm />} />
+            <Route path="seminar-profile/:id" element={<SeminarProfile />} />
+            <Route path="profile" element={<CollegeProfile />} />
           </Route>
+        </Route>
 
-          {/* Influencer routes */}
-          <Route element={<MainLayout />}>
-            <Route path="/influencer" element={<InfluencerLayout />}>
-              <Route index element={<Navigate to="dashboard" replace />} />
-              <Route path="dashboard" element={<InfluencerDashboard />} />
-              <Route path="referral-list" element={<InfluencerReferralList />} />
-              <Route path="subscription-list" element={<InfluencerSubscriptionList />} />
-              <Route path="profile" element={<InfluencerProfileTab />} />
-              <Route path="influencer-form" element={<InfluencerForm />} />
-            </Route>
+        {/* Company routes */}
+        <Route path="/company" element={<MainLayout />}>
+          <Route element={<CompanyLayout />}>
+            <Route index element={<Navigate to="dashboard" replace />} />
+            <Route path="dashboard" element={<CompanyDashboard />} />
+            <Route path="company" element={<CompanyProfile module="company" />} />
+            <Route path="company-form" element={<CompanyForm module="company" />} />
+            <Route path="company-profile/:id" element={<CompanyProfile module="company" />} />
+            <Route path="company-profile" element={<CompanyProfile module="company" />} />
+            <Route path="partners" element={<Partners />} />
+            <Route path="events" element={<Event />} />
+            <Route path="events-form" element={<EventForm />} />
+            <Route path="event-profile/:id" element={<EventProfile />} />
+            <Route path="competition" element={<Competition />} />
+            <Route path="competition-form" element={<CompetitionForm />} />
+            <Route path="competition-profile/:id" element={<CompetitionProfile />} />
+            <Route path="jobs/internship" element={<Internship module="company" />} />
+            <Route path="jobs/internship-form" element={<InternshipForm />} />
+            <Route path="jobs/internship-profile/:id" element={<JobsProfile module="company" jobType="Internship" />} />
+            <Route path="jobs/job" element={<Job module="company" />} />
+            <Route path="jobs/job-form" element={<JobForm />} />
+            <Route path="jobs/job-profile/:id" element={<JobsProfile module="company" jobType="Job" />} />
+            <Route path="jobs/freelance" element={<Freelance module="company" />} />
+            <Route path="jobs/freelance-form" element={<FreelanceForm />} />
+            <Route path="jobs/freelance-profile/:id" element={<FreelanceProfile module="company" />} />
           </Route>
+        </Route>
 
-        </Routes>
+        {/* Influencer routes */}
+        <Route element={<MainLayout />}>
+          <Route path="/influencer" element={<InfluencerLayout />}>
+            <Route index element={<Navigate to="dashboard" replace />} />
+            <Route path="dashboard" element={<InfluencerDashboard />} />
+            <Route path="referral-list" element={<InfluencerReferralList />} />
+            <Route path="subscription-list" element={<InfluencerSubscriptionList />} />
+            <Route path="profile" element={<InfluencerProfileTab />} />
+            <Route path="influencer-form" element={<InfluencerForm />} />
+          </Route>
+        </Route>
 
-        <ToastContainer
-          position="top-center"
-          autoClose={2500}
-          hideProgressBar={true}
-          newestOnTop
-        />
-      </BrowserRouter>
+      </Routes>
+
+      <ToastContainer
+        position="top-center"
+        autoClose={2500}
+        hideProgressBar={true}
+        newestOnTop
+      />
+    </BrowserRouter>
 
   );
 };

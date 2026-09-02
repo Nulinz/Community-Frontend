@@ -39,7 +39,7 @@ const CompetitionProfile = () => {
     const STATIC_URL = BASE_URL.replace("/api", "");
     const { setTitle } = useTitle()
     useEffect(() => {
-        setTitle("Competition Profile")
+        setTitle("Competition / Hackathon Profile")
     }, [])
     useEffect(() => {
         fetchCompetitionData();

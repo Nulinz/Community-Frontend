@@ -4,6 +4,7 @@ import { ChevronRight, KeyRound, LogOut, X, Menu, ChevronDown, EyeOff, Eye } fro
 import { changePassword } from "../services/auth/authServices";
 import { toast } from "react-toastify";
 import { useTitle } from "../context/AdminTitle";
+import PageLoader from "../common/PageLoader";
 
 /**
  * ProfileMenu Component
@@ -264,15 +265,23 @@ const AppLayout = ({
   const pageTitle = title || location.pathname.split("/").filter(Boolean).pop() || "Dashboard";
 
   const mainRef = useRef(null);
+  const [isOutletLoading, setIsOutletLoading] = useState(false);
 
-  // Close sidebar and reset scroll on navigation change
+  // Close sidebar, trigger content outlet loader, and reset scroll on navigation change
   useEffect(() => {
     setSidebarOpen(false);
+    setIsOutletLoading(true);
     window.scrollTo(0, 0);
     if (mainRef.current) {
       mainRef.current.scrollTop = 0;
       mainRef.current.scrollTo({ top: 0, left: 0, behavior: "instant" });
     }
+
+    const timer = setTimeout(() => {
+      setIsOutletLoading(false);
+    }, 260);
+
+    return () => clearTimeout(timer);
   }, [location.pathname, location.search]);
 
   // Prevent background body scrolling when mobile drawer is open
@@ -499,8 +508,12 @@ const AppLayout = ({
         </header>
 
         {/* ── Page Content ── */}
-        <main ref={mainRef} className="scroll-reset-target flex-1 overflow-y-auto overflow-x-hidden p-3 sm:p-4 md:p-6 bg-[#F9FAFB]">
-          <Outlet />
+        <main ref={mainRef} className="scroll-reset-target flex-1 overflow-y-auto overflow-x-hidden p-3 sm:p-4 md:p-6 bg-[#F9FAFB] flex flex-col">
+          {isOutletLoading ? (
+            <PageLoader fullScreen={false} />
+          ) : (
+            <Outlet />
+          )}
         </main>
 
       </div>

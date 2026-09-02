@@ -2138,28 +2138,88 @@ const FormInput = ({ field, value, onChange, inputName }) => {
 
   if (field.type === "file") {
     const isExisting = typeof value === "string" && value !== "";
-    const isNew = value instanceof File;
-    const isImage = field.name === "coverImage" || field.name === "collegeLogo" || field.name === "companyLogo" || field.name === "signatureUrl";
+    const isNew = Boolean(value && (value instanceof File || (typeof value === "object" && value.name)));
+    const isLogo = field.name === "collegeLogo" || field.name === "companyLogo" || field.name?.toLowerCase().includes("logo") || field.label?.toLowerCase().includes("logo");
+    const isImage = field.name === "coverImage" || isLogo || field.name === "signatureUrl" || !!field.dimensions;
+
+    const handleFileChange = (e) => {
+      const selectedFile = e.target.files?.[0] || null;
+      if (!selectedFile) {
+        onChange(null);
+        return;
+      }
+
+      const hasDimensions = !!field.dimensions || isLogo;
+      if (hasDimensions && selectedFile.type?.startsWith("image/")) {
+        const targetW = field.dimensions?.width || (isLogo ? 512 : undefined);
+        const targetH = field.dimensions?.height || (isLogo ? 512 : undefined);
+
+        if (targetW && targetH) {
+          const img = new window.Image();
+          const objectUrl = URL.createObjectURL(selectedFile);
+
+          img.onload = () => {
+            URL.revokeObjectURL(objectUrl);
+            if (img.width !== targetW || img.height !== targetH) {
+              toast.error(
+                `${field.label || "Image"} dimensions must be exactly ${targetW} × ${targetH} px. (Selected: ${img.width} × ${img.height} px)`
+              );
+              e.target.value = "";
+              return;
+            }
+            onChange(selectedFile);
+          };
+
+          img.onerror = () => {
+            URL.revokeObjectURL(objectUrl);
+            toast.error("Invalid image file format");
+            e.target.value = "";
+          };
+
+          img.src = objectUrl;
+          return;
+        }
+      }
+      onChange(selectedFile);
+    };
+
+    let displayFileName = "No File Chosen";
+    if (isNew && value?.name) {
+      displayFileName = value.name;
+    } else if (isExisting) {
+      displayFileName = value.split("/").pop();
+    }
+
+    let previewSrc = null;
+    if (isNew && value instanceof Blob) {
+      try {
+        previewSrc = URL.createObjectURL(value);
+      } catch (e) {
+        previewSrc = null;
+      }
+    } else if (isExisting) {
+      previewSrc = setFileName(value);
+    }
 
     return (
-      <div className="space-y-2">
+      <div className="space-y-1.5">
         <div className="flex relative border border-gray-200 rounded overflow-hidden h-10 w-full font-source transition focus-within:border-blue-400">
           <label className="bg-[#171717] text-xs md:text-sm text-white px-3 md:px-5 py-2.5 font-medium cursor-pointer whitespace-nowrap hover:bg-[#171717] transition">
             Choose File
             <input
               type="file"
               className="hidden"
-              onChange={(e) => onChange(e.target.files?.[0] || null)}
+              onChange={handleFileChange}
               accept={isImage ? "image/*" : undefined}
             />
           </label>
           <span className="flex-1 min-w-0 bg-[#fcfcfc] px-3 md:px-4 py-2.5 text-gray-400 text-xs truncate">
-            {isNew ? value.name : isExisting ? value.split("/").pop() : "No File Chosen"}
+            {displayFileName}
           </span>
-          {(isExisting || isNew) && (
+          {previewSrc && (
             <div className="w-8 absolute right-0 top-1 h-8 rounded-lg border border-gray-200 bg-gray-50 overflow-hidden shadow-sm">
               <img
-                src={isNew ? URL.createObjectURL(value) : setFileName(value)}
+                src={previewSrc}
                 alt="Preview"
                 className="w-full h-full object-cover"
               />
@@ -2613,6 +2673,11 @@ const FormLayout = ({
                             onChange={(value) => updateStaticField(field.name, value)}
                             inputName={field.name}
                           />
+                          {(field.hint || field.description || field.helpText) && (
+                            <p className="text-[12px] text-gray-500 mt-1 font-normal leading-relaxed">
+                              {field.hint || field.description || field.helpText}
+                            </p>
+                          )}
                           {field.conditionalInput && staticData[field.name] === (field.conditionalInput.showWhen || "Yes") && (
                             <div className="mt-3">
                               <Label

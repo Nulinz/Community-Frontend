@@ -50,7 +50,13 @@ const collegeFormConfig = [
         placeholder: "https://www.examplecollege.edu.in",
         required: true,
       },
-      { name: "collegeLogo", label: "College Logo", type: "file" },
+      {
+        name: "collegeLogo",
+        label: "College Logo",
+        type: "file",
+        dimensions: { width: 512, height: 512 },
+        hint: "Required dimensions: 512 × 512 px (Square format).",
+      },
     ],
   },
   {
@@ -73,7 +79,7 @@ const collegeFormConfig = [
     key: "departments",
     payloadKey: "departments",
     dynamicStyle: "grid-6",
-    initialRows: 3,
+    initialRows: 1,
     fields: [{ name: "department", label: "Department", type: "text", colSpan: "md:col-span-11" }],
   },
   {

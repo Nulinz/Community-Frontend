@@ -44,21 +44,21 @@ import React from "react";
 import AppLayout from "../AppLayout";
 import { assets } from "../../assets/assets";
 import { useMain } from "../../context/MainContext";
- 
- 
+
+
 // ── 1. AdminLayout.jsx ────────────────────────────────────────
 const CollegeLayout = () => {
   const { user, logout, changePassword } = useMain();
 
   const menuItems = [
     { name: "Dashboard", path: "/college/dashboard", icon: assets.dash_i },
-    { name: 'Competition', path: '/college/competition', icon: assets.competition_i },
+    { name: 'Competition / Hackathon', path: '/college/competition', icon: assets.competition_i },
     { name: 'Conference', path: '/college/conference', icon: assets.conf_i },
     { name: 'Events', path: '/college/events', icon: assets.event_i },
-    { name: 'Seminar', path: '/college/seminar', icon: assets.sem_i },
+    { name: 'Seminar / Workshop', path: '/college/seminar', icon: assets.sem_i },
     { name: 'Profile', path: '/college/profile', icon: assets.book_i },
   ];
- 
+
   return (
     <AppLayout
       menuItems={menuItems}
@@ -69,7 +69,7 @@ const CollegeLayout = () => {
     />
   );
 };
- 
-export default  CollegeLayout
 
- 
+export default CollegeLayout
+
+

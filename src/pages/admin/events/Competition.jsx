@@ -25,7 +25,7 @@ const Competition = () => {
   const navigate = useNavigate();
   const { setTitle } = useTitle();
 
-  useEffect(() => { setTitle("Competitions"); }, []);
+  useEffect(() => { setTitle("Competitions / Hackathon"); }, []);
 
   useEffect(() => {
     fetchCompetitions(activeTab);

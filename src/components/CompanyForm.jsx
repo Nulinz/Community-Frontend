@@ -71,7 +71,13 @@ const companyFormConfig = [
         placeholder: "https://linkedin.com/company/companyname",
         required: false,
       },
-      { name: "companyLogo", label: "Company Logo", type: "file" },
+      {
+        name: "companyLogo",
+        label: "Company Logo",
+        type: "file",
+        dimensions: { width: 512, height: 512 },
+        hint: "Required dimensions: 512 × 512 px (Square format).",
+      },
       { name: "coverImage", label: "Cover Image", type: "file", required: false },
     ],
   },
@@ -89,7 +95,7 @@ const companyFormConfig = [
     key: "what_we_do",
     payloadKey: "whatWeDo",
     dynamicStyle: "grid-6",
-    initialRows: 3,
+    initialRows: 1,
     fields: [{ name: "whatWeDo", label: "Core Area", type: "text", colSpan: "md:col-span-11" }],
   },
   {
@@ -99,7 +105,7 @@ const companyFormConfig = [
     key: "technologies",
     payloadKey: "technologies",
     dynamicStyle: "grid-6",
-    initialRows: 3,
+    initialRows: 1,
     fields: [{ name: "technology", label: "Technology", type: "text", colSpan: "md:col-span-11" }],
   },
   {

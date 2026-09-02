@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { assets } from "../assets/assets";
 import {
@@ -20,11 +20,40 @@ import {
   Trophy,
   Users,
   GraduationCap,
+  Menu,
+  X,
 } from "lucide-react";
 
 const LandingPage = () => {
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState("");
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+
+  // Intersection observer state for smooth left-to-right entrance transition on Career OS cards
+  const careerOsRef = useRef(null);
+  const [isCareerOsVisible, setIsCareerOsVisible] = useState(false);
+
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          setIsCareerOsVisible(true);
+        }
+      },
+      { threshold: 0.15 }
+    );
+
+    const currentEl = careerOsRef.current;
+    if (currentEl) {
+      observer.observe(currentEl);
+    }
+
+    return () => {
+      if (currentEl) {
+        observer.unobserve(currentEl);
+      }
+    };
+  }, []);
 
   const scrollToSection = (id) => {
     setActiveTab(id);
@@ -36,114 +65,142 @@ const LandingPage = () => {
 
   return (
     <div className="min-h-screen bg-[#03040A] text-white font-outfit selection:bg-blue-600 selection:text-white">
-      {/* ─────────────────────────────────────────────────────────────
-          1. HERO SECTION WITH BACKDROP IMAGE (landing_bg.png)
-      ───────────────────────────────────────────────────────────── */}
-      <div
-        className="relative w-full min-h-[640px] sm:min-h-[750px] lg:min-h-[880px] bg-[#03040A] bg-cover bg-center bg-no-repeat flex flex-col justify-between overflow-hidden"
-        style={{ backgroundImage: `url(${assets.landing_bg})` }}
-      >
-        {/* Adaptive dark gradient overlay: guarantees high contrast & clear text visibility on mobile (<md) while preserving desktop aesthetics */}
-        <div className="absolute inset-0 bg-gradient-to-b from-[#03040A]/95 via-[#03040A]/85 to-[#03040A] md:bg-gradient-to-r md:from-[#03040A] md:via-[#03040A]/80 md:to-transparent pointer-events-none z-10" />
+      {/* ── Top Navigation Bar (Solid black header) ── */}
+      <header className="sticky top-0 z-50 w-full bg-[#000000] px-6 md:px-12 lg:px-20 py-4 flex items-center justify-between transition-all">
+        {/* Brand Logo */}
+        <div
+          onClick={() => navigate("/")}
+          className="flex items-center gap-3 cursor-pointer group"
+        >
+          <img
+            src={assets.landing_logo}
+            alt="GradEnvy Logo"
+            className="h-8 md:h-9 w-auto object-contain transition-transform group-hover:scale-105"
+            onError={(e) => {
+              e.target.onerror = null;
+              e.target.src = assets.gradEnvyLogo;
+            }}
+          />
+        </div>
 
-        {/* ── Top Navigation Bar ── */}
-        <header className="sticky top-0 z-50 w-full bg-[#080808]/70 backdrop-blur-md px-6 md:px-[80px] py-4 flex items-center justify-between transition-all border-b border-white/5">
-          {/* Brand Logo */}
-          <div
-            onClick={() => navigate("/")}
-            className="flex items-center gap-3 cursor-pointer group"
-          >
-            <img
-              src={assets.landing_logo}
-              alt="GradEnvy Logo"
-              className="h-10 w-auto object-contain transition-transform group-hover:scale-105"
-              onError={(e) => {
-                e.target.onerror = null;
-                e.target.src = assets.gradEnvyLogo;
-              }}
-            />
-          </div>
+        {/* Center Navigation Links (4 items matching screenshot) */}
+        <nav className="hidden md:flex items-center gap-9 text-[15px] font-medium">
+          {[
+            { id: "why-choose", label: "Why Choose" },
+            { id: "ai-station", label: "AI station" },
+            { id: "career-os", label: "Career OS" },
+            { id: "how-it-works", label: "How it Works" },
+          ].map((item) => {
+            const isActive = activeTab === item.id || (!activeTab && item.id === "why-choose");
+            return (
+              <button
+                key={item.id}
+                onClick={() => scrollToSection(item.id)}
+                className={`relative py-1 transition-all ${
+                  isActive
+                    ? "text-white font-semibold after:absolute after:bottom-0 after:left-0 after:w-full after:h-[2px] after:bg-white"
+                    : "text-gray-300 hover:text-white"
+                }`}
+              >
+                {item.label}
+              </button>
+            );
+          })}
+        </nav>
 
-          {/* Center Navigation Links */}
-          <nav className="hidden md:flex items-center gap-8 text-[15px] font-medium">
-            {[
-              { id: "why-choose", label: "Why Choose" },
-              { id: "ai-station", label: "AI station" },
-              { id: "ecosystem", label: "Our Ecosystem" },
-              { id: "career-os", label: "Career OS" },
-              { id: "how-it-works", label: "How it Works" },
-            ].map((item) => {
-              const isActive = activeTab === item.id;
-              return (
-                <button
-                  key={item.id}
-                  onClick={() => scrollToSection(item.id)}
-                  className={`relative py-1 transition-colors ${
-                    isActive
-                      ? "text-white font-semibold border-b-2 border-cyan-400 pb-1"
-                      : "text-gray-300 hover:text-white"
-                  }`}
-                >
-                  {item.label}
-                </button>
-              );
-            })}
-          </nav>
-
-          {/* Right Sign in Pill Button */}
+        {/* Right Action: White pill button & Mobile Toggle */}
+        <div className="flex items-center gap-3">
           <button
             onClick={() => navigate("/auth/login")}
-            className="px-7 py-2.5 rounded-full text-sm font-semibold bg-[#2D66FA] hover:bg-blue-600 text-white shadow-lg shadow-blue-600/30 transition-all hover:scale-105 active:scale-95"
+            className="px-6 py-2 rounded-full text-sm font-semibold bg-white text-black hover:bg-gray-100 shadow-md transition-all hover:scale-105 active:scale-95"
           >
             Sign in
           </button>
-        </header>
+          <button
+            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+            className="md:hidden text-gray-300 hover:text-white p-1 rounded-lg focus:outline-none"
+            aria-label="Toggle menu"
+          >
+            {mobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
+          </button>
+        </div>
+      </header>
 
-        {/* ── Hero Content (Aligned with px-6 md:px-[80px]) ── */}
-        <main className="relative z-20 w-full px-6 md:px-[80px] pt-12 pb-24 my-auto">
-          <div className="max-w-xl space-y-6">
-            {/* Pill Badge */}
-            <div className="inline-block max-w-full">
-              <span className="inline-flex items-center whitespace-nowrap px-2.5 sm:px-3.5 py-1 sm:py-1.5 rounded-full text-[9px] sm:text-[10px] md:text-[11px] font-outfit font-bold tracking-wider sm:tracking-widest uppercase bg-[#0C1527]/90 text-[#00A3FF] border border-[#00A3FF]/30 backdrop-blur-md">
-                CONNECTED PROFESSIONAL ECOSYSTEM
-              </span>
-            </div>
+      {/* Mobile Navigation Drawer */}
+      {mobileMenuOpen && (
+        <div className="md:hidden sticky top-[64px] z-40 bg-[#080808]/95 backdrop-blur-xl border-b border-white/10 px-6 py-4 space-y-3 animate-in slide-in-from-top-4 duration-200">
+          {[
+            { id: "why-choose", label: "Why Choose" },
+            { id: "ai-station", label: "AI station" },
+            { id: "career-os", label: "Career OS" },
+            { id: "how-it-works", label: "How it Works" },
+          ].map((item) => (
+            <button
+              key={item.id}
+              onClick={() => {
+                scrollToSection(item.id);
+                setMobileMenuOpen(false);
+              }}
+              className="block w-full text-left py-2 text-base font-medium text-gray-200 hover:text-white border-b border-white/5"
+            >
+              {item.label}
+            </button>
+          ))}
+        </div>
+      )}
 
-            {/* Main Headline */}
-            <h1 className="text-4xl sm:text-5xl lg:text-[56px] font-bold text-white tracking-tight leading-[1.1] drop-shadow-md">
-              Every skill. <br />
-              Every connection. <br />
-              Every opportunity.
-            </h1>
+      {/* ─────────────────────────────────────────────────────────────
+          1. HERO SECTION WITH EXACT IMAGE PLACEMENT & TEXT OVERLAY
+      ───────────────────────────────────────────────────────────── */}
+      <div className="relative w-full overflow-hidden bg-[#0A0C10]">
+        {/* Full Hero Image Rendered in natural aspect ratio */}
+        <div className="w-full relative">
+          <img
+            src={assets.landing_bg}
+            alt="Grad Envy Connected Ecosystem"
+            className="w-full h-auto min-h-[560px] sm:min-h-[660px] md:min-h-0 object-cover md:object-contain object-bottom block select-none pointer-events-none"
+          />
 
-            {/* Paragraph Sub-text */}
-            <p className="text-gray-200 text-sm sm:text-base leading-relaxed font-normal opacity-95 max-w-lg drop-shadow-sm">
-              Grad Envy brings freelancing, recruitment, events, and career intelligence into one platform — so every project you ship and every person you meet builds toward a single, growing professional identity.
-            </p>
+          {/* Soft Mobile Overlay for text readability on small viewports */}
+          <div className="absolute inset-0 bg-gradient-to-b from-[#03040A]/90 via-[#03040A]/50 to-transparent md:hidden pointer-events-none z-10" />
 
-            {/* CTA Action Buttons */}
-            <div className="flex flex-wrap items-center gap-4 pt-3">
-              <button
-                onClick={() => navigate("/auth/login")}
-                className="px-7 py-3 rounded-full text-sm font-semibold bg-[#0095FF] hover:bg-[#0084E2] text-white shadow-xl shadow-[#0095FF]/30 transition-all hover:scale-105 active:scale-95 flex items-center gap-2"
-              >
-                Get Started <ArrowUpRight size={18} />
-              </button>
-              <button
-                onClick={() => navigate("/auth/login")}
-                className="px-8 py-3 rounded-full text-sm font-semibold bg-white text-[#0B0C10] hover:bg-gray-100 shadow-lg transition-all hover:scale-105 active:scale-95"
-              >
-                Sign in
-              </button>
+          {/* ── Exact Text Placement Overlay matching screenshot ── */}
+          <div className="absolute inset-0 z-20 w-full px-6 sm:px-10 md:px-12 lg:px-20 pt-6 sm:pt-8 md:pt-10 lg:pt-14 xl:pt-16 pointer-events-auto">
+            <div className="max-w-4xl space-y-3 sm:space-y-4 md:space-y-5 text-left">
+              {/* Main Headline */}
+              <h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-[46px] xl:text-[52px] font-extrabold text-white tracking-tight leading-[1.12] drop-shadow-sm">
+                Every skill. Every connection. Every opportunity.
+              </h1>
+
+              {/* Paragraph Sub-text */}
+              <p className="text-gray-200 md:text-[#2D313A] text-xs sm:text-sm md:text-[15px] lg:text-[16px] leading-[1.55] font-medium max-w-xl lg:max-w-2xl">
+                Grad Envy brings freelancing, recruitment, events, and career intelligence into one platform — so every project you ship and every person you meet builds toward a single, growing professional identity.
+              </p>
+
+              {/* CTA Action Buttons */}
+              <div className="flex flex-wrap items-center gap-3 pt-1.5 sm:pt-2 md:pt-3">
+                <button
+                  onClick={() => navigate("/auth/login")}
+                  className="px-5 sm:px-6 md:px-7 py-2.5 sm:py-3 rounded-full text-xs sm:text-sm font-semibold bg-[#2A2B31] hover:bg-[#1E1F24] text-white shadow-lg transition-all hover:scale-105 active:scale-95 flex items-center gap-2"
+                >
+                  Get Started <ArrowUpRight size={16} strokeWidth={2.5} />
+                </button>
+                <button
+                  onClick={() => navigate("/auth/login")}
+                  className="px-6 sm:px-7 md:px-8 py-2.5 sm:py-3 rounded-full text-xs sm:text-sm font-semibold bg-white text-[#111111] hover:bg-gray-100 shadow-lg border border-gray-200/40 transition-all hover:scale-105 active:scale-95"
+                >
+                  Signin
+                </button>
+              </div>
             </div>
           </div>
-        </main>
+        </div>
       </div>
 
       {/* ─────────────────────────────────────────────────────────────
           2. SECTION: WHY GRAD ENVY (Exact Screenshot UI Design)
       ───────────────────────────────────────────────────────────── */}
-      <section id="why-choose" className="relative z-10 py-24 bg-[#03040C] px-6 md:px-[80px] border-t border-white/10">
+      <section id="why-choose" className="relative z-10 py-24 bg-[#010102] px-6 md:px-[80px] border-t border-white/10">
         <div className="w-full max-w-[1340px] mx-auto space-y-16">
           {/* Top 2-Column Section */}
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
@@ -152,7 +209,7 @@ const LandingPage = () => {
               {/* Star Badge */}
               <div className="inline-block">
                 <span className="px-4 py-1.5 rounded-full text-[11px] font-outfit font-bold tracking-widest uppercase bg-transparent text-[#00A3FF] border border-[#00A3FF]/40 inline-flex items-center gap-1.5">
-                  <Star size={12} className="fill-[#00A3FF] stroke-none" /> WHY GRAD ENVY
+                  <Star size={12} className="fill-[#00A3FF] stroke-none" /> WHY GRADENVY
                 </span>
               </div>
 
@@ -177,10 +234,10 @@ const LandingPage = () => {
               </p>
             </div>
 
-            {/* Right Column GradEnvy Globe Asset Image */}
+            {/* Right Column GradEnvy Globe Animated GIF */}
             <div className="lg:col-span-6 flex justify-center items-center">
               <img
-                src={assets.gradEnvyGlobe}
+                src={assets.GlobeGif}
                 alt="GradEnvy Globe Network"
                 className="w-full max-w-[460px] h-auto object-contain transition-transform hover:scale-105 duration-500"
               />
@@ -188,7 +245,7 @@ const LandingPage = () => {
           </div>
 
           {/* Bottom Glassmorphic Category Navigation Bar */}
-          <div className="w-full bg-[#080b1e]/80 border border-white/10 rounded-2xl p-4 sm:p-5 backdrop-blur-xl flex flex-wrap items-center justify-between gap-4 sm:gap-6 shadow-2xl">
+          <div className="w-full bg-[#FFFFFF08]/5 border border-white/10 rounded-2xl p-4 sm:p-5 backdrop-blur-xl flex flex-wrap items-center justify-between gap-4 sm:gap-6 shadow-2xl">
             {[
               { icon: Award, label: "Competitions", color: "bg-blue-600" },
               { icon: Cpu, label: "University Engagement", color: "bg-teal-500" },
@@ -211,10 +268,86 @@ const LandingPage = () => {
       </section>
 
       {/* ─────────────────────────────────────────────────────────────
+          APP DOWNLOAD SECTION: OUR APPLICATION IS NOW AVAILABLE (#111827)
+          Flush at screen left 0 with 480px height
+      ───────────────────────────────────────────────────────────── */}
+      <section className="relative z-10 bg-[#111827] border-t border-b border-white/10 overflow-hidden w-full min-h-[480px] lg:h-[480px] flex items-center">
+        <div className="w-full h-full grid grid-cols-1 lg:grid-cols-12 items-center">
+          {/* Left Column: Full-Height Image positioned flush at screen Left 0 */}
+          <div className="lg:col-span-6 xl:col-span-6 h-full flex items-center justify-start overflow-hidden">
+            <img
+              src={assets.phone_mockup}
+              alt="GradEnvy Mobile App Mockup"
+              className="w-full h-full object-cover object-left select-none"
+            />
+          </div>
+
+          {/* Right Column: Title, Subtitle and Store Download Buttons */}
+          <div className="lg:col-span-6 xl:col-span-6 py-10 lg:py-0 px-6 sm:px-10 md:px-12 lg:px-16 xl:px-24 space-y-6 text-left flex flex-col justify-center max-w-2xl">
+            <h2 className="text-2xl sm:text-[32px] md:text-[36px] lg:text-[38px] xl:text-[42px] font-semibold text-white tracking-tight whitespace-nowrap">
+              Our Application is Now Available
+            </h2>
+
+            <p className="font-outfit font-normal text-[16px] leading-[150%] tracking-normal text-gray-300 max-w-lg">
+              Download Grad Envy on the Play Store and App Store to keep your professional identity with you wherever you go.
+            </p>
+
+            {/* Store Badges Row */}
+            <div className="flex flex-wrap items-center gap-4 pt-1">
+              {/* Google Play Store Badge */}
+              <a
+                href="#"
+                onClick={(e) => e.preventDefault()}
+                className="bg-[#1E293B]/90 hover:bg-[#1E293B] border border-white/15 px-5 py-3 rounded-[12px] flex items-center gap-3.5 transition-all duration-300 hover:scale-105 shadow-xl group cursor-pointer"
+              >
+                <img
+                  src={assets.playstore_img}
+                  alt="Google Play"
+                  className="w-7 h-7 sm:w-8 sm:h-8 object-contain flex-shrink-0"
+                />
+                <div className="text-left leading-none">
+                  <span className="block text-[10px] text-gray-400 font-semibold tracking-wider uppercase mb-1">
+                    GET IT ON
+                  </span>
+                  <span className="block text-base sm:text-[17px] font-bold text-white">
+                    Google Play
+                  </span>
+                </div>
+              </a>
+
+              {/* Apple App Store Badge */}
+              <a
+                href="#"
+                onClick={(e) => e.preventDefault()}
+                className="bg-[#1E293B]/90 hover:bg-[#1E293B] border border-white/15 px-5 py-3 rounded-[12px] flex items-center gap-3.5 transition-all duration-300 hover:scale-105 shadow-xl group cursor-pointer"
+              >
+                <img
+                  src={assets.appstore_img}
+                  alt="App Store"
+                  className="w-7 h-7 sm:w-8 sm:h-8 object-contain flex-shrink-0"
+                />
+                <div className="text-left leading-none">
+                  <span className="block text-[10px] text-gray-400 font-semibold tracking-wider uppercase mb-1">
+                    DOWNLOAD ON THE
+                  </span>
+                  <span className="block text-base sm:text-[17px] font-bold text-white">
+                    App Store
+                  </span>
+                </div>
+              </a>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* ─────────────────────────────────────────────────────────────
           3. SECTION: OUR ECOSYSTEM (Three pillars. One profile.)
       ───────────────────────────────────────────────────────────── */}
-      <section id="ecosystem" className="relative z-10 py-24 bg-[#FAFAFD] text-slate-900 px-6 md:px-[80px]">
-        <div className="w-full max-w-[1340px] mx-auto space-y-12">
+      <section id="ecosystem" className="relative z-10 py-24 bg-[#FAFAFD] text-slate-900 px-6 md:px-[80px] overflow-hidden">
+        {/* Subtle 3-Color Ambient Background Mesh */}
+        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_18%_50%,rgba(124,58,237,0.16),transparent_50%),radial-gradient(ellipse_at_50%_55%,rgba(16,185,129,0.14),transparent_50%),radial-gradient(ellipse_at_82%_50%,rgba(245,158,11,0.16),transparent_50%)] pointer-events-none" />
+
+        <div className="relative z-10 w-full max-w-[1340px] mx-auto space-y-12">
           {/* Header */}
           <div className="text-left space-y-3 max-w-2xl">
             <span className="text-[#0095FF] text-[11px] font-outfit font-bold tracking-widest uppercase block">
@@ -231,8 +364,11 @@ const LandingPage = () => {
           {/* 3 Pillar Cards Grid */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8 items-stretch">
             {/* Card 1: Freelancing */}
-            <div className="bg-white rounded-2xl p-8 border border-slate-200/80 shadow-[0_4px_25px_rgba(0,0,0,0.04)] flex flex-col justify-between hover:shadow-xl transition-all duration-300">
-              <div className="space-y-4">
+            <div className="group relative overflow-hidden rounded-2xl p-8 bg-white/20 backdrop-blur-[48px] backdrop-saturate-150 border border-white/60 shadow-[0_8px_32px_0_rgba(31,38,135,0.05),inset_0_1px_1px_rgba(255,255,255,0.8)] flex flex-col justify-between hover:-translate-y-1.5 hover:bg-white/35 hover:border-white hover:shadow-[0_20px_40px_rgba(0,0,0,0.08),inset_0_1px_2px_rgba(255,255,255,0.9)] transition-all duration-300">
+              {/* Glass Specular Glare */}
+              <div className="pointer-events-none absolute inset-0 bg-gradient-to-b from-white/35 via-white/5 to-transparent rounded-2xl" />
+
+              <div className="relative z-10 space-y-4">
                 <div className="text-center">
                   <span className="text-[#7C3AED] font-bold text-sm sm:text-base">Freelancing</span>
                 </div>
@@ -264,12 +400,15 @@ const LandingPage = () => {
               </div>
 
               {/* Bottom Purple Line Accent */}
-              <div className="h-1 bg-[#7C3AED] rounded-full w-full mt-8" />
+              <div className="relative z-10 h-1 bg-[#7C3AED] rounded-full w-full mt-8" />
             </div>
 
             {/* Card 2: Companies */}
-            <div className="bg-white rounded-2xl p-8 border border-slate-200/80 shadow-[0_4px_25px_rgba(0,0,0,0.04)] flex flex-col justify-between hover:shadow-xl transition-all duration-300">
-              <div className="space-y-4">
+            <div className="group relative overflow-hidden rounded-2xl p-8 bg-white/20 backdrop-blur-[48px] backdrop-saturate-150 border border-white/60 shadow-[0_8px_32px_0_rgba(31,38,135,0.05),inset_0_1px_1px_rgba(255,255,255,0.8)] flex flex-col justify-between hover:-translate-y-1.5 hover:bg-white/35 hover:border-white hover:shadow-[0_20px_40px_rgba(0,0,0,0.08),inset_0_1px_2px_rgba(255,255,255,0.9)] transition-all duration-300">
+              {/* Glass Specular Glare */}
+              <div className="pointer-events-none absolute inset-0 bg-gradient-to-b from-white/35 via-white/5 to-transparent rounded-2xl" />
+
+              <div className="relative z-10 space-y-4">
                 <div className="text-center">
                   <span className="text-[#10B981] font-bold text-sm sm:text-base">Companies</span>
                 </div>
@@ -299,12 +438,15 @@ const LandingPage = () => {
               </div>
 
               {/* Bottom Green Line Accent */}
-              <div className="h-1 bg-[#10B981] rounded-full w-full mt-8" />
+              <div className="relative z-10 h-1 bg-[#10B981] rounded-full w-full mt-8" />
             </div>
 
             {/* Card 3: Events */}
-            <div className="bg-white rounded-2xl p-8 border border-slate-200/80 shadow-[0_4px_25px_rgba(0,0,0,0.04)] flex flex-col justify-between hover:shadow-xl transition-all duration-300">
-              <div className="space-y-4">
+            <div className="group relative overflow-hidden rounded-2xl p-8 bg-white/20 backdrop-blur-[48px] backdrop-saturate-150 border border-white/60 shadow-[0_8px_32px_0_rgba(31,38,135,0.05),inset_0_1px_1px_rgba(255,255,255,0.8)] flex flex-col justify-between hover:-translate-y-1.5 hover:bg-white/35 hover:border-white hover:shadow-[0_20px_40px_rgba(0,0,0,0.08),inset_0_1px_2px_rgba(255,255,255,0.9)] transition-all duration-300">
+              {/* Glass Specular Glare */}
+              <div className="pointer-events-none absolute inset-0 bg-gradient-to-b from-white/35 via-white/5 to-transparent rounded-2xl" />
+
+              <div className="relative z-10 space-y-4">
                 <div className="text-center">
                   <span className="text-[#F59E0B] font-bold text-sm sm:text-base">Events</span>
                 </div>
@@ -334,7 +476,7 @@ const LandingPage = () => {
               </div>
 
               {/* Bottom Orange Line Accent */}
-              <div className="h-1 bg-[#F59E0B] rounded-full w-full mt-8" />
+              <div className="relative z-10 h-1 bg-[#F59E0B] rounded-full w-full mt-8" />
             </div>
           </div>
         </div>
@@ -343,7 +485,11 @@ const LandingPage = () => {
       {/* ─────────────────────────────────────────────────────────────
           4. SECTION: CAREER TRAJECTORY (One project can change your whole trajectory.)
       ───────────────────────────────────────────────────────────── */}
-      <section id="career-os" className="relative z-10 w-full mx-auto min-h-[491px] opacity-100 pt-[50px] pb-[50px] px-6 md:px-[80px] bg-[#080c1d] border-t border-b border-white/10 flex flex-col justify-between">
+      <section
+        id="career-os"
+        ref={careerOsRef}
+        className="relative z-10 w-full mx-auto min-h-[491px] opacity-100 pt-[50px] pb-[50px] px-6 md:px-[80px] bg-[#080c1d] border-t border-b border-white/10 flex flex-col justify-between overflow-hidden"
+      >
         <div className="w-full space-y-10 flex flex-col justify-between h-full">
           {/* Header */}
           <div className="text-center space-y-4 max-w-2xl mx-auto">
@@ -356,7 +502,7 @@ const LandingPage = () => {
             </p>
           </div>
 
-          {/* 5 Step Process Cards Row */}
+          {/* 5 Step Process Cards Row (Left-to-Right Animated Transition) */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4 lg:gap-3 items-stretch relative">
             {[
               {
@@ -397,7 +543,14 @@ const LandingPage = () => {
             ].map((card, idx) => (
               <div
                 key={idx}
-                className="relative bg-[#0F172A] p-6 rounded-2xl border border-white/5 flex flex-col justify-between min-h-[190px] shadow-xl group hover:border-white/20 transition-all duration-300"
+                style={{
+                  transitionDelay: `${idx * 140}ms`,
+                }}
+                className={`relative bg-[#0F172A] p-6 rounded-2xl border border-white/5 flex flex-col justify-between min-h-[190px] shadow-xl group hover:border-white/20 transition-all duration-700 ease-out transform ${
+                  isCareerOsVisible
+                    ? "opacity-100 translate-x-0"
+                    : "opacity-0 -translate-x-12"
+                }`}
               >
                 <div>
                   {/* Top Step Number & Indicator Line */}
@@ -421,7 +574,16 @@ const LandingPage = () => {
 
                 {/* Connector Arrow for Cards 1 to 4 */}
                 {idx < 4 && (
-                  <div className="hidden lg:flex absolute -right-3.5 top-1/2 -translate-y-1/2 w-7 h-7 rounded-full bg-[#13192e] border border-white/10 items-center justify-center z-20 shadow-md">
+                  <div
+                    style={{
+                      transitionDelay: `${idx * 140 + 200}ms`,
+                    }}
+                    className={`hidden lg:flex absolute -right-3.5 top-1/2 -translate-y-1/2 w-7 h-7 rounded-full bg-[#13192e] border border-white/10 items-center justify-center z-20 shadow-md transition-all duration-500 transform ${
+                      isCareerOsVisible
+                        ? "opacity-100 scale-100"
+                        : "opacity-0 scale-50"
+                    }`}
+                  >
                     <ArrowRight size={14} className={card.textColor} />
                   </div>
                 )}
@@ -461,7 +623,7 @@ const LandingPage = () => {
                   Learn faster. Build smarter.
                 </h3>
                 <p className="text-slate-500 text-xs sm:text-sm leading-relaxed">
-                  AI Station is Grad Envy's dedicated artificial intelligence ecosystem, designed to help users discover, learn, and leverage the latest AI technologies throughout their professional journey. Whether you're writing content, designing presentations, generating images and videos, building software, conducting research, or automating workflows, AI Station provides curated resources that improve productivity, creativity, and learning.
+                  Discover, learn, and leverage curated AI tools, platforms, and prompt libraries across your professional journey. From software development to workflow automation, AI Station empowers you to work smarter.
                 </p>
                 <span className="text-[#2563EB] text-[11px] font-outfit font-bold tracking-widest uppercase block pt-2">
                   HIGHLIGHTS
@@ -469,15 +631,12 @@ const LandingPage = () => {
                 <div className="flex flex-wrap gap-2 pt-1">
                   {[
                     "AI Tool Directory",
-                    "AI Builder Platforms",
                     "AI Agent Platforms",
                     "Prompt Hub",
-                    "Prompt Engineering Resources",
                     "AI Learning Resources",
                     "AI News & Updates",
                     "AI Research Tools",
                     "AI Recommendations",
-                    "AI Collections",
                   ].map((tag, idx) => (
                     <span
                       key={idx}
@@ -492,7 +651,7 @@ const LandingPage = () => {
             </div>
 
             {/* Card 2: Prompt Hub */}
-            <div className="bg-white rounded-3xl p-8 sm:p-10 border border-slate-200/80 shadow-[0_4px_25px_rgba(0,0,0,0.03)] flex flex-col justify-between hover:shadow-xl transition-all duration-300">
+            {/* <div className="bg-white rounded-3xl p-8 sm:p-10 border border-slate-200/80 shadow-[0_4px_25px_rgba(0,0,0,0.03)] flex flex-col justify-between hover:shadow-xl transition-all duration-300">
               <div className="space-y-5">
                 <div className="w-10 h-10 rounded-full bg-[#2563EB] text-white flex items-center justify-center shadow-md">
                   <Terminal size={20} />
@@ -535,7 +694,7 @@ const LandingPage = () => {
                   ))}
                 </div>
               </div>
-            </div>
+            </div> */}
 
             {/* Card 3: Career OS */}
             <div className="bg-white rounded-3xl p-8 sm:p-10 border border-slate-200/80 shadow-[0_4px_25px_rgba(0,0,0,0.03)] flex flex-col justify-between hover:shadow-xl transition-all duration-300">
@@ -550,7 +709,7 @@ const LandingPage = () => {
                   Your career. Connected.
                 </h3>
                 <p className="text-slate-500 text-xs sm:text-sm leading-relaxed">
-                  Career OS is the intelligence layer of Grad Envy, bringing every achievement, project, certification, event, internship, competition, and freelance experience into one continuously evolving professional profile. It helps users track progress, measure growth, prepare for opportunities, and build a stronger professional identity throughout their career journey.
+                  Bring every project, certification, hackathon, and freelance milestone into a single, evolving professional profile. Career OS helps you track skill growth and unlock high-impact career opportunities.
                 </p>
                 <span className="text-[#2563EB] text-[11px] font-outfit font-bold tracking-widest uppercase block pt-2">
                   HIGHLIGHTS
@@ -558,13 +717,13 @@ const LandingPage = () => {
                 <div className="flex flex-wrap gap-2 pt-1">
                   {[
                     "Career Wallet",
-                    "Career Roadmap",
+                    // "Career Roadmap",
                     "Career Goals",
                     "Career Score",
-                    "Career Analytics",
+                    // "Career Analytics",
                     "Resume Builder",
                     "Interview Preparation",
-                    "Achievement Timeline",
+                    // "Achievement Timeline",
                     "Skills Dashboard",
                   ].map((tag, idx) => (
                     <span
@@ -579,48 +738,6 @@ const LandingPage = () => {
               </div>
             </div>
 
-            {/* Card 4: Envy League */}
-            <div className="bg-white rounded-3xl p-8 sm:p-10 border border-slate-200/80 shadow-[0_4px_25px_rgba(0,0,0,0.03)] flex flex-col justify-between hover:shadow-xl transition-all duration-300">
-              <div className="space-y-5">
-                <div className="w-10 h-10 rounded-full bg-[#2563EB] text-white flex items-center justify-center shadow-md">
-                  <Trophy size={20} />
-                </div>
-                <span className="text-[#2563EB] text-[11px] font-outfit font-bold tracking-widest uppercase block">
-                  ENVY LEAGUE
-                </span>
-                <h3 className="text-2xl sm:text-3xl font-extrabold text-[#090D16] tracking-tight">
-                  Compete. Improve. Get recognized.
-                </h3>
-                <p className="text-slate-500 text-xs sm:text-sm leading-relaxed">
-                  Envy League is Grad Envy's competitive ecosystem where users participate in technical, creative, academic, and business challenges to strengthen their skills and gain professional recognition. Every competition contributes to career growth through rankings, achievements, badges, and measurable accomplishments.
-                </p>
-                <span className="text-[#2563EB] text-[11px] font-outfit font-bold tracking-widest uppercase block pt-2">
-                  HIGHLIGHTS
-                </span>
-                <div className="flex flex-wrap gap-2 pt-1">
-                  {[
-                    "Coding Challenges",
-                    "Design Competitions",
-                    "Innovation Challenges",
-                    "Research Competitions",
-                    "Business Case Competitions",
-                    "Daily Challenges",
-                    "Weekly Championships",
-                    "Leaderboards",
-                    "Hall of Fame",
-                    "XP & Badges",
-                  ].map((tag, idx) => (
-                    <span
-                      key={idx}
-                      className="bg-[#F3F4F6] text-[#4B5563] px-3.5 py-1.5 rounded-full text-xs font-medium flex items-center gap-2"
-                    >
-                      <span className="w-1.5 h-1.5 rounded-full bg-[#2563EB] flex-shrink-0" />
-                      {tag}
-                    </span>
-                  ))}
-                </div>
-              </div>
-            </div>
 
             {/* Card 5: Professional Networking */}
             <div className="bg-white rounded-3xl p-8 sm:p-10 border border-slate-200/80 shadow-[0_4px_25px_rgba(0,0,0,0.03)] flex flex-col justify-between hover:shadow-xl transition-all duration-300">
@@ -635,7 +752,7 @@ const LandingPage = () => {
                   Build meaningful professional connections.
                 </h3>
                 <p className="text-slate-500 text-xs sm:text-sm leading-relaxed">
-                  Networking on Grad Envy goes beyond sending connection requests. Connect with peers, mentors, recruiters, alumni, startups, universities, organizations, and industry professionals through one integrated professional ecosystem designed to encourage collaboration and long-term career growth.
+                  Build meaningful relationships beyond traditional connection requests. Connect with peers, mentors, recruiters, and startups in an active ecosystem designed for genuine collaboration and career milestones.
                 </p>
                 <span className="text-[#2563EB] text-[11px] font-outfit font-bold tracking-widest uppercase block pt-2">
                   HIGHLIGHTS
@@ -674,7 +791,7 @@ const LandingPage = () => {
                   Empowering universities through digital engagement.
                 </h3>
                 <p className="text-slate-500 text-xs sm:text-sm leading-relaxed">
-                  The University Platform helps educational institutions simplify campus management while improving student participation and engagement. Universities can efficiently manage events, registrations, attendance, certifications, and analytics through one integrated platform.
+                  Help educational institutions simplify campus event management, student attendance, and digital credentialing. Gain actionable analytics on student engagement while streamlining department operations.
                 </p>
                 <span className="text-[#2563EB] text-[11px] font-outfit font-bold tracking-widest uppercase block pt-2">
                   HIGHLIGHTS
@@ -686,10 +803,52 @@ const LandingPage = () => {
                     "Attendance Tracking",
                     "QR Check-in",
                     "Certificate Generation",
-                    "Department Dashboard",
-                    "Reports & Analytics",
+                    // "Department Dashboard",
+                    // "Reports & Analytics",
                     "Budget Tracking",
                     "Student Participation Analytics",
+                  ].map((tag, idx) => (
+                    <span
+                      key={idx}
+                      className="bg-[#F3F4F6] text-[#4B5563] px-3.5 py-1.5 rounded-full text-xs font-medium flex items-center gap-2"
+                    >
+                      <span className="w-1.5 h-1.5 rounded-full bg-[#2563EB] flex-shrink-0" />
+                      {tag}
+                    </span>
+                  ))}
+                </div>
+              </div>
+            </div>
+            {/* Card 4: Envy League */}
+            <div className="bg-white rounded-3xl p-8 sm:p-10 border border-slate-200/80 shadow-[0_4px_25px_rgba(0,0,0,0.03)] flex flex-col justify-between hover:shadow-xl transition-all duration-300">
+              <div className="space-y-5">
+                <div className="w-10 h-10 rounded-full bg-[#2563EB] text-white flex items-center justify-center shadow-md">
+                  <Trophy size={20} />
+                </div>
+                <span className="text-[#2563EB] text-[11px] font-outfit font-bold tracking-widest uppercase block">
+                  ENVY LEAGUE
+                </span>
+                <h3 className="text-2xl sm:text-3xl font-extrabold text-[#090D16] tracking-tight">
+                  Compete. Improve. Get recognized.
+                </h3>
+                <p className="text-slate-500 text-xs sm:text-sm leading-relaxed">
+                  Step into Grad Envy's competitive arena to tackle real-world technical, creative, and business challenges. Climb dynamic leaderboards, showcase verified achievements, and earn industry-wide recognition.
+                </p>
+                <span className="text-[#2563EB] text-[11px] font-outfit font-bold tracking-widest uppercase block pt-2">
+                  HIGHLIGHTS
+                </span>
+                <div className="flex flex-wrap gap-2 pt-1">
+                  {[
+                    // "Coding Challenges",
+                    "Design Competitions",
+                    "Innovation Challenges",
+                    "Research Competitions",
+                    // "Business Case Competitions",
+                    "Daily Challenges",
+                    "Weekly Championships",
+                    // "Leaderboards",
+                    // "Hall of Fame",
+                    "XP & Badges",
                   ].map((tag, idx) => (
                     <span
                       key={idx}
@@ -709,103 +868,83 @@ const LandingPage = () => {
       {/* ─────────────────────────────────────────────────────────────
           6. SECTION: HOW GRAD ENVY WORKS (Exact Screenshot UI)
       ───────────────────────────────────────────────────────────── */}
-      <section id="how-it-works" className="relative z-10 py-24 bg-[#FAFAFD] text-slate-900 px-6 md:px-[80px] border-t border-slate-200/60">
-        <div className="w-full max-w-[1340px] mx-auto space-y-16">
-          {/* Centered Top Label */}
-          <div className="text-center">
-            <span className="text-[#6366F1] text-[11px] font-outfit font-bold tracking-widest uppercase block">
+      <section id="how-it-works" className="relative z-10 py-20 lg:py-28 bg-[#FAFAFD] text-slate-900 px-6 sm:px-10 md:px-16 lg:px-24 border-t border-slate-200/60">
+        <div className="w-full max-w-[1240px] mx-auto space-y-12 sm:space-y-14">
+          {/* Centered Top Header */}
+          <div className="text-center space-y-3 max-w-4xl mx-auto">
+            <span className="text-[#6366F1] text-[12px] font-outfit font-bold tracking-[0.2em] uppercase block">
               HOW GRAD ENVY WORKS
             </span>
+            <h2 className="text-3xl sm:text-4xl md:text-5xl lg:text-[48px] font-bold text-[#090D16] tracking-tight leading-tight">
+              One platform. One connected <span className="text-[#0095FF]">journey</span>
+            </h2>
+            <p className="text-slate-500 text-sm sm:text-base leading-relaxed">
+              Five steps take you from a blank profile to a professional identity backed by real, verifiable work.
+            </p>
           </div>
 
-          {/* 2 Column Main Section */}
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
-            {/* Left Column: Text & Laptop Image Asset */}
-            <div className="lg:col-span-6 space-y-6 text-left">
-              <h2 className="text-4xl sm:text-5xl font-extrabold text-[#090D16] tracking-tight leading-tight">
-                One platform. <br />
-                One connected <span className="text-[#0095FF]">journey</span>
-              </h2>
+          {/* 5 Cards Grid (2 in Row 1, 2 in Row 2, 1 Full-Width in Row 3) */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-5 sm:gap-6">
+            {[
+              {
+                step: "01",
+                title: "Create your profile",
+                desc: "Sign up as a Freelancer, Company, University, or Event Organizer and build a profile that represents your skills and expertise.",
+                color: "bg-[#7C3AED]",
+                span: "col-span-1",
+              },
+              {
+                step: "02",
+                title: "Build your professional identity",
+                desc: "Create your portfolio, showcase projects, earn certifications, and track your progress through Career OS.",
+                color: "bg-[#2563EB]",
+                span: "col-span-1",
+              },
+              {
+                step: "03",
+                title: "Discover opportunities",
+                desc: "Explore freelance projects, internships, competitions, AI resources, and industry events that align with your goals.",
+                color: "bg-[#10B981]",
+                span: "col-span-1",
+              },
+              {
+                step: "04",
+                title: "Connect & collaborate",
+                desc: "Work with companies, join communities, and gain real-world experience through meaningful collaboration.",
+                color: "bg-[#F97316]",
+                span: "col-span-1",
+              },
+              {
+                step: "05",
+                title: "Grow your career",
+                desc: "Every project, competition, event, and connection strengthens your profile - unlocking bigger opportunities over time.",
+                color: "bg-[#E11D48]",
+                span: "col-span-1 md:col-span-2",
+              },
+            ].map((card, idx) => (
+              <div
+                key={idx}
+                className={`${card.span} relative bg-white rounded-2xl p-6 sm:p-5 border border-slate-100 shadow-[0_4px_25px_rgba(0,0,0,0.03)] overflow-hidden flex items-start sm:items-center gap-4 sm:gap-6 hover:shadow-lg hover:border-slate-200 transition-all duration-300`}
+              >
+                {/* Left Colored Accent Stripe */}
+                <div className={`w-1.5 ${card.color} absolute left-0 top-0 bottom-0`} />
 
-              <p className="text-slate-500 text-sm sm:text-base leading-relaxed max-w-md">
-                Five steps take you from a blank profile to a professional identity backed by real, verifiable work.
-              </p>
-
-              {/* Laptop Image Asset */}
-              <div className="pt-4">
-                <img
-                  src={assets.landingLaptop}
-                  alt="GradEnvy Laptop Dashboard"
-                  className="w-full max-w-[500px] h-auto object-contain transition-transform hover:scale-105 duration-500"
-                />
-              </div>
-            </div>
-
-            {/* Right Column: 5 Vertical Step Cards Stepper */}
-            <div className="lg:col-span-6 space-y-5 relative">
-              {[
-                {
-                  step: "01",
-                  title: "Create your profile",
-                  desc: "Sign up as a Freelancer, Company, University, or Event Organizer and build a profile that represents your skills and expertise.",
-                  color: "bg-[#7C3AED]",
-                },
-                {
-                  step: "02",
-                  title: "Build your professional identity",
-                  desc: "Create your portfolio, showcase projects, earn certifications, and track your progress through Career OS.",
-                  color: "bg-[#2563EB]",
-                },
-                {
-                  step: "03",
-                  title: "Discover opportunities",
-                  desc: "Explore freelance projects, internships, competitions, AI resources, and industry events that align with your goals.",
-                  color: "bg-[#10B981]",
-                },
-                {
-                  step: "04",
-                  title: "Connect & collaborate",
-                  desc: "Work with companies, join communities, and gain real-world experience through meaningful collaboration.",
-                  color: "bg-[#F97316]",
-                },
-                {
-                  step: "05",
-                  title: "Grow your career",
-                  desc: "Every project, competition, event, and connection strengthens your profile - unlocking bigger opportunities over time.",
-                  color: "bg-[#EC4899]",
-                },
-              ].map((item, idx) => (
-                <div key={idx} className="flex items-center gap-4 group">
-                  {/* Step Number Circle Indicator on the left */}
-                  <div className="flex flex-col items-center flex-shrink-0">
-                    <div className="w-7 h-7 rounded-full bg-slate-100 border border-slate-200 text-slate-400 font-outfit text-[11px] font-bold flex items-center justify-center">
-                      {item.step}
-                    </div>
-                  </div>
-
-                  {/* White Step Card */}
-                  <div className="flex-1 bg-white rounded-2xl p-6 sm:p-7 shadow-[0_4px_20px_rgba(0,0,0,0.03)] border border-slate-200/80 relative overflow-hidden flex items-center gap-5 hover:shadow-lg transition-all duration-300">
-                    {/* Left Accent Bar */}
-                    <div className={`w-1.5 ${item.color} absolute left-0 top-0 bottom-0`} />
-
-                    {/* Circular Step Badge */}
-                    <div className={`w-9 h-9 rounded-full ${item.color} text-white font-bold text-xs flex items-center justify-center flex-shrink-0 shadow-md`}>
-                      {item.step}
-                    </div>
-
-                    {/* Text Content */}
-                    <div>
-                      <h3 className="text-base sm:text-lg font-bold text-[#090D16] mb-1">
-                        {item.title}
-                      </h3>
-                      <p className="text-slate-500 text-xs sm:text-sm leading-relaxed">
-                        {item.desc}
-                      </p>
-                    </div>
-                  </div>
+                {/* Circular Step Badge */}
+                <div className={`w-10 h-10 rounded-full ${card.color} text-white font-bold text-xs sm:text-sm flex items-center justify-center flex-shrink-0 shadow-sm`}>
+                  {card.step}
                 </div>
-              ))}
-            </div>
+
+                {/* Text Content */}
+                <div className="space-y-1">
+                  <h3 className="text-base sm:text-lg font-bold text-[#0F172A] tracking-tight">
+                    {card.title}
+                  </h3>
+                  <p className="text-slate-500 text-xs sm:text-sm leading-relaxed">
+                    {card.desc}
+                  </p>
+                </div>
+              </div>
+            ))}
           </div>
         </div>
       </section>
@@ -813,10 +952,10 @@ const LandingPage = () => {
       {/* ─────────────────────────────────────────────────────────────
           7. SECTION: EXPLORE THE PLATFORM (Experience Grad Envy in Action.)
       ───────────────────────────────────────────────────────────── */}
-      <section id="explore-platform" className="relative z-10 py-24 bg-[#050716] px-6 md:px-[80px] border-t border-white/10">
-        <div className="w-full max-w-[1340px] mx-auto space-y-12">
+      {/* <section id="explore-platform" className="relative z-10 py-24 bg-[#050716] px-6 md:px-[80px] border-t border-white/10">
+        <div className="w-full max-w-[1340px] mx-auto space-y-12"> */}
           {/* Header */}
-          <div className="text-left space-y-3 max-w-3xl">
+          {/* <div className="text-left space-y-3 max-w-3xl">
             <span className="text-[#0095FF] text-[11px] font-outfit font-bold tracking-widest uppercase block">
               EXPLORE THE PLATFORM
             </span>
@@ -826,10 +965,10 @@ const LandingPage = () => {
             <p className="text-gray-400 text-sm sm:text-base leading-relaxed">
               Explore a modern platform designed to simplify freelancing, professional networking, recruitment, career development, and university engagement through one connected ecosystem.
             </p>
-          </div>
+          </div> */}
 
           {/* 3-Column Grid Table */}
-          <div className="grid grid-cols-1 md:grid-cols-3 border-t border-l border-white/10 rounded-2xl overflow-hidden bg-[#070a1e]/60 shadow-2xl">
+          {/* <div className="grid grid-cols-1 md:grid-cols-3 border-t border-l border-white/10 rounded-2xl overflow-hidden bg-[#070a1e]/60 shadow-2xl">
             {[
               "Home Dashboard",
               "Envy Marketplace",
@@ -865,7 +1004,7 @@ const LandingPage = () => {
             ))}
           </div>
         </div>
-      </section>
+      </section> */}
 
       {/* ─────────────────────────────────────────────────────────────
           8. SECTION: CONNECTED CAREER JOURNEY

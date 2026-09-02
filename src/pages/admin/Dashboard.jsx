@@ -51,7 +51,7 @@ const Dashboard = () => {
     { key: 'freelances', title: 'Active Projects' },
     { key: 'jobs', title: 'Active Jobs' },
     { key: 'colleges', title: 'Total College' },
-    { key: 'competitions', title: 'Active Competition' },
+    { key: 'competitions', title: 'Active Competition / Hackathon' },
     { key: 'conferences', title: 'Active Conference' },
     { key: 'events', title: 'Active Events' },
     { key: 'seminars', title: 'Active Seminar' },

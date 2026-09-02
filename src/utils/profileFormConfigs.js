@@ -10,7 +10,13 @@ export const companyFormConfig = [
       { label: 'Company Culture Tags (Multi Select)', type: 'select', options: [ 'Remote Friendly', 'Fast Paced', 'Inclusive', 'Learning Focused'] },
       { label: 'Year Founded', type: 'date', required: false },
       { label: 'Website Link', type: 'text', required: false },
-      { label: 'Company Logo', type: 'file' },
+      {
+        label: 'Company Logo',
+        type: 'file',
+        name: 'companyLogo',
+        dimensions: { width: 512, height: 512 },
+        hint: 'Required dimensions: 512 × 512 px (Square format).',
+      },
     ],
   },
   {
@@ -78,7 +84,13 @@ export const collegeFormConfig = [
       { label: 'Established Year', type: 'date', required: false },
       { label: 'Affiliated University', type: 'text', required: false },
       { label: 'Total Departments', type: 'number', required: false },
-      { label: 'College Logo', type: 'file' },
+      {
+        label: 'College Logo',
+        type: 'file',
+        name: 'collegeLogo',
+        dimensions: { width: 512, height: 512 },
+        hint: 'Required dimensions: 512 × 512 px (Square format).',
+      },
     ],
   },
   {
@@ -134,7 +146,13 @@ export const competitionFormConfig = [
       { label: 'Registration Start Date', type: 'date' },
       { label: 'Registration End Date', type: 'date' },
       { label: 'Total Seats', type: 'number' },
-      { label: 'Cover Image', type: 'file' },
+      {
+        label: 'Cover Image',
+        name: 'coverImage',
+        type: 'file',
+        dimensions: { width: 350, height: 290 },
+        hint: 'Required dimensions: 350 × 290 px (W × H).',
+      },
     ],
   },
   {
@@ -277,7 +295,14 @@ export const eventFormConfig = [
       { label: 'Registration Start Date', type: 'date' },
       { label: 'Registration End Date', type: 'date' },
       { label: 'Total Seats', type: 'number' },
-      { label: 'Cover Image', type: 'file', span: 2 },
+      {
+        label: 'Cover Image',
+        name: 'coverImage',
+        type: 'file',
+        span: 2,
+        dimensions: { width: 350, height: 290 },
+        hint: 'Required dimensions: 350 × 290 px (W × H).',
+      },
     ],
   },
   {
@@ -396,7 +421,14 @@ export const seminarFormConfig = [
       { label: 'Registration Start Date', type: 'date' },
       { label: 'Registration End Date', type: 'date' },
       { label: 'Total Seats', type: 'number' },
-      { label: 'Cover Image', type: 'file', span: 2 },
+      {
+        label: 'Cover Image',
+        name: 'coverImage',
+        type: 'file',
+        span: 2,
+        dimensions: { width: 350, height: 290 },
+        hint: 'Required dimensions: 350 × 290 px (W × H).',
+      },
     ],
   },
   {
@@ -656,7 +688,14 @@ export const conferenceFormConfig = [
       { label: 'Registration Start Date', type: 'date' },
       { label: 'Registration End Date', type: 'date' },
       { label: 'Total Seats', type: 'number' },
-      { label: 'Cover Image', type: 'file', span: 2 },
+      {
+        label: 'Cover Image',
+        name: 'coverImage',
+        type: 'file',
+        span: 2,
+        dimensions: { width: 350, height: 290 },
+        hint: 'Required dimensions: 350 × 290 px (W × H).',
+      },
     ],
   },
   {

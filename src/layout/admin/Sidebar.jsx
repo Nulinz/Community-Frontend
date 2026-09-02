@@ -103,10 +103,10 @@ const Sidebar = () => {
         { name: 'Dashboard', path: '/admin/dashboard', icon: assets.dash_i },
         { name: 'Company', path: '/admin/company', icon: assets.comp_i },
         { name: 'College', path: '/admin/college', icon: assets.book_i },
-        { name: 'Competition', path: '/admin/competition', icon: assets.competition_i },
+        { name: 'Competition / Hackathon', path: '/admin/competition', icon: assets.competition_i },
         { name: 'Conference', path: '/admin/conference', icon: assets.conf_i },
         { name: 'Events', path: '/admin/events', icon: assets.event_i },
-        { name: 'Seminar', path: '/admin/seminar', icon: assets.sem_i },
+        { name: 'Seminar / Workshop', path: '/admin/seminar', icon: assets.sem_i },
         {
             name: 'Jobs',
             icon: assets.jobs_i,

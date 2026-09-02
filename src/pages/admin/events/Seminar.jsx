@@ -24,7 +24,7 @@ const Seminar = () => {
   const { user, dynamicPath } = useMain();
   const { setTitle } = useTitle();
 
-  useEffect(() => { setTitle("Seminars"); }, []);
+  useEffect(() => { setTitle("Seminar / Workshop"); }, []);
 
   useEffect(() => {
     fetchSeminars(activeTab);
