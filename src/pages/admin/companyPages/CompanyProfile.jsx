@@ -3,6 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { BriefcaseBusiness, Clock3, LockKeyhole, MapPin, Plus, SquarePen, Upload, X, Loader2 } from 'lucide-react';
 import { assets } from '../../../assets/assets';
 import DynamicTable from '../../../common/DynamicTable';
+import PageLoader from '../../../common/PageLoader';
 import { getCompanyById, addCompanyPost, setCompanyPassword, getMyCompany, toggleCompanyStatus } from '../../../services/admin/adminServices';
 import { toast } from 'react-toastify';
 import setFileName from '../../../utils/setFileName';
@@ -74,12 +75,7 @@ const CompanyProfile = ({ module }) => {
   }, [id, module]);
 
   if (isLoading) {
-    return (
-      <div className="flex flex-col items-center justify-center min-h-[400px] gap-3">
-        <Loader2 className="w-8 h-8 text-blue-600 animate-spin" />
-        <p className="text-secondary font-medium mt-2">Loading Profile...</p>
-      </div>
-    );
+    return <PageLoader />;
   }
 
   if (error || !company) {
@@ -471,6 +467,18 @@ const CompanyProfile = ({ module }) => {
                 </p>
               </SectionCard>
 
+              <SectionCard title="Payment & Payout Details">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                  <DetailItem label="Account Holder Name" value={company.accountHolderName || 'N/A'} />
+                  <DetailItem label="Bank Name" value={company.bankName || 'N/A'} />
+                  {company.branchName && (
+                    <DetailItem label="Branch" value={company.branchName} />
+                  )}
+                  <DetailItem label="Account Number" value={company.accountNumber || 'N/A'} />
+                  <DetailItem label="IFSC Code" value={company.ifscCode || 'N/A'} />
+                </div>
+              </SectionCard>
+
               {company.certificateAvailability && (
                 <SectionCard title="Certificate Availability">
                   <p className="text-[14px] md:text-[15px] text-secondary leading-[1.8] font-medium whitespace-pre-wrap">
@@ -582,11 +590,11 @@ const CompanyProfile = ({ module }) => {
               columns={[
                 { title: '#', dataIndex: 'index', key: 'index' },
                 { title: 'Name', dataIndex: 'name', key: 'name' },
-                { title: 'Status', dataIndex: 'currentStatus', key: 'currentStatus' },
+                { title: 'Status', dataIndex: 'status', key: 'status' },
                 { title: 'Education', dataIndex: 'education', key: 'education' },
-                { title: 'Degree', dataIndex: 'ugDegree', key: 'ugDegree' },
+                { title: 'Degree', dataIndex: 'degree', key: 'degree' },
                 // { title: 'Job Title', dataIndex: 'jobTitle', key: 'jobTitle' },
-                { title: 'Contact', dataIndex: 'phone', key: 'phone' },
+                { title: 'Contact', dataIndex: 'contact', key: 'contact' },
                 { title: 'email', dataIndex: 'email', key: 'email' },
                 // { title: 'Followed On', dataIndex: 'followedAt', key: 'followedAt' },
               ]}

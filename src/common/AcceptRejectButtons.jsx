@@ -152,7 +152,7 @@ const StatusActionButtons = ({
               <button
                 disabled={isSubmitting}
                 onClick={handleReject}
-                className="px-4 flex-1 py-2 rounded-xl text-white font-medium transition bg-blue-500 hover:bg-blue-700 disabled:opacity-50"
+                className="px-4 flex-1 py-2 rounded-xl text-white font-medium transition bg-[#171717] hover:bg-[#171717] disabled:opacity-50"
               >
                 {isSubmitting ? <Loader2 size={16} className="animate-spin" /> : "Reject"}
               </button>

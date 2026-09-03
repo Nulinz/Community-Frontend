@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { Plus, Loader2 } from 'lucide-react';
+import { Plus } from 'lucide-react';
 import DynamicTable from "../../../common/DynamicTable";
+import PageLoader from "../../../common/PageLoader";
 import { useNavigate } from 'react-router-dom';
 import { getAllCompetitions } from '../../../services/admin/adminServices';
 import { toast } from 'react-toastify';
@@ -111,12 +112,7 @@ const Competition = () => {
   };
 
   if (isLoading) {
-    return (
-      <div className="flex flex-col items-center justify-center min-h-[400px] gap-3">
-        <Loader2 className="w-8 h-8 text-blue-600 animate-spin" />
-        <p className="text-secondary font-medium">Loading Competitions...</p>
-      </div>
-    );
+    return <PageLoader />;
   }
 
   return (

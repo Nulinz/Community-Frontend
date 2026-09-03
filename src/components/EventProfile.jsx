@@ -17,6 +17,7 @@ import ConfirmActionButton from '../common/ConfirmActionButton';
 import { useTitle } from '../context/AdminTitle';
 import { EducationIcon } from './icons';
 import StatusActionButtons from '../common/AcceptRejectButtons';
+import PageLoader from '../common/PageLoader';
 
 const EventProfile = () => {
     const { id } = useParams();
@@ -95,12 +96,7 @@ const EventProfile = () => {
     };
 
     if (isLoading) {
-        return (
-            <div className="flex flex-col items-center justify-center min-h-[400px] gap-3">
-                <Loader2 className="w-8 h-8 text-blue-600 animate-spin" />
-                <p className="text-secondary font-medium mt-2">Loading Profile...</p>
-            </div>
-        );
+        return <PageLoader />;
     }
 
     if (error || !event) {

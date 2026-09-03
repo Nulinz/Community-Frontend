@@ -1,3 +1,4 @@
+import { useState, useEffect } from "react";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
@@ -42,8 +43,6 @@ import SeminarProfile from "./components/SeminarProfile";
 import ConferenceProfile from "./components/ConferenceProfile";
 import EventProfile from "./components/EventProfile";
 import FreelanceProfile from "./components/FreelanceProfile";
-import { useEffect } from "react";
-import { Loader2 } from "lucide-react";
 import CompanyDashboard from "./pages/admin/companyPages/CompanyDashboard";
 import CollegeDashboard from "./pages/admin/colegePages/CollegeDashboard";
 import ScrollToTop from "./common/ScrollTop";
@@ -60,21 +59,23 @@ import InfluencerDashboard from "./pages/influencer/InfluencerDashboard";
 import InfluencerReferralList from "./pages/influencer/InfluencerReferralList";
 import InfluencerSubscriptionList from "./pages/influencer/InfluencerSubscriptionList";
 import InfluencerProfileTab from "./pages/influencer/InfluencerProfileTab";
+import PageLoader from "./common/PageLoader";
 
 const App = () => {
   const { fetchCurrentUser, isHomeLoading } = useMain();
+  const [minLoading, setMinLoading] = useState(true);
 
   useEffect(() => {
     fetchCurrentUser();
+    const timer = setTimeout(() => {
+      setMinLoading(false);
+    }, 3000);
+
+    return () => clearTimeout(timer);
   }, []);
 
-  if (isHomeLoading) {
-    return (
-      <div className="flex flex-col items-center justify-center min-h-screen gap-3">
-        <Loader2 className="w-8 h-8 text-blue-600 animate-spin" />
-        <p className="text-secondary font-medium mt-2">Loading </p>
-      </div>
-    );
+  if (isHomeLoading || minLoading) {
+    return <PageLoader fullScreen={true} />;
   }
 
   return (

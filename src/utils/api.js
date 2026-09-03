@@ -63,12 +63,17 @@ API.interceptors.response.use(
     // Handle Unauthorized globally
     if (error.response?.status === 401) {
       console.warn("Unauthorized. Redirecting to login...");
-      // Optionally redirect:
-      // window.location.href = "/login";
     }
 
-    // Log other errors (optional)
-    console.error("API Error:", error.response || error.message);
+    // Normalize error.message to the server-provided sanitized message
+    if (error.response?.data?.message) {
+      error.message = error.response.data.message;
+    } else if (!error.response) {
+      error.message = "Network error. Please check your internet connection.";
+    }
+
+    // Diagnostic logging
+    console.error("API Error:", error.response?.data || error.message);
 
     return Promise.reject(error);
   }

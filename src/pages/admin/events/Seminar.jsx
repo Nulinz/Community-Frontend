@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { Plus, Loader2 } from 'lucide-react';
-import DynamicTable from "../../../common/DynamicTable"
+import { Plus } from 'lucide-react';
+import DynamicTable from "../../../common/DynamicTable";
+import PageLoader from "../../../common/PageLoader";
 import { useNavigate } from 'react-router-dom';
 import { getAllSeminars } from '../../../services/admin/adminServices';
 import { toast } from 'react-toastify';
@@ -129,9 +130,7 @@ const Seminar = () => {
       </div>
 
       {isLoading ? (
-        <div className="flex flex-col items-center justify-center min-h-[400px]">
-          <Loader2 className="w-8 h-8 text-blue-600 animate-spin" />
-        </div>
+        <PageLoader />
       ) : (
         <DynamicTable
           columns={columns}

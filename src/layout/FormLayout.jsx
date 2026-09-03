@@ -2611,10 +2611,10 @@ const FormLayout = ({
   };
 
   return (
-    <div className="mx-auto bg-gray-50">
+    <div className="w-full">
       <form
         onSubmit={handleSubmit}
-        className="max-w-[1400px] mx-auto space-y-5 bg-white p-4 md:p-6 lg:p-8 rounded-lg shadow-sm border border-gray-200"
+        className="w-full space-y-5 bg-white p-4 md:p-6 lg:p-8 rounded-lg shadow-sm border border-[#EAECF0]"
       >
         {config
           .filter((section) => {

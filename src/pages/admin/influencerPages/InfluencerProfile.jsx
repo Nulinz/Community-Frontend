@@ -6,6 +6,7 @@ import setFileName from "../../../utils/setFileName";
 import { useTitle } from "../../../context/AdminTitle";
 import { toast } from "react-toastify";
 import { Loader2, X, SquarePen, Copy, CheckCircle2, Globe, Share2, Link2 } from "lucide-react";
+import PageLoader from "../../../common/PageLoader";
 
 
 
@@ -165,12 +166,7 @@ const InfluencerProfile = () => {
   };
 
   if (isLoading) {
-    return (
-      <div className="flex flex-col items-center justify-center min-h-[400px] gap-3">
-        <Loader2 className="w-8 h-8 text-blue-600 animate-spin" />
-        <p className="text-secondary font-medium mt-2">Loading Profile...</p>
-      </div>
-    );
+    return <PageLoader />;
   }
 
   if (error || !influencer) {

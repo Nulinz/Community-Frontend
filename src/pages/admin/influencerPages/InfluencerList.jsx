@@ -38,7 +38,7 @@ const InfluencerList = () => {
     } catch (error) {
       console.error("Failed to fetch influencers:", error);
       toast.error(error.message || "Failed to load influencers");
-    } finally {
+    } finally { 
       setIsLoading(false);
     }
   };
@@ -101,7 +101,7 @@ const InfluencerList = () => {
       dataIndex: "influencerCode",
       key: "influencerCode",
       render: (val) => (
-        <span className="inline-flex items-center px-3 py-1 rounded-lg text-xs font-mono font-bold bg-blue-50 text-blue-600 border border-blue-100">
+        <span className="inline-flex items-center px-3 py-1 rounded-lg text-xs font-outfit font-semibold ">
           {val || "N/A"}
         </span>
       ),

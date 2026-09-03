@@ -3,6 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { BriefcaseBusiness, Clock3, LockKeyhole, MapPin, Plus, SquarePen, Upload, X, Loader2 } from 'lucide-react';
 import { assets } from '../../../assets/assets';
 import DynamicTable from '../../../common/DynamicTable';
+import PageLoader from '../../../common/PageLoader';
 import { getCompanyById, addCompanyPost, setCompanyPassword, getMyCompany, toggleCompanyStatus } from '../../../services/admin/adminServices';
 import { toast } from 'react-toastify';
 import setFileName from '../../../utils/setFileName';
@@ -74,12 +75,7 @@ const CompanyProfile = ({ module }) => {
   }, [id, module]);
 
   if (isLoading) {
-    return (
-      <div className="flex flex-col items-center justify-center min-h-[400px] gap-3">
-        <Loader2 className="w-8 h-8 text-blue-600 animate-spin" />
-        <p className="text-secondary font-medium mt-2">Loading Profile...</p>
-      </div>
-    );
+    return <PageLoader />;
   }
 
   if (error || !company) {

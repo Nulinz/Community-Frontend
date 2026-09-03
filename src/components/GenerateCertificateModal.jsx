@@ -1,8 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
-import { X, Award, Loader2, Download, CheckCircle } from 'lucide-react';
+import { X, Award, Loader2, Download, CheckCircle, AlertTriangle } from 'lucide-react';
 import { toast } from 'react-toastify';
-import { generateCertificate } from '../services/admin/adminServices';
+import { generateCertificate, getCollegeById } from '../services/admin/adminServices';
+import { getMyCollege } from '../services/collegeServices';
+import { useMain } from '../context/MainContext';
 
 const GenerateCertificateModal = ({
   isOpen,
@@ -13,6 +15,7 @@ const GenerateCertificateModal = ({
   eventId = null,
   eventType = "",
 }) => {
+  const { user } = useMain();
   const [formData, setFormData] = useState({
     name: '',
     domain: '',
@@ -23,6 +26,8 @@ const GenerateCertificateModal = ({
 
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [generatedCert, setGeneratedCert] = useState(null);
+  const [missingFields, setMissingFields] = useState([]);
+  const [isCheckingSettings, setIsCheckingSettings] = useState(false);
 
   useEffect(() => {
     if (candidate && isOpen) {
@@ -37,12 +42,54 @@ const GenerateCertificateModal = ({
     }
   }, [candidate, isOpen, defaultDomain, organizerName]);
 
+  useEffect(() => {
+    const checkCollegeSettings = async () => {
+      if (!isOpen || !candidate) return;
+      setIsCheckingSettings(true);
+      try {
+        let collegeData = null;
+        if (user?.role === "college") {
+          const res = await getMyCollege();
+          collegeData = res?.data?.college || res?.data || null;
+        } else if (candidate?.collegeId || candidate?.college?._id || (typeof candidate?.college === "string" && candidate.college.length === 24)) {
+          const collegeId = candidate?.collegeId || candidate?.college?._id || candidate.college;
+          const res = await getCollegeById(collegeId);
+          collegeData = res?.data?.college || res?.data || null;
+        }
+
+        if (collegeData) {
+          const missing = [];
+          if (!collegeData.signatoryName?.trim()) missing.push("Authorized Signatory Name");
+          if (!collegeData.signatoryDesignation?.trim()) missing.push("Signatory Designation");
+          if (!collegeData.signatureUrl?.trim()) missing.push("Signature");
+          if (!collegeData.certificateContentBody?.trim()) missing.push("Certificate Body");
+          setMissingFields(missing);
+        } else {
+          setMissingFields([]);
+        }
+      } catch (err) {
+        console.warn("College certificate settings check:", err);
+      } finally {
+        setIsCheckingSettings(false);
+      }
+    };
+
+    checkCollegeSettings();
+  }, [isOpen, candidate, user?.role]);
+
   if (!isOpen || !candidate) return null;
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!formData.name.trim() || !formData.domain.trim() || !formData.issuedDate) {
       toast.error('Please fill in all required fields (Name, Domain/Event, and Issue Date)');
+      return;
+    }
+
+    if (missingFields.length > 0) {
+      toast.error(
+        `Please fill in the required certificate field(s): ${missingFields.join(", ")} in College Certificate Profile and try again.`
+      );
       return;
     }
 
@@ -65,7 +112,11 @@ const GenerateCertificateModal = ({
       setGeneratedCert(resData.data);
     } catch (err) {
       console.error("Certificate Generation Error:", err);
-      toast.error(err.message || 'Failed to generate certificate');
+      const errMsg = err.response?.data?.message || err.message || 'Failed to generate certificate';
+      if (err.response?.data?.missingFields && Array.isArray(err.response.data.missingFields)) {
+        setMissingFields(err.response.data.missingFields);
+      }
+      toast.error(errMsg);
     } finally {
       setIsSubmitting(false);
     }
@@ -81,7 +132,7 @@ const GenerateCertificateModal = ({
   };
 
   return createPortal(
-    <div className="fixed inset-0 z-[99999] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 animate-in fade-in duration-200">
+    <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 animate-in fade-in duration-200">
       <div className="bg-white rounded-3xl shadow-2xl max-w-lg w-full overflow-hidden border border-gray-100 flex flex-col">
         {/* Header */}
         <div className="bg-gradient-to-r from-[#171717] to-[#171717] p-6 text-white relative">
@@ -138,6 +189,31 @@ const GenerateCertificateModal = ({
             </div>
           ) : (
             <form onSubmit={handleSubmit} className="space-y-4 text-sm">
+              {missingFields.length > 0 && (
+                <div className="bg-amber-50 border border-amber-200 rounded-2xl p-4 text-amber-900 space-y-2 animate-in fade-in duration-200">
+                  <div className="flex items-center gap-2 font-bold text-amber-900 text-sm">
+                    <AlertTriangle size={18} className="text-amber-600 flex-shrink-0" />
+                    <span>Incomplete College Certificate Settings</span>
+                  </div>
+                  <p className="text-xs text-amber-800">
+                    The college has not filled in the following required certificate field(s):
+                  </p>
+                  <div className="flex flex-wrap gap-1.5 pt-0.5">
+                    {missingFields.map((field) => (
+                      <span
+                        key={field}
+                        className="bg-amber-100/90 border border-amber-300 text-amber-950 px-2.5 py-1 rounded-lg font-semibold text-xs inline-flex items-center gap-1.5"
+                      >
+                        <span className="w-1.5 h-1.5 rounded-full bg-amber-600" />
+                        {field}
+                      </span>
+                    ))}
+                  </div>
+                  <p className="text-[11px] text-amber-700 font-medium pt-1">
+                    Please complete the above field(s) in College Settings and try again.
+                  </p>
+                </div>
+              )}
               <div>
                 <label className="block font-semibold text-gray-700 mb-1">Student Full Name *</label>
                 <input

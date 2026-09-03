@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import { Users, CheckCircle2, XCircle, Loader2, Award } from 'lucide-react';
+import { Users, CheckCircle2, XCircle, Award } from 'lucide-react';
 import axios from 'axios';
 import AppliedListSection from '../common/AppliedListSection';
 import GenerateCertificateModal from './GenerateCertificateModal';
 import { downloadCSVFromAPI } from '../utils/exportUtils';
+import PageLoader from '../common/PageLoader';
 
 const AttendanceTabSection = ({ eventId, eventType, eventTitle = "", organizerName = "" }) => {
   const [attendees, setAttendees] = useState([]);
@@ -108,12 +109,7 @@ const AttendanceTabSection = ({ eventId, eventType, eventTitle = "", organizerNa
   }));
 
   if (isLoading) {
-    return (
-      <div className="flex flex-col items-center justify-center min-h-[300px] gap-3 bg-white rounded-2xl p-8 border border-gray-100 shadow-sm">
-        <Loader2 className="w-8 h-8 text-[#171717] animate-spin" />
-        <p className="text-gray-500 font-medium text-sm">Loading attendance records...</p>
-      </div>
-    );
+    return <PageLoader />;
   }
 
   return (

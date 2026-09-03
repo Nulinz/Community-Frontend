@@ -10,7 +10,6 @@ import {
   User,
   X,
   ExternalLink,
-  Loader2,
   Sparkles,
   Layers,
   ArrowRight,
@@ -21,6 +20,7 @@ import { apiGetAllCompanies } from "../../../services/companyServices";
 import { useTitle } from "../../../context/AdminTitle";
 import { useMain } from "../../../context/MainContext";
 import setFileName from "../../../utils/setFileName";
+import PageLoader from "../../../common/PageLoader";
 
 const Partners = () => {
   const { setTitle } = useTitle();
@@ -131,10 +131,7 @@ const Partners = () => {
 
       {/* ── LOADING STATE ────────────────────────────────────── */}
       {loading ? (
-        <div className="py-24 flex flex-col items-center justify-center gap-3">
-          <Loader2 className="w-9 h-9 text-[#171717] animate-spin" />
-          <p className="text-gray-500 font-semibold text-sm">Discovering partner network...</p>
-        </div>
+        <PageLoader />
       ) : filteredCompanies.length === 0 ? (
         /* Empty State */
         <div className="py-20 text-center bg-white rounded-[24px] border border-dashed border-gray-300 space-y-3">

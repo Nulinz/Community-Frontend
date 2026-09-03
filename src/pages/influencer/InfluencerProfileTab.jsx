@@ -4,8 +4,9 @@ import { useTitle } from "../../context/AdminTitle";
 import { getInfluencerDashboard, getInfluencerProfile } from "../../services/influencer/influencerServices";
 import setFileName from "../../utils/setFileName";
 import { toast } from "react-toastify";
-import { Loader2, Copy, CheckCircle2, SquarePen } from "lucide-react";
+import { Copy, CheckCircle2, SquarePen } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import PageLoader from "../../common/PageLoader";
 
 const InfluencerProfileTab = () => {
   const { user } = useMain();
@@ -99,12 +100,7 @@ const InfluencerProfileTab = () => {
   };
 
   if (loading && !profileData) {
-    return (
-      <div className="flex flex-col items-center justify-center min-h-[400px] gap-3">
-        <Loader2 className="w-8 h-8 text-blue-600 animate-spin" />
-        <p className="text-secondary font-medium">Loading Profile...</p>
-      </div>
-    );
+    return <PageLoader />;
   }
 
   return (

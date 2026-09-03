@@ -279,7 +279,7 @@ const AppLayout = ({
 
     const timer = setTimeout(() => {
       setIsOutletLoading(false);
-    }, 260);
+    }, 60);
 
     return () => clearTimeout(timer);
   }, [location.pathname, location.search]);
@@ -521,4 +521,4 @@ const AppLayout = ({
   );
 };
 
-export default AppLayout;
+export default AppLayout;

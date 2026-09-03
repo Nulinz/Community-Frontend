@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { Plus, Loader2 } from 'lucide-react';
+import { Plus } from 'lucide-react';
 import { useNavigate, useLocation  } from 'react-router-dom';
 import DynamicTable from '../../../common/DynamicTable';
+import PageLoader from '../../../common/PageLoader';
 import { getAllColleges } from '../../../services/admin/adminServices';
 import { toast } from 'react-toastify';
 import { useTitle } from '../../../context/AdminTitle';
@@ -100,12 +101,7 @@ const College = () => {
   ];
 
   if (isLoading) {
-    return (
-      <div className="flex flex-col items-center justify-center min-h-[400px] gap-3">
-        <Loader2 className="w-8 h-8 text-blue-600 animate-spin" />
-        <p className="text-secondary font-medium">Loading Colleges...</p>
-      </div>
-    );
+    return <PageLoader />;
   }
 
   return (

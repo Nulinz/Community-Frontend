@@ -3,6 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { LockKeyhole, SquarePen, X, Loader2, Globe } from 'lucide-react';
 import { assets } from '../../../assets/assets';
 import DynamicTable from '../../../common/DynamicTable';
+import PageLoader from '../../../common/PageLoader';
 import { getCollegeById, toggleCollegeStatus, setCollegePassword } from '../../../services/admin/adminServices';
 import { toast } from 'react-toastify';
 import { useMain } from '../../../context/MainContext';
@@ -123,12 +124,7 @@ const CollegeProfile = () => {
   };
 
   if (isLoading) {
-    return (
-      <div className="flex flex-col items-center justify-center min-h-[400px] gap-3">
-        <Loader2 className="w-8 h-8 text-blue-600 animate-spin" />
-        <p className="text-secondary font-medium mt-2">Loading Profile...</p>
-      </div>
-    );
+    return <PageLoader />;
   }
 
   if (error || !college) {
@@ -363,6 +359,16 @@ const CollegeProfile = () => {
                   </div>
                 </SectionCard>
               </div>
+
+              <SectionCard title="Payment & Payout Details" className="mt-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-6">
+                  <DetailItem label="Account Holder" value={college.accountHolderName || 'N/A'} />
+                  <DetailItem label="Bank" value={college.bankName || 'N/A'} />
+                  <DetailItem label="Branch" value={college.branchName || 'N/A'} />
+                  <DetailItem label="Account Number" value={college.accountNumber || 'N/A'} />
+                  <DetailItem label="IFSC" value={college.ifscCode || 'N/A'} />
+                </div>
+              </SectionCard>
 
               <SectionCard title="About Us" className="mt-6">
                 <p className="text-[14px] md:text-[15px] text-secondary leading-[1.8] font-medium whitespace-pre-wrap">
