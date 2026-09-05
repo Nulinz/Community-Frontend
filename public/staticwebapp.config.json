@@ -1,6 +1,62 @@
 {
+  "routes": [
+    {
+      "route": "/.well-known/assetlinks.json",
+      "headers": {
+        "Content-Type": "application/json",
+        "Access-Control-Allow-Origin": "*"
+      }
+    },
+    {
+      "route": "/.well-known/apple-app-site-association",
+      "headers": {
+        "Content-Type": "application/json",
+        "Access-Control-Allow-Origin": "*"
+      }
+    },
+    {
+      "route": "/apple-app-site-association",
+      "headers": {
+        "Content-Type": "application/json",
+        "Access-Control-Allow-Origin": "*"
+      }
+    },
+    {
+      "route": "/share",
+      "serve": "/share/index.html",
+      "statusCode": 200
+    },
+    {
+      "route": "/share/*",
+      "serve": "/share/index.html",
+      "statusCode": 200
+    },
+    {
+      "route": "/referral",
+      "serve": "/referral/index.html",
+      "statusCode": 200
+    },
+    {
+      "route": "/referral/*",
+      "serve": "/referral/index.html",
+      "statusCode": 200
+    }
+  ],
   "navigationFallback": {
     "rewrite": "/index.html",
-    "exclude": ["/assets/*", "/icons/*", "/*.{ico,png,svg,json,css,js}"]
+    "exclude": [
+      "/assets/*",
+      "/icons/*",
+      "/.well-known/*",
+      "/apple-app-site-association",
+      "/share",
+      "/share/*",
+      "/referral",
+      "/referral/*",
+      "/*.{ico,png,svg,json,css,js,html}"
+    ]
+  },
+  "mimeTypes": {
+    ".json": "application/json"
   }
 }
