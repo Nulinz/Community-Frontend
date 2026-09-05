@@ -29,30 +29,34 @@ const LandingPage = () => {
   const [activeTab, setActiveTab] = useState("");
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
-  // Intersection observer state for smooth left-to-right entrance transition on Career OS cards
+  // Intersection observer state for smooth entrance transitions
   const careerOsRef = useRef(null);
   const [isCareerOsVisible, setIsCareerOsVisible] = useState(false);
 
+  const ecosystemRef = useRef(null);
+  const [isEcosystemVisible, setIsEcosystemVisible] = useState(false);
+
   useEffect(() => {
     const observer = new IntersectionObserver(
-      ([entry]) => {
-        if (entry.isIntersecting) {
-          setIsCareerOsVisible(true);
-        }
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            if (entry.target === careerOsRef.current) {
+              setIsCareerOsVisible(true);
+            }
+            if (entry.target === ecosystemRef.current) {
+              setIsEcosystemVisible(true);
+            }
+          }
+        });
       },
       { threshold: 0.15 }
     );
 
-    const currentEl = careerOsRef.current;
-    if (currentEl) {
-      observer.observe(currentEl);
-    }
+    if (careerOsRef.current) observer.observe(careerOsRef.current);
+    if (ecosystemRef.current) observer.observe(ecosystemRef.current);
 
-    return () => {
-      if (currentEl) {
-        observer.unobserve(currentEl);
-      }
-    };
+    return () => observer.disconnect();
   }, []);
 
   const scrollToSection = (id) => {
@@ -75,7 +79,7 @@ const LandingPage = () => {
           <img
             src={assets.landing_logo}
             alt="GradEnvy Logo"
-            className="h-8 md:h-9 w-auto object-contain transition-transform group-hover:scale-105"
+            className="h-8 md:h-11 w-auto object-contain transition-transform group-hover:scale-105"
             onError={(e) => {
               e.target.onerror = null;
               e.target.src = assets.gradEnvyLogo;
@@ -96,11 +100,10 @@ const LandingPage = () => {
               <button
                 key={item.id}
                 onClick={() => scrollToSection(item.id)}
-                className={`relative py-1 transition-all ${
-                  isActive
-                    ? "text-white font-semibold after:absolute after:bottom-0 after:left-0 after:w-full after:h-[2px] after:bg-white"
-                    : "text-gray-300 hover:text-white"
-                }`}
+                className={`relative py-1 transition-all ${isActive
+                  ? "text-white font-semibold after:absolute after:bottom-0 after:left-0 after:w-full after:h-[2px] after:bg-white"
+                  : "text-gray-300 hover:text-white"
+                  }`}
               >
                 {item.label}
               </button>
@@ -167,8 +170,10 @@ const LandingPage = () => {
           {/* ── Exact Text Placement Overlay matching screenshot ── */}
           <div className="absolute inset-0 z-20 w-full px-6 sm:px-10 md:px-12 lg:px-20 pt-6 sm:pt-8 md:pt-10 lg:pt-14 xl:pt-16 pointer-events-auto">
             <div className="max-w-4xl space-y-3 sm:space-y-4 md:space-y-5 text-left">
-              {/* Main Headline */}
-              <h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-[46px] xl:text-[52px] font-extrabold text-white tracking-tight leading-[1.12] drop-shadow-sm">
+              <h1
+                style={{ lineHeight: 1.0 }}
+                className="text-2xl sm:text-3xl md:text-4xl lg:text-[46px] xl:text-[52px] font-bold text-white tracking-tight drop-shadow-sm"
+              >
                 Every skill. Every connection. Every opportunity.
               </h1>
 
@@ -343,7 +348,11 @@ const LandingPage = () => {
       {/* ─────────────────────────────────────────────────────────────
           3. SECTION: OUR ECOSYSTEM (Three pillars. One profile.)
       ───────────────────────────────────────────────────────────── */}
-      <section id="ecosystem" className="relative z-10 py-24 bg-[#FAFAFD] text-slate-900 px-6 md:px-[80px] overflow-hidden">
+      <section
+        id="ecosystem"
+        ref={ecosystemRef}
+        className="relative z-10 py-24 bg-[#FAFAFD] text-slate-900 px-6 md:px-[80px] overflow-hidden"
+      >
         {/* Subtle 3-Color Ambient Background Mesh */}
         <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_18%_50%,rgba(124,58,237,0.16),transparent_50%),radial-gradient(ellipse_at_50%_55%,rgba(16,185,129,0.14),transparent_50%),radial-gradient(ellipse_at_82%_50%,rgba(245,158,11,0.16),transparent_50%)] pointer-events-none" />
 
@@ -364,13 +373,15 @@ const LandingPage = () => {
           {/* 3 Pillar Cards Grid */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8 items-stretch">
             {/* Card 1: Freelancing */}
-            <div className="group relative overflow-hidden rounded-2xl p-8 bg-white/20 backdrop-blur-[48px] backdrop-saturate-150 border border-white/60 shadow-[0_8px_32px_0_rgba(31,38,135,0.05),inset_0_1px_1px_rgba(255,255,255,0.8)] flex flex-col justify-between hover:-translate-y-1.5 hover:bg-white/35 hover:border-white hover:shadow-[0_20px_40px_rgba(0,0,0,0.08),inset_0_1px_2px_rgba(255,255,255,0.9)] transition-all duration-300">
+            <div className="group relative overflow-hidden rounded-2xl p-8 bg-white/90 hover:bg-[#F8F9FF] backdrop-blur-xl border border-slate-200/80 hover:border-indigo-300/80 shadow-[0_4px_24px_rgba(0,0,0,0.03)] hover:shadow-[0_20px_45px_-12px_rgba(79,70,229,0.18)] hover:-translate-y-1 transition-all duration-300 flex flex-col justify-between">
               {/* Glass Specular Glare */}
-              <div className="pointer-events-none absolute inset-0 bg-gradient-to-b from-white/35 via-white/5 to-transparent rounded-2xl" />
+              <div className="pointer-events-none absolute inset-0 bg-gradient-to-b from-white/40 via-white/5 to-transparent rounded-2xl" />
 
               <div className="relative z-10 space-y-4">
                 <div className="text-center">
-                  <span className="text-[#7C3AED] font-bold text-sm sm:text-base">Freelancing</span>
+                  <span className="text-slate-700 group-hover:text-indigo-600 font-bold text-sm sm:text-base tracking-wide transition-colors">
+                    Freelancing
+                  </span>
                 </div>
                 <h3 className="text-xl sm:text-2xl font-bold text-[#090D16] leading-snug">
                   Freelancing — the foundation of Grad Envy
@@ -379,7 +390,7 @@ const LandingPage = () => {
                   Turn your skills into real-world experience. Connect with companies, startups, and organizations, and build a portfolio backed by verified work and client reviews.
                 </p>
 
-                {/* Tag Pills */}
+                {/* Tag Pills with Staggered Scroll-In & Hover States */}
                 <div className="flex flex-wrap gap-2 pt-3">
                   {[
                     "FREELANCE OPPORTUNITIES",
@@ -391,7 +402,13 @@ const LandingPage = () => {
                   ].map((tag, idx) => (
                     <span
                       key={idx}
-                      className="bg-[#F3F4F6] text-[#4B5563] px-3 py-1.5 rounded-md text-[10px] font-outfit font-semibold tracking-wider uppercase"
+                      style={{
+                        transitionDelay: `${idx * 45}ms`,
+                      }}
+                      className={`border border-transparent bg-[#F3F4F6] text-[#4B5563] hover:bg-indigo-50 hover:text-indigo-600 hover:border-indigo-200/80 hover:scale-105 px-3 py-1.5 rounded-md text-[10px] font-outfit font-semibold tracking-wider uppercase transition-all duration-500 ease-out cursor-default transform ${isEcosystemVisible
+                          ? "opacity-100 translate-y-0"
+                          : "opacity-0 translate-y-3"
+                        }`}
                     >
                       {tag}
                     </span>
@@ -399,18 +416,22 @@ const LandingPage = () => {
                 </div>
               </div>
 
-              {/* Bottom Purple Line Accent */}
-              <div className="relative z-10 h-1 bg-[#7C3AED] rounded-full w-full mt-8" />
+              {/* Indigo Bottom-Bar that fills left-to-right on hover */}
+              <div className="relative z-10 h-1 bg-slate-200/70 rounded-full w-full mt-8 overflow-hidden">
+                <div className="h-full bg-indigo-600 rounded-full w-0 group-hover:w-full transition-all duration-500 ease-out" />
+              </div>
             </div>
 
             {/* Card 2: Companies */}
-            <div className="group relative overflow-hidden rounded-2xl p-8 bg-white/20 backdrop-blur-[48px] backdrop-saturate-150 border border-white/60 shadow-[0_8px_32px_0_rgba(31,38,135,0.05),inset_0_1px_1px_rgba(255,255,255,0.8)] flex flex-col justify-between hover:-translate-y-1.5 hover:bg-white/35 hover:border-white hover:shadow-[0_20px_40px_rgba(0,0,0,0.08),inset_0_1px_2px_rgba(255,255,255,0.9)] transition-all duration-300">
+            <div className="group relative overflow-hidden rounded-2xl p-8 bg-white/90 hover:bg-[#F8F9FF] backdrop-blur-xl border border-slate-200/80 hover:border-indigo-300/80 shadow-[0_4px_24px_rgba(0,0,0,0.03)] hover:shadow-[0_20px_45px_-12px_rgba(79,70,229,0.18)] hover:-translate-y-1 transition-all duration-300 flex flex-col justify-between">
               {/* Glass Specular Glare */}
-              <div className="pointer-events-none absolute inset-0 bg-gradient-to-b from-white/35 via-white/5 to-transparent rounded-2xl" />
+              <div className="pointer-events-none absolute inset-0 bg-gradient-to-b from-white/40 via-white/5 to-transparent rounded-2xl" />
 
               <div className="relative z-10 space-y-4">
                 <div className="text-center">
-                  <span className="text-[#10B981] font-bold text-sm sm:text-base">Companies</span>
+                  <span className="text-slate-700 group-hover:text-indigo-600 font-bold text-sm sm:text-base tracking-wide transition-colors">
+                    Companies
+                  </span>
                 </div>
                 <h3 className="text-xl sm:text-2xl font-bold text-[#090D16] leading-snug">
                   Discover talent beyond resumes
@@ -419,7 +440,7 @@ const LandingPage = () => {
                   Publish freelance projects, internships, and roles. Strengthen your employer brand and hire with confidence.
                 </p>
 
-                {/* Tag Pills */}
+                {/* Tag Pills with Staggered Scroll-In & Hover States */}
                 <div className="flex flex-wrap gap-2 pt-3">
                   {[
                     "COMPANY PROFILE",
@@ -429,7 +450,13 @@ const LandingPage = () => {
                   ].map((tag, idx) => (
                     <span
                       key={idx}
-                      className="bg-[#F3F4F6] text-[#4B5563] px-3 py-1.5 rounded-md text-[10px] font-outfit font-semibold tracking-wider uppercase"
+                      style={{
+                        transitionDelay: `${idx * 45}ms`,
+                      }}
+                      className={`border border-transparent bg-[#F3F4F6] text-[#4B5563] hover:bg-indigo-50 hover:text-indigo-600 hover:border-indigo-200/80 hover:scale-105 px-3 py-1.5 rounded-md text-[10px] font-outfit font-semibold tracking-wider uppercase transition-all duration-500 ease-out cursor-default transform ${isEcosystemVisible
+                          ? "opacity-100 translate-y-0"
+                          : "opacity-0 translate-y-3"
+                        }`}
                     >
                       {tag}
                     </span>
@@ -437,18 +464,22 @@ const LandingPage = () => {
                 </div>
               </div>
 
-              {/* Bottom Green Line Accent */}
-              <div className="relative z-10 h-1 bg-[#10B981] rounded-full w-full mt-8" />
+              {/* Indigo Bottom-Bar that fills left-to-right on hover */}
+              <div className="relative z-10 h-1 bg-slate-200/70 rounded-full w-full mt-8 overflow-hidden">
+                <div className="h-full bg-indigo-600 rounded-full w-0 group-hover:w-full transition-all duration-500 ease-out" />
+              </div>
             </div>
 
             {/* Card 3: Events */}
-            <div className="group relative overflow-hidden rounded-2xl p-8 bg-white/20 backdrop-blur-[48px] backdrop-saturate-150 border border-white/60 shadow-[0_8px_32px_0_rgba(31,38,135,0.05),inset_0_1px_1px_rgba(255,255,255,0.8)] flex flex-col justify-between hover:-translate-y-1.5 hover:bg-white/35 hover:border-white hover:shadow-[0_20px_40px_rgba(0,0,0,0.08),inset_0_1px_2px_rgba(255,255,255,0.9)] transition-all duration-300">
+            <div className="group relative overflow-hidden rounded-2xl p-8 bg-white/90 hover:bg-[#F8F9FF] backdrop-blur-xl border border-slate-200/80 hover:border-indigo-300/80 shadow-[0_4px_24px_rgba(0,0,0,0.03)] hover:shadow-[0_20px_45px_-12px_rgba(79,70,229,0.18)] hover:-translate-y-1 transition-all duration-300 flex flex-col justify-between">
               {/* Glass Specular Glare */}
-              <div className="pointer-events-none absolute inset-0 bg-gradient-to-b from-white/35 via-white/5 to-transparent rounded-2xl" />
+              <div className="pointer-events-none absolute inset-0 bg-gradient-to-b from-white/40 via-white/5 to-transparent rounded-2xl" />
 
               <div className="relative z-10 space-y-4">
                 <div className="text-center">
-                  <span className="text-[#F59E0B] font-bold text-sm sm:text-base">Events</span>
+                  <span className="text-slate-700 group-hover:text-indigo-600 font-bold text-sm sm:text-base tracking-wide transition-colors">
+                    Events
+                  </span>
                 </div>
                 <h3 className="text-xl sm:text-2xl font-bold text-[#090D16] leading-snug">
                   Every event creates new opportunity
@@ -457,7 +488,7 @@ const LandingPage = () => {
                   Discover workshops, hackathons, conferences, and career fairs that become milestones on your profile.
                 </p>
 
-                {/* Tag Pills */}
+                {/* Tag Pills with Staggered Scroll-In & Hover States */}
                 <div className="flex flex-wrap gap-2 pt-3">
                   {[
                     "WORKSHOPS",
@@ -467,7 +498,13 @@ const LandingPage = () => {
                   ].map((tag, idx) => (
                     <span
                       key={idx}
-                      className="bg-[#F3F4F6] text-[#4B5563] px-3 py-1.5 rounded-md text-[10px] font-outfit font-semibold tracking-wider uppercase"
+                      style={{
+                        transitionDelay: `${idx * 45}ms`,
+                      }}
+                      className={`border border-transparent bg-[#F3F4F6] text-[#4B5563] hover:bg-indigo-50 hover:text-indigo-600 hover:border-indigo-200/80 hover:scale-105 px-3 py-1.5 rounded-md text-[10px] font-outfit font-semibold tracking-wider uppercase transition-all duration-500 ease-out cursor-default transform ${isEcosystemVisible
+                          ? "opacity-100 translate-y-0"
+                          : "opacity-0 translate-y-3"
+                        }`}
                     >
                       {tag}
                     </span>
@@ -475,8 +512,10 @@ const LandingPage = () => {
                 </div>
               </div>
 
-              {/* Bottom Orange Line Accent */}
-              <div className="relative z-10 h-1 bg-[#F59E0B] rounded-full w-full mt-8" />
+              {/* Indigo Bottom-Bar that fills left-to-right on hover */}
+              <div className="relative z-10 h-1 bg-slate-200/70 rounded-full w-full mt-8 overflow-hidden">
+                <div className="h-full bg-indigo-600 rounded-full w-0 group-hover:w-full transition-all duration-500 ease-out" />
+              </div>
             </div>
           </div>
         </div>
@@ -493,7 +532,7 @@ const LandingPage = () => {
         <div className="w-full space-y-10 flex flex-col justify-between h-full">
           {/* Header */}
           <div className="text-center space-y-4 max-w-2xl mx-auto">
-            <h2 className="text-4xl sm:text-5xl lg:text-[52px] font-bold text-white tracking-tight leading-tight">
+            <h2 className="text-4xl sm:text-5xl lg:text-[52px] font-semibold text-white tracking-tight leading-tight">
               One project can <br />
               change your whole trajectory.
             </h2>
@@ -546,11 +585,10 @@ const LandingPage = () => {
                 style={{
                   transitionDelay: `${idx * 140}ms`,
                 }}
-                className={`relative bg-[#0F172A] p-6 rounded-2xl border border-white/5 flex flex-col justify-between min-h-[190px] shadow-xl group hover:border-white/20 transition-all duration-700 ease-out transform ${
-                  isCareerOsVisible
-                    ? "opacity-100 translate-x-0"
-                    : "opacity-0 -translate-x-12"
-                }`}
+                className={`relative bg-[#0F172A] p-6 rounded-2xl border border-white/5 flex flex-col justify-between min-h-[190px] shadow-xl group hover:border-white/20 transition-all duration-700 ease-out transform ${isCareerOsVisible
+                  ? "opacity-100 translate-x-0"
+                  : "opacity-0 -translate-x-12"
+                  }`}
               >
                 <div>
                   {/* Top Step Number & Indicator Line */}
@@ -578,11 +616,10 @@ const LandingPage = () => {
                     style={{
                       transitionDelay: `${idx * 140 + 200}ms`,
                     }}
-                    className={`hidden lg:flex absolute -right-3.5 top-1/2 -translate-y-1/2 w-7 h-7 rounded-full bg-[#13192e] border border-white/10 items-center justify-center z-20 shadow-md transition-all duration-500 transform ${
-                      isCareerOsVisible
-                        ? "opacity-100 scale-100"
-                        : "opacity-0 scale-50"
-                    }`}
+                    className={`hidden lg:flex absolute -right-3.5 top-1/2 -translate-y-1/2 w-7 h-7 rounded-full bg-[#13192e] border border-white/10 items-center justify-center z-20 shadow-md transition-all duration-500 transform ${isCareerOsVisible
+                      ? "opacity-100 scale-100"
+                      : "opacity-0 scale-50"
+                      }`}
                   >
                     <ArrowRight size={14} className={card.textColor} />
                   </div>
@@ -600,11 +637,11 @@ const LandingPage = () => {
         <div className="w-full max-w-[1340px] mx-auto space-y-16">
           {/* Section Header */}
           <div className="text-center space-y-4 max-w-4xl mx-auto">
-            <h2 className="text-4xl sm:text-5xl font-extrabold text-[#090D16] tracking-tight leading-tight">
+            <h2 className="text-4xl sm:text-5xl font-bold text-[#090D16] tracking-tight leading-tight">
               Everything is connected
             </h2>
-            <p className="text-slate-600 text-xs sm:text-sm leading-relaxed max-w-4xl mx-auto opacity-90">
-              Imagine discovering an AI tool that helps you build a project. You showcase that project in your professional portfolio. A company discovers your profile and invites you to collaborate on a freelance project. Your successful project strengthens your portfolio and earns positive client reviews. You participate in a hackathon, expand your professional network, and gain industry recognition. Those achievements help you secure internships, career opportunities, and long-term professional growth. That's not multiple disconnected platforms. That's one connected professional ecosystem. That's Grad Envy.
+            <p className="text-slate-600 text-xs sm:text-sm md:text-base leading-relaxed max-w-3xl mx-auto opacity-90">
+              Discover AI tools, showcase real projects, collaborate on freelance work, and compete in hackathons — all building toward a single verified profile that unlocks internships and career opportunities. Not separate platforms, just one connected ecosystem.
             </p>
           </div>
 
@@ -619,7 +656,7 @@ const LandingPage = () => {
                 <span className="text-[#2563EB] text-[11px] font-outfit font-bold tracking-widest uppercase block">
                   AI STATION
                 </span>
-                <h3 className="text-2xl sm:text-3xl font-extrabold text-[#090D16] tracking-tight">
+                <h3 className="text-2xl sm:text-3xl font-semibold text-[#090D16] tracking-tight">
                   Learn faster. Build smarter.
                 </h3>
                 <p className="text-slate-500 text-xs sm:text-sm leading-relaxed">
@@ -705,7 +742,7 @@ const LandingPage = () => {
                 <span className="text-[#2563EB] text-[11px] font-outfit font-bold tracking-widest uppercase block">
                   CAREER OS
                 </span>
-                <h3 className="text-2xl sm:text-3xl font-extrabold text-[#090D16] tracking-tight">
+                <h3 className="text-2xl sm:text-3xl font-semibold text-[#090D16] tracking-tight">
                   Your career. Connected.
                 </h3>
                 <p className="text-slate-500 text-xs sm:text-sm leading-relaxed">
@@ -748,7 +785,7 @@ const LandingPage = () => {
                 <span className="text-[#2563EB] text-[11px] font-outfit font-bold tracking-widest uppercase block">
                   PROFESSIONAL NETWORKING
                 </span>
-                <h3 className="text-2xl sm:text-3xl font-extrabold text-[#090D16] tracking-tight">
+                <h3 className="text-2xl sm:text-3xl font-semibold text-[#090D16] tracking-tight">
                   Build meaningful professional connections.
                 </h3>
                 <p className="text-slate-500 text-xs sm:text-sm leading-relaxed">
@@ -787,7 +824,7 @@ const LandingPage = () => {
                 <span className="text-[#2563EB] text-[11px] font-outfit font-bold tracking-widest uppercase block">
                   UNIVERSITY PLATFORM
                 </span>
-                <h3 className="text-2xl sm:text-3xl font-extrabold text-[#090D16] tracking-tight">
+                <h3 className="text-2xl sm:text-3xl font-semibold text-[#090D16] tracking-tight">
                   Empowering universities through digital engagement.
                 </h3>
                 <p className="text-slate-500 text-xs sm:text-sm leading-relaxed">
@@ -828,7 +865,7 @@ const LandingPage = () => {
                 <span className="text-[#2563EB] text-[11px] font-outfit font-bold tracking-widest uppercase block">
                   ENVY LEAGUE
                 </span>
-                <h3 className="text-2xl sm:text-3xl font-extrabold text-[#090D16] tracking-tight">
+                <h3 className="text-2xl sm:text-3xl font-semibold text-[#090D16] tracking-tight">
                   Compete. Improve. Get recognized.
                 </h3>
                 <p className="text-slate-500 text-xs sm:text-sm leading-relaxed">
@@ -954,8 +991,8 @@ const LandingPage = () => {
       ───────────────────────────────────────────────────────────── */}
       {/* <section id="explore-platform" className="relative z-10 py-24 bg-[#050716] px-6 md:px-[80px] border-t border-white/10">
         <div className="w-full max-w-[1340px] mx-auto space-y-12"> */}
-          {/* Header */}
-          {/* <div className="text-left space-y-3 max-w-3xl">
+      {/* Header */}
+      {/* <div className="text-left space-y-3 max-w-3xl">
             <span className="text-[#0095FF] text-[11px] font-outfit font-bold tracking-widest uppercase block">
               EXPLORE THE PLATFORM
             </span>
@@ -967,8 +1004,8 @@ const LandingPage = () => {
             </p>
           </div> */}
 
-          {/* 3-Column Grid Table */}
-          {/* <div className="grid grid-cols-1 md:grid-cols-3 border-t border-l border-white/10 rounded-2xl overflow-hidden bg-[#070a1e]/60 shadow-2xl">
+      {/* 3-Column Grid Table */}
+      {/* <div className="grid grid-cols-1 md:grid-cols-3 border-t border-l border-white/10 rounded-2xl overflow-hidden bg-[#070a1e]/60 shadow-2xl">
             {[
               "Home Dashboard",
               "Envy Marketplace",
@@ -1018,7 +1055,7 @@ const LandingPage = () => {
                 CONNECTED CAREER JOURNEY
               </span>
             </div>
-            <h2 className="text-4xl sm:text-5xl lg:text-[52px] font-extrabold text-[#090D16] tracking-tight leading-tight">
+            <h2 className="text-4xl sm:text-5xl lg:text-[52px] font-bold text-[#090D16] tracking-tight leading-tight">
               Every experience builds your future
             </h2>
             <p className="text-slate-600 text-xs sm:text-sm leading-relaxed max-w-4xl mx-auto">
@@ -1042,7 +1079,7 @@ const LandingPage = () => {
               <span className="text-slate-400 text-[10px] font-outfit font-bold tracking-widest uppercase block">
                 READY TO SHAPE WHAT'S NEXT
               </span>
-              <h3 className="text-3xl sm:text-4xl lg:text-[46px] font-extrabold text-white tracking-tight leading-[1.15]">
+              <h3 className="text-3xl sm:text-4xl lg:text-[46px] font-bold text-white tracking-tight leading-[1.15]">
                 Build skills. Create opportunities. <br />
                 Shape your future.
               </h3>
