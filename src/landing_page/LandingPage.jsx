@@ -36,6 +36,9 @@ const LandingPage = () => {
   const ecosystemRef = useRef(null);
   const [isEcosystemVisible, setIsEcosystemVisible] = useState(false);
 
+  const howItWorksRef = useRef(null);
+  const [isHowItWorksVisible, setIsHowItWorksVisible] = useState(false);
+
   useEffect(() => {
     const observer = new IntersectionObserver(
       (entries) => {
@@ -47,6 +50,9 @@ const LandingPage = () => {
             if (entry.target === ecosystemRef.current) {
               setIsEcosystemVisible(true);
             }
+            if (entry.target === howItWorksRef.current) {
+              setIsHowItWorksVisible(true);
+            }
           }
         });
       },
@@ -55,6 +61,7 @@ const LandingPage = () => {
 
     if (careerOsRef.current) observer.observe(careerOsRef.current);
     if (ecosystemRef.current) observer.observe(ecosystemRef.current);
+    if (howItWorksRef.current) observer.observe(howItWorksRef.current);
 
     return () => observer.disconnect();
   }, []);
@@ -406,8 +413,8 @@ const LandingPage = () => {
                         transitionDelay: `${idx * 45}ms`,
                       }}
                       className={`border border-transparent bg-[#F3F4F6] text-[#4B5563] hover:bg-indigo-50 hover:text-indigo-600 hover:border-indigo-200/80 hover:scale-105 px-3 py-1.5 rounded-md text-[10px] font-outfit font-semibold tracking-wider uppercase transition-all duration-500 ease-out cursor-default transform ${isEcosystemVisible
-                          ? "opacity-100 translate-y-0"
-                          : "opacity-0 translate-y-3"
+                        ? "opacity-100 translate-y-0"
+                        : "opacity-0 translate-y-3"
                         }`}
                     >
                       {tag}
@@ -454,8 +461,8 @@ const LandingPage = () => {
                         transitionDelay: `${idx * 45}ms`,
                       }}
                       className={`border border-transparent bg-[#F3F4F6] text-[#4B5563] hover:bg-indigo-50 hover:text-indigo-600 hover:border-indigo-200/80 hover:scale-105 px-3 py-1.5 rounded-md text-[10px] font-outfit font-semibold tracking-wider uppercase transition-all duration-500 ease-out cursor-default transform ${isEcosystemVisible
-                          ? "opacity-100 translate-y-0"
-                          : "opacity-0 translate-y-3"
+                        ? "opacity-100 translate-y-0"
+                        : "opacity-0 translate-y-3"
                         }`}
                     >
                       {tag}
@@ -502,8 +509,8 @@ const LandingPage = () => {
                         transitionDelay: `${idx * 45}ms`,
                       }}
                       className={`border border-transparent bg-[#F3F4F6] text-[#4B5563] hover:bg-indigo-50 hover:text-indigo-600 hover:border-indigo-200/80 hover:scale-105 px-3 py-1.5 rounded-md text-[10px] font-outfit font-semibold tracking-wider uppercase transition-all duration-500 ease-out cursor-default transform ${isEcosystemVisible
-                          ? "opacity-100 translate-y-0"
-                          : "opacity-0 translate-y-3"
+                        ? "opacity-100 translate-y-0"
+                        : "opacity-0 translate-y-3"
                         }`}
                     >
                       {tag}
@@ -905,10 +912,19 @@ const LandingPage = () => {
       {/* ─────────────────────────────────────────────────────────────
           6. SECTION: HOW GRAD ENVY WORKS (Exact Screenshot UI)
       ───────────────────────────────────────────────────────────── */}
-      <section id="how-it-works" className="relative z-10 py-20 lg:py-28 bg-[#FAFAFD] text-slate-900 px-6 sm:px-10 md:px-16 lg:px-24 border-t border-slate-200/60">
+      <section
+        id="how-it-works"
+        ref={howItWorksRef}
+        className="relative z-10 py-20 lg:py-28 bg-[#FAFAFD] text-slate-900 px-6 sm:px-10 md:px-16 lg:px-24 border-t border-slate-200/60 overflow-hidden"
+      >
         <div className="w-full max-w-[1240px] mx-auto space-y-12 sm:space-y-14">
           {/* Centered Top Header */}
-          <div className="text-center space-y-3 max-w-4xl mx-auto">
+          <div
+            className={`text-center space-y-3 max-w-4xl mx-auto transition-all duration-700 ease-out transform ${isHowItWorksVisible
+              ? "opacity-100 translate-y-0"
+              : "opacity-0 translate-y-8"
+              }`}
+          >
             <span className="text-[#6366F1] text-[12px] font-outfit font-bold tracking-[0.2em] uppercase block">
               HOW GRAD ENVY WORKS
             </span>
@@ -961,19 +977,29 @@ const LandingPage = () => {
             ].map((card, idx) => (
               <div
                 key={idx}
-                className={`${card.span} relative bg-white rounded-2xl p-6 sm:p-5 border border-slate-100 shadow-[0_4px_25px_rgba(0,0,0,0.03)] overflow-hidden flex items-start sm:items-center gap-4 sm:gap-6 hover:shadow-lg hover:border-slate-200 transition-all duration-300`}
+                style={{
+                  transitionDelay: `${idx * 140}ms`,
+                }}
+                className={`${card.span} relative bg-white rounded-2xl p-6 sm:p-5 border border-slate-100 shadow-[0_4px_25px_rgba(0,0,0,0.03)] overflow-hidden flex items-start sm:items-center gap-4 sm:gap-6 group hover:shadow-xl hover:border-slate-300 hover:-translate-y-1 transition-all duration-700 ease-out transform cursor-pointer ${isHowItWorksVisible
+                  ? "opacity-100 translate-y-0 scale-100"
+                  : "opacity-0 translate-y-10 scale-[0.98]"
+                  }`}
               >
                 {/* Left Colored Accent Stripe */}
-                <div className={`w-1.5 ${card.color} absolute left-0 top-0 bottom-0`} />
+                <div
+                  className={`w-1.5 group-hover:w-2.5 ${card.color} absolute left-0 top-0 bottom-0 transition-all duration-300`}
+                />
 
                 {/* Circular Step Badge */}
-                <div className={`w-10 h-10 rounded-full ${card.color} text-white font-bold text-xs sm:text-sm flex items-center justify-center flex-shrink-0 shadow-sm`}>
+                <div
+                  className={`w-10 h-10 rounded-full ${card.color} text-white font-bold text-xs sm:text-sm flex items-center justify-center flex-shrink-0 shadow-sm group-hover:scale-110 transition-transform duration-300`}
+                >
                   {card.step}
                 </div>
 
                 {/* Text Content */}
                 <div className="space-y-1">
-                  <h3 className="text-base sm:text-lg font-bold text-[#0F172A] tracking-tight">
+                  <h3 className="text-base sm:text-lg font-bold text-[#0F172A] tracking-tight group-hover:text-blue-600 transition-colors duration-200">
                     {card.title}
                   </h3>
                   <p className="text-slate-500 text-xs sm:text-sm leading-relaxed">
@@ -1209,8 +1235,10 @@ const LandingPage = () => {
                 </span>
                 <ul className="space-y-2.5 text-xs text-slate-400">
                   {[
-                    { label: "Help Center", path: "/auth/login" },
-                    { label: "Privacy Policy", path: "/privacy-policy" },
+                    { label: "Privacy Policy", path: "/privacy_policy" },
+                    { label: "Terms & Conditions", path: "/termsandconditions" },
+                    { label: "Delete My Account", path: "/delete_account" },
+                    { label: "Return and Refund Policy", path: "/returnandrefundpolicy" },
                   ].map((item, idx) => (
                     <li key={idx}>
                       <button onClick={() => navigate(item.path)} className="hover:text-[#0095FF] transition-colors">

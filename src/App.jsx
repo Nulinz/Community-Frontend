@@ -10,6 +10,9 @@ import CompanyLayout from "./layout/company/CompanyLayout";
 import Login from "./pages/auth/Login";
 import LandingPage from "./landing_page/LandingPage";
 import PrivacyPolicy from "./landing_page/PrivacyPolicy";
+import DeleteAccount from "./landing_page/DeleteAccount";
+import Terms from "./landing_page/Terms";
+import RefundPolicy from "./landing_page/RefundPolicy";
 import ForgotPassword from "./pages/auth/ForgotPassword";
 import ChangePassword from "./pages/auth/CreatePassword";
 import HomeLayout from "./layout/HomeLayout";
@@ -87,8 +90,15 @@ const App = () => {
         {/* Root & Landing routes */}
         <Route path="/" element={<LandingPage />} />
         <Route path="/landing" element={<LandingPage />} />
-        <Route path="/privacy-policy" element={<PrivacyPolicy />} />
+        <Route path="/privacy_policy" element={<PrivacyPolicy />} />
         <Route path="/privacy" element={<PrivacyPolicy />} />
+        <Route path="/delete_account" element={<DeleteAccount />} />
+        <Route path="/delete-account" element={<DeleteAccount />} />
+        <Route path="/termsandconditions" element={<Terms />} />
+        <Route path="/terms" element={<Terms />} />
+        <Route path="/returnandrefundpolicy" element={<RefundPolicy />} />
+        <Route path="/refund-cancellation-policy" element={<RefundPolicy />} />
+        <Route path="/refundpolicy" element={<RefundPolicy />} />
         <Route path="/job" element={<MobileJobRedirect />} />
         <Route path="/event" element={<MobileEventRedirect />} />
         {/* Auth routes */}

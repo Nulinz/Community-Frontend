@@ -50,7 +50,7 @@ const PrivacyPolicy = () => {
 
     return (
         <div className="min-h-screen bg-white text-slate-800 font-outfit selection:bg-blue-600 selection:text-white flex flex-col justify-between">
-    {/* ─────────────────────────────────────────────────────────────
+            {/* ─────────────────────────────────────────────────────────────
         1. HEADER NAVIGATION
     ───────────────────────────────────────────────────────────── */}
             <header className="sticky top-0 z-50 w-full bg-[#080808]/90 backdrop-blur-md px-6 md:px-[80px] py-4 flex items-center justify-between transition-all border-b border-white/10">
@@ -143,8 +143,8 @@ const PrivacyPolicy = () => {
                                         key={item.id}
                                         onClick={() => scrollToSection(item.id)}
                                         className={`text-left text-xs sm:text-[13px] leading-relaxed py-2.5 px-3.5 rounded-xl transition-all duration-200 flex items-start gap-1.5 ${isActive
-                                                ? "bg-[#EBF5FF] text-[#0070F3] font-bold shadow-sm"
-                                                : "text-slate-600 hover:text-slate-900 hover:bg-slate-50 font-medium"
+                                            ? "bg-[#EBF5FF] text-[#0070F3] font-bold shadow-sm"
+                                            : "text-slate-600 hover:text-slate-900 hover:bg-slate-50 font-medium"
                                             }`}
                                     >
                                         <span className="shrink-0">{item.number}</span>
@@ -606,9 +606,10 @@ const PrivacyPolicy = () => {
                                 </span>
                                 <ul className="space-y-2.5 text-xs sm:text-sm text-gray-300">
                                     {[
-                                        { label: "Help Center", path: "/auth/login" },
-                                        { label: "Privacy Policy", path: "/privacy-policy" },
-                                        { label: "Terms & Conditions", path: "/auth/login" },
+                                        // { label: "Privacy Policy", path: "/privacy_policy" },
+                                        { label: "Terms & Conditions", path: "/termsandconditions" },
+                                        { label: "Delete My Account", path: "/delete_account" },
+                                        { label: "Return and Refund Policy", path: "/returnandrefundpolicy" },
                                     ].map((item, idx) => (
                                         <li key={idx}>
                                             <button

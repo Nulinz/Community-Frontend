@@ -22,6 +22,14 @@
       }
     },
     {
+      "route": "/referral/assets/*",
+      "serve": "/referral/assets/*"
+    },
+    {
+      "route": "/share/assets/*",
+      "serve": "/share/assets/*"
+    },
+    {
       "route": "/share",
       "serve": "/share/index.html",
       "statusCode": 200
@@ -49,8 +57,10 @@
       "/icons/*",
       "/.well-known/*",
       "/apple-app-site-association",
+      "/share/assets/*",
       "/share",
       "/share/*",
+      "/referral/assets/*",
       "/referral",
       "/referral/*",
       "/*.{ico,png,svg,json,css,js,html}"
