@@ -1,0 +1,54 @@
+# azurefrontend.yml
+trigger:
+  branches:
+    include:
+      - main
+
+pool:
+  vmImage: 'ubuntu-latest'
+
+stages:
+- stage: Build
+  jobs:
+  - job: BuildJob
+    steps:
+      - checkout: self
+
+      - task: NodeTool@0
+        inputs:
+          versionSpec: '22.x'
+        displayName: 'Set up Node.js'
+
+      - script: |
+          npm install
+          npm run build
+        displayName: 'npm install and build'
+
+      - task: PublishBuildArtifacts@1
+        inputs:
+          pathToPublish: 'dist'
+          artifactName: 'frontend'
+          publishLocation: 'Container'
+
+- stage: Deploy
+  dependsOn: Build
+  jobs:
+  - job: DeployJob
+    steps:
+      - download: current
+        artifact: frontend
+
+      # If deploying to Azure Static Web App
+      - task: AzureStaticWebApp@0
+        inputs:
+          azureSubscription: 'AzureWebApp-Gradenvy'   # Service connection
+          app_location: '.'                           # Root of repo
+          output_location: 'dist'                     # Vite build output
+          skip_app_build: true                        # Already built in Build stage
+
+      # If deploying to App Service instead
+      # - task: AzureWebApp@1
+      #   inputs:
+      #     azureSubscription: 'AzureWebApp-Gradenvy'
+      #     appName: 'gradenvy-frontend'
+      #     package: '$(Pipeline.Workspace)/frontend'
