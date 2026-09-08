@@ -41,11 +41,10 @@ stages:
       # If deploying to Azure Static Web App
       - task: AzureStaticWebApp@0
         inputs:
-          azureSubscription: 'AzureWebApp-Gradenvy'   # Service connection
           app_location: '.'                           # Root of repo
           output_location: 'dist'                     # Vite build output
           skip_app_build: true                        # Already built in Build stage
-          deployment_token: '$(deployment_token)'   # secret variable
+          azure_static_web_apps_api_token: '$(deployment_token)'   # secret variable
 
       # If deploying to App Service instead
       # - task: AzureWebApp@1
