@@ -43,7 +43,7 @@ const InfluencerDashboard = () => {
   const influencerCode = user?.influencerCode || dashboardData?.influencerCode || "";
   const referralLink =
     dashboardData?.referralLink ||
-    (influencerCode ? `https://community.nulinz.com/download?influencerCode=${influencerCode}` : "");
+    (influencerCode ? `https://gradenvy.com/referral?ref=${influencerCode}` : "");
 
   const handleCopyLink = () => {
     if (!referralLink) return;

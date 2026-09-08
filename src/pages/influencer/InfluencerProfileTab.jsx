@@ -41,7 +41,7 @@ const InfluencerProfileTab = () => {
 
   const influencer = profileData || user || {};
   const influencerCode = influencer.influencerCode || "INF_CODE";
-  const referralLink = `https://community.nulinz.com/download?influencerCode=${influencerCode}`;
+  const referralLink = influencer.referralLink || `https://gradenvy.com/referral?ref=${influencerCode}`;
 
   const handleCopyLink = () => {
     navigator.clipboard.writeText(referralLink);

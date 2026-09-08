@@ -71,7 +71,8 @@ const InfluencerProfile = () => {
 
   const handleCopyLink = () => {
     const code = influencer?.influencerCode || "";
-    const link = `https://community.nulinz.com/download?influencerCode=${code}`;
+    const link = influencer?.referralLink || (code ? `https://gradenvy.com/referral?ref=${code}` : "");
+    if (!link) return;
     navigator.clipboard.writeText(link);
     setCopied(true);
     toast.success("Referral link copied to clipboard!");
@@ -186,7 +187,7 @@ const InfluencerProfile = () => {
     );
   }
 
-  const referralLink = `https://community.nulinz.com/download?influencerCode=${influencer?.influencerCode || ""}`;
+  const referralLink = influencer?.referralLink || (influencer?.influencerCode ? `https://gradenvy.com/referral?ref=${influencer.influencerCode}` : "");
 
   return (
     <div className="animate-in fade-in duration-500">
