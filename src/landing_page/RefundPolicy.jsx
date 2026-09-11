@@ -1,27 +1,19 @@
-import React, { useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import { Menu, X } from "lucide-react";
 import { assets } from "../assets/assets";
 
 /**
  * RefundPolicy Component
  *
- * Exact React JSX conversion of refund-cancellation-policy.blade.php adhering strictly to the original
- * visual styles, typography, gradients, pills, feature dots, and responsive breakpoints.
- *
- * Responsibilities:
- * - Displays the legal Refund & Cancellation Policy for GradEnvy (Infinity Enterprises).
- * - Implements the identical blue-gradient header (#0052ea to #0038a8) with the updated date pill.
- * - Renders the floating elevated card (-48px desktop / -32px mobile) with exact shadows, borders, and margins.
- * - Faithfully retains all policy conditions, timeframes (7 days, 7-10 business days), email and phone contact links.
- * - Supports full landing layout integration (navigation header & footer) with optional standalone mode.
+ * Refund & Cancellation Policy for GradEnvy.
+ * Synchronized with the global LandingPage navigation header and PrivacyPolicy dark hero section.
  */
 const RefundPolicy = ({ showLayout = true }) => {
   const navigate = useNavigate();
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
-  // Set document title matching blade @section('page_name') adapted to Grad Envy
-  useEffect(() => {
-    document.title = "Refund & Cancellation Policy - Grad Envy";
-  }, []);
+
 
   // Format today's date dynamically as 'M j, Y' (e.g., 'Sep 7, 2026') matching Laravel now()->format('M j, Y')
   const formattedDate = new Intl.DateTimeFormat("en-US", {
@@ -33,34 +25,9 @@ const RefundPolicy = ({ showLayout = true }) => {
   const legalContent = (
     <div className="legal-page-wrapper w-full bg-[#f8fafc]">
       {/* ─────────────────────────────────────────────────────────────
-          EXACT STYLES IMPORTED FROM refund-cancellation-policy.blade.php
+          EXACT STYLES IMPORTED FROM refund-cancellation-policy
       ───────────────────────────────────────────────────────────── */}
       <style>{`
-        .legal-header {
-          background: linear-gradient(135deg, #0052ea 0%, #0038a8 100%);
-          padding: 64px 16px 84px;
-          text-align: center;
-        }
-
-        .legal-header h1 {
-          color: #fff;
-          font-weight: 700;
-          font-size: clamp(26px, 4vw, 38px);
-          margin-bottom: 14px;
-        }
-
-        .legal-updated-pill {
-          display: inline-flex;
-          align-items: center;
-          gap: 8px;
-          background: rgba(255, 255, 255, .15);
-          color: #fff;
-          font-size: 13.5px;
-          font-weight: 600;
-          padding: 7px 16px;
-          border-radius: 30px;
-        }
-
         .legal-body {
           padding: 0 16px 64px;
         }
@@ -73,6 +40,8 @@ const RefundPolicy = ({ showLayout = true }) => {
           border: 1px solid #d7dee7;
           box-shadow: 0 10px 30px rgba(20, 30, 60, .08);
           padding: 40px 44px;
+          position: relative;
+          z-index: 20;
         }
 
         .legal-card p,
@@ -141,22 +110,31 @@ const RefundPolicy = ({ showLayout = true }) => {
         }
       `}</style>
 
-      {/* Header Section */}
-      <section className="legal-header">
-        <h1>Refund &amp; Cancellation Policy</h1>
-        <span className="legal-updated-pill">
-          <span
-            style={{
-              width: "8px",
-              height: "8px",
-              borderRadius: "50%",
-              backgroundColor: "#fff",
-              display: "inline-block",
-              flexShrink: 0,
-            }}
-          />
-          Last updated {formattedDate}
-        </span>
+      {/* ─────────────────────────────────────────────────────────────
+          2. HERO HEADER BANNER (DARK GRADIENT - EXACTLY LIKE PrivacyPolicy)
+      ───────────────────────────────────────────────────────────── */}
+      <section className="relative w-full bg-[#050814] pt-16 pb-20 px-6 md:px-[80px] text-center overflow-hidden border-b border-white/10">
+        {/* Background Subtle Radial Blue Glow */}
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[300px] bg-[#0084FF]/15 rounded-full blur-[120px] pointer-events-none" />
+
+        <div className="relative z-10 max-w-3xl mx-auto space-y-4">
+          {/* Pill Badge */}
+          <div className="inline-block">
+            <span className="px-5 py-1.5 rounded-full text-[11px] font-outfit font-bold tracking-widest uppercase bg-[#0C1527]/90 text-[#00A3FF] border border-[#00A3FF]/40 backdrop-blur-md">
+              GRAD ENVY
+            </span>
+          </div>
+
+          {/* Main Title */}
+          <h1 className="text-4xl sm:text-5xl lg:text-[56px] font-extrabold text-white tracking-tight leading-tight">
+            Refund &amp; Cancellation Policy
+          </h1>
+
+          {/* Subtitle / Last Updated */}
+          <p className="text-gray-400 text-sm sm:text-base font-normal">
+            Last updated {formattedDate}
+          </p>
+        </div>
       </section>
 
       {/* Body Card Section */}
@@ -164,7 +142,7 @@ const RefundPolicy = ({ showLayout = true }) => {
         <div className="legal-card">
           <p>
             This Refund &amp; Cancellation Policy explains the terms under which subscription purchases made on
-            GradEnvy, a service of Infinity Enterprises, may be cancelled or refunded.
+            GradEnvy may be cancelled or refunded.
           </p>
 
           <h2>
@@ -219,12 +197,13 @@ const RefundPolicy = ({ showLayout = true }) => {
           <p>
             To request a cancellation or refund, contact us at{" "}
             <a href="mailto:info@nulinz.com">info@nulinz.com</a> or call{" "}
-            <a href="tel:+919003300571">+91 9003300571</a> with your registered mobile number, order/payment
+            <a href="tel:+919080408749">+91 90804 08749</a> with your registered mobile number, order/payment
             details, and reason for the request. See our{" "}
             <a
-              href="mailto:info@nulinz.com?subject=Contact%20Us"
+              href="/contact"
               onClick={(e) => {
-                // Navigates or contacts support
+                e.preventDefault();
+                navigate("/contact");
               }}
             >
               Contact Us
@@ -267,51 +246,115 @@ const RefundPolicy = ({ showLayout = true }) => {
 
   return (
     <div className="min-h-screen bg-[#f8fafc] text-slate-800 font-outfit selection:bg-blue-600 selection:text-white flex flex-col justify-between">
-      {/* ─────────────────────────────────────────────────────────────
-          1. HEADER NAVIGATION (Matching GradEnvy Landing Layout)
-      ───────────────────────────────────────────────────────────── */}
-      <header className="sticky top-0 z-50 w-full bg-[#080808]/90 backdrop-blur-md px-6 md:px-[80px] py-4 flex items-center justify-between transition-all border-b border-white/10">
-        {/* Brand Logo */}
-        <div
-          onClick={() => navigate("/")}
-          className="flex items-center gap-3 cursor-pointer group"
-        >
-          <img
-            src={assets.landing_logo}
-            alt="GradEnvy Logo"
-            className="h-10 w-auto object-contain transition-transform group-hover:scale-105"
-            onError={(e) => {
-              e.target.onerror = null;
-              e.target.src = assets.gradEnvyLogo;
-            }}
-          />
+      {/* ── Top Navigation Bar (Fully responsive on mobile, tablet & desktop - matching LandingPage) ── */}
+      <header className="sticky top-0 z-50 w-full bg-[#000000] border-b border-white/5 transition-all">
+        <div className="w-full max-w-[1440px] mx-auto px-4 sm:px-6 md:px-8 lg:px-10 xl:px-16 py-3 sm:py-3.5 lg:py-4 flex items-center justify-between gap-4">
+          {/* Brand Logo */}
+          <div
+            onClick={() => navigate("/")}
+            className="flex items-center gap-3 cursor-pointer group flex-shrink-0"
+          >
+            <img
+              src={assets.landing_logo}
+              alt="GradEnvy Logo"
+              className="h-7 sm:h-8 lg:h-9 xl:h-10 w-auto object-contain transition-transform group-hover:scale-105"
+              onError={(e) => {
+                e.target.onerror = null;
+                e.target.src = assets.gradEnvyLogo;
+              }}
+            />
+          </div>
+
+          {/* Center Navigation Links (Hidden on mobile/tablet < 1024px, fluid on lg/xl) */}
+          <nav className="hidden lg:flex items-center gap-4 xl:gap-7 2xl:gap-9 text-[13px] xl:text-[14px] 2xl:text-[15px] font-medium tracking-wide">
+            {[
+              { label: "Why Choose", path: "/#why-choose" },
+              { label: "AI station", path: "/#ai-station" },
+              { label: "Career OS", path: "/#career-os" },
+              { label: "How it Works", path: "/#how-it-works" },
+              { label: "Contact Us", path: "/contact" },
+            ].map((item, idx) => (
+              <button
+                key={idx}
+                onClick={() => navigate(item.path)}
+                className="relative py-1 whitespace-nowrap text-gray-300 hover:text-white transition-all"
+              >
+                {item.label}
+              </button>
+            ))}
+          </nav>
+
+          {/* Right Action: Pill buttons on desktop & Mobile/Tablet Menu Toggle */}
+          <div className="flex items-center gap-2 sm:gap-3 flex-shrink-0">
+            <button
+              onClick={() => navigate("/auth/login?type=company")}
+              className="hidden lg:inline-flex px-3.5 py-1.5 xl:px-5 xl:py-2 2xl:px-6 rounded-full text-xs xl:text-sm font-semibold bg-white text-black hover:bg-gray-100 shadow-md transition-all hover:scale-105 active:scale-95 whitespace-nowrap"
+            >
+              Company Sign in
+            </button>
+            <button
+              onClick={() => navigate("/auth/login?type=college")}
+              className="hidden lg:inline-flex px-3.5 py-1.5 xl:px-5 xl:py-2 2xl:px-6 rounded-full text-xs xl:text-sm font-semibold bg-white text-black hover:bg-gray-100 shadow-md transition-all hover:scale-105 active:scale-95 whitespace-nowrap"
+            >
+              College Sign in
+            </button>
+            <button
+              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+              className="lg:hidden text-gray-300 hover:text-white p-1.5 sm:p-2 rounded-lg focus:outline-none hover:bg-white/5 active:bg-white/10 transition-colors"
+              aria-label="Toggle menu"
+            >
+              {mobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
+            </button>
+          </div>
         </div>
 
-        {/* Center Navigation Links */}
-        <nav className="hidden md:flex items-center gap-8 text-[15px] font-medium">
-          {[
-            { label: "Why Choose", path: "/#why-choose" },
-            { label: "AI station", path: "/#ai-station" },
-            { label: "Career OS", path: "/#career-os" },
-            { label: "How it Works", path: "/#how-it-works" },
-          ].map((item, idx) => (
-            <button
-              key={idx}
-              onClick={() => navigate(item.path)}
-              className="text-gray-300 hover:text-white transition-colors"
-            >
-              {item.label}
-            </button>
-          ))}
-        </nav>
+        {/* Mobile & Tablet Navigation Drawer */}
+        {mobileMenuOpen && (
+          <div className="lg:hidden w-full bg-[#080808]/98 backdrop-blur-xl border-t border-white/10 px-5 sm:px-8 py-4 sm:py-5 space-y-4 max-h-[calc(100vh-70px)] overflow-y-auto animate-in slide-in-from-top-2 duration-200 shadow-2xl">
+            <div className="space-y-1">
+              {[
+                { label: "Why Choose", path: "/#why-choose" },
+                { label: "AI station", path: "/#ai-station" },
+                { label: "Career OS", path: "/#career-os" },
+                { label: "How it Works", path: "/#how-it-works" },
+                { label: "Contact Us", path: "/contact" },
+              ].map((item, idx) => (
+                <button
+                  key={idx}
+                  onClick={() => {
+                    navigate(item.path);
+                    setMobileMenuOpen(false);
+                  }}
+                  className="block w-full text-left py-2.5 px-3 rounded-lg text-sm sm:text-base font-medium text-gray-200 hover:text-white hover:bg-white/5 transition-colors border-b border-white/5 last:border-none"
+                >
+                  {item.label}
+                </button>
+              ))}
+            </div>
 
-        {/* Right Sign in Pill Button */}
-        <button
-          onClick={() => navigate("/auth/login")}
-          className="px-7 py-2.5 rounded-full text-sm font-semibold bg-[#2D66FA] hover:bg-blue-600 text-white shadow-lg shadow-blue-500/20 transition-all"
-        >
-          Sign in
-        </button>
+            {/* Mobile / Tablet Sign In Buttons */}
+            <div className="pt-2 flex flex-col sm:flex-row gap-2.5 sm:gap-3">
+              <button
+                onClick={() => {
+                  navigate("/auth/login?type=company");
+                  setMobileMenuOpen(false);
+                }}
+                className="w-full sm:flex-1 py-2.5 sm:py-3 rounded-full text-sm font-semibold bg-white text-black hover:bg-gray-100 shadow-md transition-all active:scale-95 text-center"
+              >
+                Company Sign in
+              </button>
+              <button
+                onClick={() => {
+                  navigate("/auth/login?type=college");
+                  setMobileMenuOpen(false);
+                }}
+                className="w-full sm:flex-1 py-2.5 sm:py-3 rounded-full text-sm font-semibold bg-white text-black hover:bg-gray-100 shadow-md transition-all active:scale-95 text-center"
+              >
+                College Sign in
+              </button>
+            </div>
+          </div>
+        )}
       </header>
 
       {/* ─────────────────────────────────────────────────────────────
@@ -320,54 +363,85 @@ const RefundPolicy = ({ showLayout = true }) => {
       <main className="flex-grow">{legalContent}</main>
 
       {/* ─────────────────────────────────────────────────────────────
-          3. FOOTER (Matching GradEnvy Landing Layout)
+          3. COMPREHENSIVE FOOTER
       ───────────────────────────────────────────────────────────── */}
-      <footer className="w-full bg-[#080808] text-white py-16 px-6 md:px-[80px] border-t border-white/10">
-        <div className="max-w-6xl mx-auto space-y-12">
-          <div className="grid grid-cols-1 md:grid-cols-12 gap-10">
-            {/* Brand Information */}
-            <div className="md:col-span-4 space-y-4">
-              <div
-                onClick={() => navigate("/")}
-                className="flex items-center gap-3 cursor-pointer group"
-              >
+      <footer className="relative z-20 bg-[#050814] pt-16 pb-12 px-6 md:px-[80px] text-white border-t border-white/10">
+        <div className="w-full max-w-[1340px] mx-auto space-y-12">
+          {/* Footer Navigation Columns */}
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 text-left">
+            {/* Brand Left Column */}
+            <div className="lg:col-span-6 space-y-6">
+              <div className="flex items-center gap-3">
                 <img
                   src={assets.landing_logo}
-                  alt="GradEnvy Logo"
-                  className="h-10 w-auto object-contain transition-transform group-hover:scale-105"
+                  alt="GradEnvy"
+                  className="h-10 w-auto object-contain cursor-pointer"
+                  onClick={() => navigate("/")}
                   onError={(e) => {
                     e.target.onerror = null;
                     e.target.src = assets.gradEnvyLogo;
                   }}
                 />
               </div>
-              <p className="text-xs sm:text-sm text-gray-400 leading-relaxed">
-                Next-gen career operating system connecting ambition with industry. Build
-                proof of work, attend verified events, and accelerate your path to top
-                tech roles.
+              <p className="text-gray-400 text-xs sm:text-sm leading-relaxed max-w-md">
+                A connected professional ecosystem where freelancing, career development, networking, recruitment, AI-powered learning, and events come together to build future-ready professionals.
               </p>
+
+              {/* Social Icons */}
+              <div className="flex items-center gap-3 pt-2">
+                <a
+                  href="https://x.com/GradEnvyIndia"
+                  className="w-9 h-9 rounded-full bg-white/10 flex items-center justify-center text-gray-300 hover:text-white hover:bg-white/20 transition-all"
+                  aria-label="Twitter"
+                >
+                  <svg className="w-4 h-4 fill-current" viewBox="0 0 24 24">
+                    <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z" />
+                  </svg>
+                </a>
+                <a
+                  href="https://www.instagram.com/gradenvyofficial?stkn=MWt2eWdkeXJhcno5Ng%3D%3D&utm_source=qr"                  className="w-9 h-9 rounded-full bg-white/10 flex items-center justify-center text-gray-300 hover:text-white hover:bg-white/20 transition-all"
+                  aria-label="Instagram"
+                >
+                  <svg className="w-4 h-4 fill-none stroke-current stroke-2" viewBox="0 0 24 24" strokeLinecap="round" strokeLinejoin="round">
+                    <rect x="2" y="2" width="20" height="20" rx="5" ry="5" />
+                    <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z" />
+                    <line x1="17.5" y1="6.5" x2="17.51" y2="6.5" />
+                  </svg>
+                </a>
+                <a
+                  href="https://www.youtube.com/@GradEnvyOfficial"
+                  className="w-9 h-9 rounded-full bg-white/10 flex items-center justify-center text-gray-300 hover:text-white hover:bg-white/20 transition-all"
+                  aria-label="YouTube"
+                >
+                  <svg className="w-4 h-4 fill-current" viewBox="0 0 24 24">
+                    <path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z" />
+                  </svg>
+                </a>
+              </div>
             </div>
 
-            {/* Links Columns */}
-            <div className="md:col-span-8 grid grid-cols-2 sm:grid-cols-3 gap-8">
-              {/* Column 1: QUICK LINKS */}
+            {/* Nav Right Columns */}
+            <div className="lg:col-span-6 grid grid-cols-3 gap-8">
+              {/* Column 1: PLATFORM */}
               <div className="space-y-4">
                 <span className="text-[#0095FF] text-[11px] font-outfit font-bold tracking-widest uppercase block">
-                  QUICK LINKS
+                  PLATFORM
                 </span>
                 <ul className="space-y-2.5 text-xs sm:text-sm text-gray-300">
                   {[
-                    { label: "Features", path: "/#why-choose" },
-                    { label: "How it Works", path: "/#how-it-works" },
-                    { label: "App Features", path: "/#career-os" },
-                    { label: "AI Station", path: "/#ai-station" },
+                    "AI Station",
+                    "Prompt Hub",
+                    "Career OS",
+                    "Envy Marketplace",
+                    "Envy League",
+                    "University Platform",
                   ].map((item, idx) => (
                     <li key={idx}>
                       <button
-                        onClick={() => navigate(item.path)}
+                        onClick={() => navigate("")}
                         className="hover:text-white transition-colors text-left"
                       >
-                        {item.label}
+                        {item}
                       </button>
                     </li>
                   ))}
@@ -381,17 +455,17 @@ const RefundPolicy = ({ showLayout = true }) => {
                 </span>
                 <ul className="space-y-2.5 text-xs sm:text-sm text-gray-300">
                   {[
-                    "About Grad Envy",
-                    "Vision",
-                    "Mission",
-                    "Contact Us",
+                    { label: "About Grad Envy", path: "" },
+                    { label: "Vision", path: "" },
+                    { label: "Mission", path: "" },
+                    { label: "Contact Us", path: "/contact" },
                   ].map((item, idx) => (
                     <li key={idx}>
                       <button
-                        onClick={() => navigate("/auth/login")}
+                        onClick={() => navigate(item.path)}
                         className="hover:text-white transition-colors text-left"
                       >
-                        {item}
+                        {item.label}
                       </button>
                     </li>
                   ))}
@@ -407,8 +481,8 @@ const RefundPolicy = ({ showLayout = true }) => {
                   {[
                     { label: "Privacy Policy", path: "/privacy_policy" },
                     { label: "Terms & Conditions", path: "/termsandconditions" },
-                    // { label: "Refund Policy", path: "/returnandrefundpolicy" },
                     { label: "Delete My Account", path: "/delete_account" },
+                    { label: "Return and Refund Policy", path: "/returnandrefundpolicy" },
                   ].map((item, idx) => (
                     <li key={idx}>
                       <button
@@ -425,34 +499,8 @@ const RefundPolicy = ({ showLayout = true }) => {
           </div>
 
           {/* Bottom Copyright & Security Links Bar */}
-          <div className="border-t border-white/10 pt-8 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-gray-400">
+          <div className="border-t border-white/10 pt-8 flex flex-col sm:flex-row items-center justify-center gap-4 text-xs text-gray-400">
             <p>© 2026 Grad Envy. All rights reserved.</p>
-            <div className="flex items-center gap-6">
-              <button
-                onClick={() => navigate("/privacy_policy")}
-                className="hover:text-white transition-colors"
-              >
-                Privacy Policy
-              </button>
-              <button
-                onClick={() => navigate("/termsandconditions")}
-                className="hover:text-white transition-colors"
-              >
-                Terms &amp; Conditions
-              </button>
-              <button
-                onClick={() => navigate("/returnandrefundpolicy")}
-                className="hover:text-white transition-colors"
-              >
-                Refund Policy
-              </button>
-              <button
-                onClick={() => navigate("/delete_account")}
-                className="hover:text-white transition-colors"
-              >
-                Delete Account
-              </button>
-            </div>
           </div>
         </div>
       </footer>

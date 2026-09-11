@@ -210,6 +210,7 @@ const JobsProfile = ({ module = 'admin', jobType = 'Internship' }) => {
   const description = String(internship?.description || '').trim();
   const certificateAvailability = String(internship?.certificateAvailability || '').trim();
   const jobCategory = String(internship?.jobCategory || '').trim();
+  const domain = String(internship?.domain || '').trim();
 
   const formatSalary = (data) => {
     if (!data) return '-';
@@ -603,6 +604,9 @@ const JobsProfile = ({ module = 'admin', jobType = 'Internship' }) => {
             )}
             {jobCategory.length > 0 && (
               <TextCard title="Job Category / Department" text={jobCategory} />
+            )}
+            {domain.length > 0 && (
+              <TextCard title="Domain" text={domain} />
             )}
           </div>
         ) : activeTab === 'applied' ? (

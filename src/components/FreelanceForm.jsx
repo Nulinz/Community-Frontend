@@ -24,6 +24,7 @@ const freelanceFormConfig = [
     type: "static",
     fields: [
       { name: "jobTitle", label: "Project Title", type: "text" },
+      { name: "domain", label: "Domain", type: "text", placeholder: "e.g. Web Development, UI/UX Design, Content Writing" },
       {
         name: "companyName",
         label: "Organizer",

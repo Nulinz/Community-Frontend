@@ -16,6 +16,7 @@ const internshipFormConfig = [
     fields: [
       { name: "internshipType", label: "Internship Type", type: "radio", options: ["Paid", "Unpaid"] },
       { name: "jobTitle", label: "Internship Title", type: "text" },
+      { name: "domain", label: "Domain", type: "text", placeholder: "e.g. Software Development, Marketing, Finance" },
       { name: "organizer", label: "Organizer", type: "text" },
       { name: "mode", label: "Mode", type: "select", options: ["On-site", "Hybrid", "Remote"] },
       {

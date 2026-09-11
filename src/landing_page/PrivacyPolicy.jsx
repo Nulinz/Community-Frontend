@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import { Menu, X } from "lucide-react";
 import { assets } from "../assets/assets";
 
 const tocItems = [
@@ -19,6 +20,7 @@ const tocItems = [
 
 const PrivacyPolicy = () => {
     const navigate = useNavigate();
+    const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
     const [activeSection, setActiveSection] = useState("section-1");
 
     const scrollToSection = (id) => {
@@ -50,51 +52,115 @@ const PrivacyPolicy = () => {
 
     return (
         <div className="min-h-screen bg-white text-slate-800 font-outfit selection:bg-blue-600 selection:text-white flex flex-col justify-between">
-            {/* ─────────────────────────────────────────────────────────────
-        1. HEADER NAVIGATION
-    ───────────────────────────────────────────────────────────── */}
-            <header className="sticky top-0 z-50 w-full bg-[#080808]/90 backdrop-blur-md px-6 md:px-[80px] py-4 flex items-center justify-between transition-all border-b border-white/10">
-                {/* Brand Logo */}
-                <div
-                    onClick={() => navigate("/")}
-                    className="flex items-center gap-3 cursor-pointer group"
-                >
-                    <img
-                        src={assets.landing_logo}
-                        alt="GradEnvy Logo"
-                        className="h-10 w-auto object-contain transition-transform group-hover:scale-105"
-                        onError={(e) => {
-                            e.target.onerror = null;
-                            e.target.src = assets.gradEnvyLogo;
-                        }}
-                    />
+            {/* ── Top Navigation Bar (Fully responsive on mobile, tablet & desktop - matching LandingPage) ── */}
+            <header className="sticky top-0 z-50 w-full bg-[#000000] border-b border-white/5 transition-all">
+                <div className="w-full max-w-[1440px] mx-auto px-4 sm:px-6 md:px-8 lg:px-10 xl:px-16 py-3 sm:py-3.5 lg:py-4 flex items-center justify-between gap-4">
+                    {/* Brand Logo */}
+                    <div
+                        onClick={() => navigate("/")}
+                        className="flex items-center gap-3 cursor-pointer group flex-shrink-0"
+                    >
+                        <img
+                            src={assets.landing_logo}
+                            alt="GradEnvy Logo"
+                            className="h-7 sm:h-8 lg:h-9 xl:h-10 w-auto object-contain transition-transform group-hover:scale-105"
+                            onError={(e) => {
+                                e.target.onerror = null;
+                                e.target.src = assets.gradEnvyLogo;
+                            }}
+                        />
+                    </div>
+
+                    {/* Center Navigation Links (Hidden on mobile/tablet < 1024px, fluid on lg/xl) */}
+                    <nav className="hidden lg:flex items-center gap-4 xl:gap-7 2xl:gap-9 text-[13px] xl:text-[14px] 2xl:text-[15px] font-medium tracking-wide">
+                        {[
+                            { label: "Why Choose", path: "/#why-choose" },
+                            { label: "AI station", path: "/#ai-station" },
+                            { label: "Career OS", path: "/#career-os" },
+                            { label: "How it Works", path: "/#how-it-works" },
+                            { label: "Contact Us", path: "/contact" },
+                        ].map((item, idx) => (
+                            <button
+                                key={idx}
+                                onClick={() => navigate(item.path)}
+                                className="relative py-1 whitespace-nowrap text-gray-300 hover:text-white transition-all"
+                            >
+                                {item.label}
+                            </button>
+                        ))}
+                    </nav>
+
+                    {/* Right Action: Pill buttons on desktop & Mobile/Tablet Menu Toggle */}
+                    <div className="flex items-center gap-2 sm:gap-3 flex-shrink-0">
+                        <button
+                            onClick={() => navigate("/auth/login?type=company")}
+                            className="hidden lg:inline-flex px-3.5 py-1.5 xl:px-5 xl:py-2 2xl:px-6 rounded-full text-xs xl:text-sm font-semibold bg-white text-black hover:bg-gray-100 shadow-md transition-all hover:scale-105 active:scale-95 whitespace-nowrap"
+                        >
+                            Company Sign in
+                        </button>
+                        <button
+                            onClick={() => navigate("/auth/login?type=college")}
+                            className="hidden lg:inline-flex px-3.5 py-1.5 xl:px-5 xl:py-2 2xl:px-6 rounded-full text-xs xl:text-sm font-semibold bg-white text-black hover:bg-gray-100 shadow-md transition-all hover:scale-105 active:scale-95 whitespace-nowrap"
+                        >
+                            College Sign in
+                        </button>
+                        <button
+                            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+                            className="lg:hidden text-gray-300 hover:text-white p-1.5 sm:p-2 rounded-lg focus:outline-none hover:bg-white/5 active:bg-white/10 transition-colors"
+                            aria-label="Toggle menu"
+                        >
+                            {mobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
+                        </button>
+                    </div>
                 </div>
 
-                {/* Center Navigation Links */}
-                <nav className="hidden md:flex items-center gap-8 text-[15px] font-medium">
-                    {[
-                        { label: "Why Choose", path: "/#why-choose" },
-                        { label: "AI station", path: "/#ai-station" },
-                        { label: "Career OS", path: "/#career-os" },
-                        { label: "How it Works", path: "/#how-it-works" },
-                    ].map((item, idx) => (
-                        <button
-                            key={idx}
-                            onClick={() => navigate(item.path)}
-                            className="text-gray-300 hover:text-white transition-colors"
-                        >
-                            {item.label}
-                        </button>
-                    ))}
-                </nav>
+                {/* Mobile & Tablet Navigation Drawer */}
+                {mobileMenuOpen && (
+                    <div className="lg:hidden w-full bg-[#080808]/98 backdrop-blur-xl border-t border-white/10 px-5 sm:px-8 py-4 sm:py-5 space-y-4 max-h-[calc(100vh-70px)] overflow-y-auto animate-in slide-in-from-top-2 duration-200 shadow-2xl">
+                        <div className="space-y-1">
+                            {[
+                                { label: "Why Choose", path: "/#why-choose" },
+                                { label: "AI station", path: "/#ai-station" },
+                                { label: "Career OS", path: "/#career-os" },
+                                { label: "How it Works", path: "/#how-it-works" },
+                                { label: "Contact Us", path: "/contact" },
+                            ].map((item, idx) => (
+                                <button
+                                    key={idx}
+                                    onClick={() => {
+                                        navigate(item.path);
+                                        setMobileMenuOpen(false);
+                                    }}
+                                    className="block w-full text-left py-2.5 px-3 rounded-lg text-sm sm:text-base font-medium text-gray-200 hover:text-white hover:bg-white/5 transition-colors border-b border-white/5 last:border-none"
+                                >
+                                    {item.label}
+                                </button>
+                            ))}
+                        </div>
 
-                {/* Right Sign in Pill Button */}
-                <button
-                    onClick={() => navigate("/auth/login")}
-                    className="px-7 py-2.5 rounded-full text-sm font-semibold bg-[#2D66FA] hover:bg-blue-600 text-white shadow-lg  transition-all"
-                >
-                    Sign in
-                </button>
+                        {/* Mobile / Tablet Sign In Buttons */}
+                        <div className="pt-2 flex flex-col sm:flex-row gap-2.5 sm:gap-3">
+                            <button
+                                onClick={() => {
+                                    navigate("/auth/login?type=company");
+                                    setMobileMenuOpen(false);
+                                }}
+                                className="w-full sm:flex-1 py-2.5 sm:py-3 rounded-full text-sm font-semibold bg-white text-black hover:bg-gray-100 shadow-md transition-all active:scale-95 text-center"
+                            >
+                                Company Sign in
+                            </button>
+                            <button
+                                onClick={() => {
+                                    navigate("/auth/login?type=college");
+                                    setMobileMenuOpen(false);
+                                }}
+                                className="w-full sm:flex-1 py-2.5 sm:py-3 rounded-full text-sm font-semibold bg-white text-black hover:bg-gray-100 shadow-md transition-all active:scale-95 text-center"
+                            >
+                                College Sign in
+                            </button>
+                        </div>
+                    </div>
+                )}
             </header>
 
             {/* ─────────────────────────────────────────────────────────────
@@ -507,16 +573,7 @@ const PrivacyPolicy = () => {
                             {/* Social Icons */}
                             <div className="flex items-center gap-3 pt-2">
                                 <a
-                                    href="#"
-                                    className="w-9 h-9 rounded-full bg-white/10 flex items-center justify-center text-gray-300 hover:text-white hover:bg-white/20 transition-all"
-                                    aria-label="LinkedIn"
-                                >
-                                    <svg className="w-4 h-4 fill-current" viewBox="0 0 24 24">
-                                        <path d="M19 3a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h14m-.5 15.5v-5.3a3.26 3.26 0 0 0-3.26-3.26c-.85 0-1.84.52-2.28 1.3v-1.11h-2.79v8.37h2.79v-4.93c0-.77.62-1.4 1.39-1.4a1.4 1.4 0 0 1 1.4 1.4v4.93h2.75M6.88 8.56a1.68 1.68 0 0 0 1.68-1.68c0-.93-.75-1.69-1.68-1.69a1.69 1.69 0 0 0-1.69 1.69c0 .93.76 1.68 1.69 1.68m1.39 9.94v-8.37H5.5v8.37h2.77z" />
-                                    </svg>
-                                </a>
-                                <a
-                                    href="#"
+                                    href="https://x.com/GradEnvyIndia"
                                     className="w-9 h-9 rounded-full bg-white/10 flex items-center justify-center text-gray-300 hover:text-white hover:bg-white/20 transition-all"
                                     aria-label="Twitter"
                                 >
@@ -525,8 +582,7 @@ const PrivacyPolicy = () => {
                                     </svg>
                                 </a>
                                 <a
-                                    href="#"
-                                    className="w-9 h-9 rounded-full bg-white/10 flex items-center justify-center text-gray-300 hover:text-white hover:bg-white/20 transition-all"
+                                    href="https://www.instagram.com/gradenvyofficial?stkn=MWt2eWdkeXJhcno5Ng%3D%3D&utm_source=qr"                                    className="w-9 h-9 rounded-full bg-white/10 flex items-center justify-center text-gray-300 hover:text-white hover:bg-white/20 transition-all"
                                     aria-label="Instagram"
                                 >
                                     <svg className="w-4 h-4 fill-none stroke-current stroke-2" viewBox="0 0 24 24" strokeLinecap="round" strokeLinejoin="round">
@@ -536,7 +592,7 @@ const PrivacyPolicy = () => {
                                     </svg>
                                 </a>
                                 <a
-                                    href="#"
+                                    href="https://www.youtube.com/@GradEnvyOfficial"
                                     className="w-9 h-9 rounded-full bg-white/10 flex items-center justify-center text-gray-300 hover:text-white hover:bg-white/20 transition-all"
                                     aria-label="YouTube"
                                 >
@@ -565,7 +621,7 @@ const PrivacyPolicy = () => {
                                     ].map((item, idx) => (
                                         <li key={idx}>
                                             <button
-                                                onClick={() => navigate("/auth/login")}
+                                                onClick={() => navigate("")}
                                                 className="hover:text-white transition-colors text-left"
                                             >
                                                 {item}
@@ -582,17 +638,17 @@ const PrivacyPolicy = () => {
                                 </span>
                                 <ul className="space-y-2.5 text-xs sm:text-sm text-gray-300">
                                     {[
-                                        "About Grad Envy",
-                                        "Vision",
-                                        "Mission",
-                                        "Contact Us",
+                                        { label: "About Grad Envy", path: "" },
+                                        { label: "Vision", path: "" },
+                                        { label: "Mission", path: "" },
+                                        { label: "Contact Us", path: "/contact" },
                                     ].map((item, idx) => (
                                         <li key={idx}>
                                             <button
-                                                onClick={() => navigate("/auth/login")}
+                                                onClick={() => navigate(item.path)}
                                                 className="hover:text-white transition-colors text-left"
                                             >
-                                                {item}
+                                                {item.label}
                                             </button>
                                         </li>
                                     ))}
@@ -606,7 +662,7 @@ const PrivacyPolicy = () => {
                                 </span>
                                 <ul className="space-y-2.5 text-xs sm:text-sm text-gray-300">
                                     {[
-                                        // { label: "Privacy Policy", path: "/privacy_policy" },
+                                        { label: "Privacy Policy", path: "/privacy_policy" },
                                         { label: "Terms & Conditions", path: "/termsandconditions" },
                                         { label: "Delete My Account", path: "/delete_account" },
                                         { label: "Return and Refund Policy", path: "/returnandrefundpolicy" },
@@ -626,22 +682,8 @@ const PrivacyPolicy = () => {
                     </div>
 
                     {/* Bottom Copyright & Security Links Bar */}
-                    <div className="border-t border-white/10 pt-8 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-gray-400">
+                    <div className="border-t border-white/10 pt-8 flex flex-col sm:flex-row items-center justify-center gap-4 text-xs text-gray-400">
                         <p>© 2026 Grad Envy. All rights reserved.</p>
-                        <div className="flex items-center gap-6">
-                            <button
-                                onClick={() => navigate("/auth/login")}
-                                className="hover:text-white transition-colors"
-                            >
-                                Cookies Settings
-                            </button>
-                            <button
-                                onClick={() => navigate("/auth/login")}
-                                className="hover:text-white transition-colors"
-                            >
-                                Security
-                            </button>
-                        </div>
                     </div>
                 </div>
             </footer>

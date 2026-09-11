@@ -13,6 +13,7 @@ import PrivacyPolicy from "./landing_page/PrivacyPolicy";
 import DeleteAccount from "./landing_page/DeleteAccount";
 import Terms from "./landing_page/Terms";
 import RefundPolicy from "./landing_page/RefundPolicy";
+import ContactUs from "./landing_page/ContactUs";
 import ForgotPassword from "./pages/auth/ForgotPassword";
 import ChangePassword from "./pages/auth/CreatePassword";
 import HomeLayout from "./layout/HomeLayout";
@@ -72,7 +73,7 @@ const App = () => {
     fetchCurrentUser();
     const timer = setTimeout(() => {
       setMinLoading(false);
-    }, 3000);
+    }, 1500);
 
     return () => clearTimeout(timer);
   }, []);
@@ -99,6 +100,7 @@ const App = () => {
         <Route path="/returnandrefundpolicy" element={<RefundPolicy />} />
         <Route path="/refund-cancellation-policy" element={<RefundPolicy />} />
         <Route path="/refundpolicy" element={<RefundPolicy />} />
+        <Route path="/contact" element={<ContactUs />} />
         <Route path="/job" element={<MobileJobRedirect />} />
         <Route path="/event" element={<MobileEventRedirect />} />
         {/* Auth routes */}

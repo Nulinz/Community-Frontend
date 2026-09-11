@@ -24,18 +24,28 @@ import landingLaptop from "./images/landingLaptop.png"
 import project from "./images/project.png"
 import internship from "./images/internship.png"
 import GlobeGif from "./images/GlobeGif.gif"
+import Gradenvy from "./images/Gradenvy.png"
+import landingsecbg from "./images/landingsecbg.jpg"
+import landingsecbg1 from "./images/landingsecbg1.jpg"
+import CompanyloginBg from "./images/CompanyloginBg.png"
+import CollegeloginBg from "./images/CollegeloginBg.png"
 import phone_mockup from "./images/phone_mockup.png"
 import appstore_img from "./images/appstore_img.png"
 import playstore_img from "./images/playstore_img.png"
 import loader from "./images/loader.gif"
 
-export const assets ={
+export const assets = {
    loginBg,
    login_bg,
    landing_bg,
    landing_logo,
    gradEnvyGlobe,
    GlobeGif,
+   Gradenvy,
+   landingsecbg,
+   landingsecbg1,
+   CompanyloginBg,
+   CollegeloginBg,
    phone_mockup,
    appstore_img,
    playstore_img,
@@ -56,6 +66,6 @@ export const assets ={
    partners,
    subscription,
    user,
-   project, 
+   project,
    internship
 }

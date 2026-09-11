@@ -6,7 +6,7 @@ import AuthBase from '../../layout/AuthBase';
 import { loginUser } from '../../services/auth/authServices';
 import { toast } from 'react-toastify';
 import { Eye, EyeOff, Loader2 } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import { Link, useSearchParams } from 'react-router-dom';
 
 const InputField = ({ label, id, type, placeholder, icon: Icon, ...props }) => (
   <div className="space-y-2">
@@ -63,9 +63,22 @@ const PasswordField = ({ label, id, placeholder, ...props }) => {
 
 const Login = () => {
   const { login, fetchCurrentUser } = useMain();
+  const [searchParams] = useSearchParams();
+  const loginType = searchParams.get('type'); // "company" | "college" | null
+
   const [mobileNumber, setMobileNumber] = useState('');
   const [password, setPassword] = useState('');
-  const [loading, setLoading] = useState(false)
+  const [loading, setLoading] = useState(false);
+
+  /**
+   * Determine background image based on login entry point.
+   * Dynamically renders tailored background for company vs college sign in.
+   */
+  const getBackgroundImage = () => {
+    if (loginType === 'company') return assets.CompanyloginBg;
+    if (loginType === 'college') return assets.CollegeloginBg;
+    return assets.CompanyloginBg;
+  };
 
 
   const handleLogin = async (e) => {
@@ -100,7 +113,7 @@ const Login = () => {
 
 
   return (
-    <AuthBase maxWidth='max-w-[450px]'>
+    <AuthBase backgroundImage={getBackgroundImage()} maxWidth='max-w-[450px]'>
 
       <form
         onSubmit={handleLogin}
@@ -113,7 +126,13 @@ const Login = () => {
             alt="Nulinz Logo"
             className="mx-auto h-14 w-auto mb-1"
           />
-          <h1 className="text-[28px] font-bold text-white tracking-tight">Login</h1>
+          <h1 className="text-[28px] font-bold text-white tracking-tight">
+            {loginType === 'company'
+              ? 'Company Login'
+              : loginType === 'college'
+              ? 'College Login'
+              : 'Login'}
+          </h1>
         </div>
 
         <div className="space-y-5">

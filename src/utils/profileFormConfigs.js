@@ -540,6 +540,7 @@ export const internshipFormConfig = [
     fields: [
       { label: 'Internship Type', type: 'radio', options: ['Paid', 'Unpaid'] },
       { label: 'Job Title', type: 'text' },
+      { label: 'Domain', type: 'text' },
       { label: 'Company Name', type: 'select', options: ['Select Option', 'Company A', 'Company B', 'Company C'] },
       { label: 'Location', type: 'text' },
       { label: 'Mode', type: 'select', options: ['Online', 'Offline', 'Hybrid'] },
@@ -580,6 +581,7 @@ export const jobFormConfig = [
     fields: [
       { label: 'Job Type', type: 'radio', options: ['Full Time', 'Part Time', 'Contract'] },
       { label: 'Job Title', type: 'text' },
+      { label: 'Domain', type: 'text' },
       { label: 'Company Name', type: 'select', options: ['Select Option', 'Company A', 'Company B', 'Company C'] },
       { label: 'Location', type: 'text' },
       { label: 'Mode', type: 'select', options: ['Online', 'Offline', 'Hybrid'] },
@@ -621,6 +623,7 @@ export const freelanceFormConfig = [
     type: 'static',
     fields: [
       { label: 'Job Title', type: 'text' },
+      { label: 'Domain', type: 'text' },
       { label: 'Mode', type: 'select', options: ['Online', 'Offline', 'Hybrid'] },
       { label: 'Total Openings', type: 'number' },
       { label: 'Duration', type: 'select', options: ['No Fixed Duration', '1 Month', '3 Months', '6 Months'] },

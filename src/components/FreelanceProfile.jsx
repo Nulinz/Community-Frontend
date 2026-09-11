@@ -98,6 +98,7 @@ const FreelanceProfile = ({ module = 'admin' }) => {
   const eligibilityCriteria = cleanList(freelance?.eligibility_criteria);
   const learning = String(freelance?.learning || '').trim();
   const description = String(freelance?.description || '').trim();
+  const domain = String(freelance?.domain || '').trim();
   const budget = String(freelance?.budget || (freelance?.salary ? `Rs ${freelance.salary}` : '')).trim();
   const budgetType = String(freelance?.budgetType || '').trim();
   const paymentMethod = String(freelance?.paymentMethod || '').trim();
@@ -317,6 +318,9 @@ const FreelanceProfile = ({ module = 'admin' }) => {
             )}
             {description.length > 0 && (
               <TextCard title="Description" text={description} />
+            )}
+            {domain.length > 0 && (
+              <TextCard title="Domain" text={domain} />
             )}
             {eligibilityCriteria.length > 0 && (
               <ListCard title="Eligibility Criteria" items={eligibilityCriteria} />

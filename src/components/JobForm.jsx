@@ -13,7 +13,7 @@ const jobFormConfig = [
     fields: [
       { name: "jobType", label: "Job Type", type: "radio", options: ["Full Time", "Part Time", "Contract"] },
       { name: "jobTitle", label: "Job Title", type: "text" },
-      { name: "jobCategory", label: "Job Category / Department", type: "text", placeholder: "e.g. Software Engineering, Marketing, Finance", },
+      { name: "domain", label: "Domain", type: "text", placeholder: "e.g. Software Development, Marketing, Finance" },
       { name: "organizer", label: "Organizer", type: "text", },
       { name: "mode", label: "Mode", type: "select", options: ["On-site", "Hybrid", "Remote"] },
       {

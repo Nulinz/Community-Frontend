@@ -1,31 +1,74 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { Menu, X } from "lucide-react";
+import { toast } from "react-toastify";
+import {
+  Phone,
+  Mail,
+  MessageCircle,
+  Copy,
+  Check,
+  Clock,
+  Send,
+  HelpCircle,
+  Building2,
+  GraduationCap,
+  Briefcase,
+  ShieldCheck,
+  Menu,
+  X,
+} from "lucide-react";
 import { assets } from "../assets/assets";
 
 /**
- * Terms Component
+ * ContactUs Component
  *
- * Terms & Conditions for GradEnvy.
- * Synchronized with the global LandingPage navigation header and PrivacyPolicy dark hero section.
+ * Official Contact & Support page for GradEnvy.
+ * Strictly adheres to the visual styling, typography, elevations, and responsive breakpoints
+ * established in LandingPage.jsx and PrivacyPolicy.jsx.
+ *
+ * Architectural & UX Responsibilities:
+ * - Displays primary company communication touchpoints for GradEnvy (Mobile & Official Gmail).
+ * - Implements quick-action utilities: direct calling, WhatsApp direct routing, and one-click copy-to-clipboard.
+ * - Provides categorized departmental contact paths for students, universities, and enterprise recruiters.
+ * - Synchronized with LandingPage navigation header and PrivacyPolicy dark gradient hero banner.
  */
-const Terms = ({ showLayout = true }) => {
+const ContactUs = ({ showLayout = true }) => {
   const navigate = useNavigate();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
 
 
-  // Format today's date dynamically as 'M j, Y' (e.g., 'Sep 7, 2026') matching Laravel now()->format('M j, Y')
-  const formattedDate = new Intl.DateTimeFormat("en-US", {
-    month: "short",
-    day: "numeric",
-    year: "numeric",
-  }).format(new Date());
+  // Form input state
+  const [formData, setFormData] = useState({
+    fullName: "",
+    email: "",
+    phone: "",
+    category: "Student & Learning Support",
+    message: "",
+  });
 
-  const legalContent = (
+  const [formErrors, setFormErrors] = useState({});
+
+  // Copy state for interactive buttons
+  const [copiedType, setCopiedType] = useState(null);
+
+  /**
+   * Copies text to user clipboard with temporary visual acknowledgment
+   */
+  const handleCopy = (text, type) => {
+    navigator.clipboard.writeText(text).then(() => {
+      setCopiedType(type);
+      toast.success(`${type} copied to clipboard!`);
+      setTimeout(() => setCopiedType(null), 2500);
+    }).catch(() => {
+      toast.error("Could not copy to clipboard. Please copy manually.");
+    });
+  };
+
+  const contactContent = (
     <div className="legal-page-wrapper w-full bg-[#f8fafc]">
       {/* ─────────────────────────────────────────────────────────────
-          EXACT STYLES IMPORTED FROM terms.blade.php
+          EXACT STYLES REUSED FROM Terms.jsx & RefundPolicy.jsx
       ───────────────────────────────────────────────────────────── */}
       <style>{`
         .legal-body {
@@ -76,7 +119,7 @@ const Terms = ({ showLayout = true }) => {
           font-weight: 700;
           font-size: 18px;
           color: #1e2532;
-          margin: 32px 0 12px;
+          margin: 36px 0 14px;
         }
 
         .legal-card h2:first-of-type {
@@ -104,7 +147,7 @@ const Terms = ({ showLayout = true }) => {
 
         @media (max-width: 767.98px) {
           .legal-card {
-            padding: 32px 24px;
+            padding: 30px 20px;
             margin-top: -32px;
           }
         }
@@ -127,12 +170,12 @@ const Terms = ({ showLayout = true }) => {
 
           {/* Main Title */}
           <h1 className="text-4xl sm:text-5xl lg:text-[56px] font-extrabold text-white tracking-tight leading-tight">
-            Terms &amp; Conditions
+            Contact Us
           </h1>
 
-          {/* Subtitle / Last Updated */}
-          <p className="text-gray-400 text-sm sm:text-base font-normal">
-            Last updated {formattedDate}
+          {/* Subtitle / Description */}
+          <p className="text-gray-400 text-sm sm:text-base font-normal max-w-xl mx-auto">
+            We're here to help • Grad Envy Support &amp; Inquiries
           </p>
         </div>
       </section>
@@ -141,146 +184,260 @@ const Terms = ({ showLayout = true }) => {
       <section className="legal-body">
         <div className="legal-card">
           <p>
-            These Terms &amp; Conditions ("Terms") govern your use of GradEnvy ("we", "us", "our"), including this
-            website and mobile application (the "Service"). By creating an account
-            or using the Service, you agree to these Terms.
+            Have a question about Grad Envy, need assistance with your account, or looking to partner
+            with us? Reach out directly through phone or email, or submit an inquiry using the direct
+            message form below. Our team responds promptly during regular operating hours.
           </p>
 
+          {/* ─────────────────────────────────────────────────────────────
+              1. DIRECT COMMUNICATION CHANNELS (MOBILE & GMAIL)
+          ───────────────────────────────────────────────────────────── */}
           <h2>
-            <span className="feature-dot"></span> Eligibility &amp; Account Registration
+            <span className="feature-dot"></span> Direct Communication Channels
           </h2>
           <p>
-            You must be at least 18 years old (or have the consent of a parent or
-            legal guardian) and capable of entering into a binding contract to use
-            the Service. When creating an account, you agree to provide accurate and
-            complete information and keep your credentials secure.
+            You can reach our team directly using our official phone line or Gmail address. Click to
+            call, message on WhatsApp, or send an email directly.
           </p>
 
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 my-6">
+            {/* Mobile Contact Box */}
+            <div className="border border-[#d7dee7] hover:border-[#0052ea]/50 rounded-2xl p-5 bg-[#fbfdff] transition-all flex flex-col justify-between shadow-sm">
+              <div className="space-y-2">
+                <div className="flex items-center justify-between">
+                  <span className="inline-flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-[#0052ea]">
+                    <Phone className="w-4 h-4" /> Phone Support
+                  </span>
+                  {/* <span className="text-[11px] font-semibold px-2.5 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200">
+                    Mon – Sat
+                  </span> */}
+                </div>
+                <div className="pt-1">
+                  <div className="text-xl sm:text-2xl font-bold text-[#1e2532] tracking-tight">
+                    +91 90804 08749
+                  </div>
+                  <p className="text-xs text-slate-500 mt-1">
+                    Call directly or connect instantly on WhatsApp.
+                  </p>
+                </div>
+              </div>
+
+              <div className="pt-5 flex flex-wrap gap-2">
+                <a
+                  href="tel:+919080408749"
+                  className="inline-flex items-center justify-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-semibold bg-[#0052ea] !text-white hover:bg-[#0038a8] transition-colors shadow-sm"
+                >
+                  <Phone className="w-3.5 h-3.5" /> Call Now
+                </a>
+                <a
+                  href="https://wa.me/919080408749?text=Hello%20GradEnvy%20Team%2C%20I%20have%20an%20inquiry."
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center justify-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-semibold bg-[#25D366] !text-white hover:bg-[#1EBE5D] transition-colors shadow-sm"
+                >
+                  <MessageCircle className="w-3.5 h-3.5" /> WhatsApp
+                </a>
+                <button
+                  type="button"
+                  onClick={() => handleCopy("+919080408749", "Phone Number")}
+                  className="inline-flex items-center justify-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-semibold bg-slate-100 text-slate-700 hover:bg-slate-200 transition-colors"
+                  title="Copy Phone Number"
+                >
+                  {copiedType === "Phone Number" ? (
+                    <>
+                      <Check className="w-3.5 h-3.5 text-emerald-600" /> Copied
+                    </>
+                  ) : (
+                    <>
+                      <Copy className="w-3.5 h-3.5" /> Copy
+                    </>
+                  )}
+                </button>
+              </div>
+            </div>
+
+            {/* Gmail Contact Box */}
+            <div className="border border-[#d7dee7] hover:border-[#0052ea]/50 rounded-2xl p-5 bg-[#fbfdff] transition-all flex flex-col justify-between shadow-sm">
+              <div className="space-y-2">
+                <div className="flex items-center justify-between">
+                  <span className="inline-flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-[#0052ea]">
+                    <Mail className="w-4 h-4" /> Official Email
+                  </span>
+                  {/* <span className="text-[11px] font-semibold px-2.5 py-0.5 rounded-full bg-blue-50 text-[#0052ea] border border-blue-200">
+                    24/7 Inbox
+                  </span> */}
+                </div>
+                <div className="pt-1">
+                  <div className="text-base sm:text-lg font-bold text-[#1e2532] break-all tracking-tight">
+                    nulinz.official@gmail.com
+                  </div>
+                  <p className="text-xs text-slate-500 mt-1">
+                    Typical response within 2–4 business hours.
+                  </p>
+                </div>
+              </div>
+
+              <div className="pt-5 flex flex-wrap gap-2">
+                <a
+                  href="mailto:nulinz.official@gmail.com?subject=GradEnvy%20Inquiry"
+                  className="inline-flex items-center justify-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-semibold bg-[#0052ea] !text-white hover:bg-[#0038a8] transition-colors shadow-sm"
+                >
+                  <Mail className="w-3.5 h-3.5" /> Send Email
+                </a>
+                <button
+                  type="button"
+                  onClick={() => handleCopy("nulinz.official@gmail.com", "Email Address")}
+                  className="inline-flex items-center justify-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-semibold bg-slate-100 text-slate-700 hover:bg-slate-200 transition-colors"
+                  title="Copy Email"
+                >
+                  {copiedType === "Email Address" ? (
+                    <>
+                      <Check className="w-3.5 h-3.5 text-emerald-600" /> Copied
+                    </>
+                  ) : (
+                    <>
+                      <Copy className="w-3.5 h-3.5" /> Copy
+                    </>
+                  )}
+                </button>
+              </div>
+            </div>
+          </div>
+
+          {/* ─────────────────────────────────────────────────────────────
+              2. DEPARTMENTAL CONTACT DIRECTORY
+          ───────────────────────────────────────────────────────────── */}
           <h2>
-            <span className="feature-dot"></span> Subscriptions &amp; Payments
+            <span className="feature-dot"></span> Departmental Guidance
           </h2>
           <p>
-            Certain features of the Service may require a paid subscription. All
-            payments are processed in Indian Rupees (INR) through authorized payment
-            gateways. Subscriptions are billed in advance on a recurring or one-time
-            basis depending on the plan you select.
-          </p>
-          <p>
-            For details on cancellations and refund eligibility, please review our{" "}
-            <a
-              href="/returnandrefundpolicy"
-              onClick={(e) => {
-                e.preventDefault();
-                navigate("/returnandrefundpolicy");
-              }}
-            >
-              Refund &amp; Cancellation Policy
-            </a>
-            .
+            To ensure your query reaches the right team immediately, please review the categories
+            below:
           </p>
 
+          <div className="space-y-3 my-4">
+            <div className="p-4 rounded-xl bg-slate-50 border border-slate-200/80 flex items-start gap-3.5">
+              <div className="w-8 h-8 rounded-lg bg-blue-100/70 text-[#0052ea] flex items-center justify-center flex-shrink-0 mt-0.5">
+                <GraduationCap className="w-4 h-4" />
+              </div>
+              <div>
+                <h3 className="text-sm font-bold text-[#1e2532]">
+                  Students &amp; Job Seekers
+                </h3>
+                <p className="text-xs text-slate-600 mt-0.5 leading-relaxed">
+                  Queries regarding profile building, proof of work, event registrations, AI Station
+                  credits, or technical account access.
+                </p>
+              </div>
+            </div>
+
+            <div className="p-4 rounded-xl bg-slate-50 border border-slate-200/80 flex items-start gap-3.5">
+              <div className="w-8 h-8 rounded-lg bg-indigo-100/70 text-indigo-600 flex items-center justify-center flex-shrink-0 mt-0.5">
+                <Building2 className="w-4 h-4" />
+              </div>
+              <div>
+                <h3 className="text-sm font-bold text-[#1e2532]">
+                  Colleges &amp; Universities
+                </h3>
+                <p className="text-xs text-slate-600 mt-0.5 leading-relaxed">
+                  Institutional onboarding, student cohort management, campus recruitment drives, and
+                  joint academic events.
+                </p>
+              </div>
+            </div>
+
+            <div className="p-4 rounded-xl bg-slate-50 border border-slate-200/80 flex items-start gap-3.5">
+              <div className="w-8 h-8 rounded-lg bg-emerald-100/70 text-emerald-600 flex items-center justify-center flex-shrink-0 mt-0.5">
+                <Briefcase className="w-4 h-4" />
+              </div>
+              <div>
+                <h3 className="text-sm font-bold text-[#1e2532]">
+                  Employers &amp; Corporate Recruiters
+                </h3>
+                <p className="text-xs text-slate-600 mt-0.5 leading-relaxed">
+                  Hiring verified talent, posting jobs and internships, competition hosting, and
+                  enterprise recruitment solutions.
+                </p>
+              </div>
+            </div>
+
+            <div className="p-4 rounded-xl bg-slate-50 border border-slate-200/80 flex items-start gap-3.5">
+              <div className="w-8 h-8 rounded-lg bg-amber-100/70 text-amber-700 flex items-center justify-center flex-shrink-0 mt-0.5">
+                <ShieldCheck className="w-4 h-4" />
+              </div>
+              <div>
+                <h3 className="text-sm font-bold text-[#1e2532]">
+                  Privacy &amp; Account Requests
+                </h3>
+                <p className="text-xs text-slate-600 mt-0.5 leading-relaxed">
+                  Account verification, data deletion requests, or questions regarding our{" "}
+                  <a
+                    href="/privacy_policy"
+                    onClick={(e) => {
+                      e.preventDefault();
+                      navigate("/privacy_policy");
+                    }}
+                  >
+                    Privacy Policy
+                  </a>{" "}
+                  and{" "}
+                  <a
+                    href="/termsandconditions"
+                    onClick={(e) => {
+                      e.preventDefault();
+                      navigate("/termsandconditions");
+                    }}
+                  >
+                    Terms &amp; Conditions
+                  </a>
+                  .
+                </p>
+              </div>
+            </div>
+          </div>
+
+
+          {/* ─────────────────────────────────────────────────────────────
+              4. OPERATING HOURS & COMMITMENT
+          ───────────────────────────────────────────────────────────── */}
           <h2>
-            <span className="feature-dot"></span> Acceptable Use
+            <span className="feature-dot"></span> Operating Hours &amp; Response Time
           </h2>
-          <p>You agree not to:</p>
+          <p>
+            Our customer and support teams operate during the following hours:
+          </p>
           <ul>
             <li>
-              Use the Service for any unlawful purpose or in violation of any
-              applicable regulations.
+              <strong>Monday to Saturday:</strong> 9:00 AM – 6:30 PM (IST)
             </li>
             <li>
-              Attempt to reverse engineer, decompile, or extract source code from the
-              app.
-            </li>
-            <li>
-              Scrape, crawl, or harvest data from the Service using automated means
-              without prior written permission.
-            </li>
-            <li>
-              Share account credentials with third parties or allow multiple users to
-              access a single-user license.
-            </li>
-            <li>
-              Interfere with or disrupt the integrity or performance of the Service
-              or its servers.
+              <strong>Sunday &amp; Public Holidays:</strong> Urgent email support only
             </li>
           </ul>
-
-          <h2>
-            <span className="feature-dot"></span> Intellectual Property
-          </h2>
           <p>
-            All software, design, and content that make up the Service are owned by
-            GradEnvy or its licensors and are protected by applicable
-            intellectual property laws. You may use the Service only for your own
-            business purposes, not for resale or redistribution.
-          </p>
-
-          <h2>
-            <span className="feature-dot"></span> Termination
-          </h2>
-          <p>
-            We may suspend or terminate access to the Service for any account found to
-            be in violation of these Terms. You may stop using the Service, or request
-            deletion of your account, at any time — see our{" "}
+            Inquiries received outside regular operating hours will be addressed first thing on the
+            following business day. For immediate account-related assistance, you may also explore
+            our{" "}
             <a
-              href="/delete_account"
+              href="/privacy_policy"
               onClick={(e) => {
                 e.preventDefault();
-                navigate("/delete_account");
+                navigate("/privacy_policy");
               }}
             >
-              Delete Account
+              Privacy Policy
             </a>{" "}
-            page.
-          </p>
-
-          <h2>
-            <span className="feature-dot"></span> Disclaimer &amp; Limitation of Liability
-          </h2>
-          <p>
-            The Service is provided "as is" and is intended to help track publicly
-            available tender information; we do not guarantee the accuracy,
-            completeness, or timeliness of any tender data sourced from third-party
-            portals. GradEnvy is not liable for any indirect, incidental,
-            or consequential loss arising from reliance on the Service, to the extent
-            permitted by law.
-          </p>
-
-          <h2>
-            <span className="feature-dot"></span> Changes to These Terms
-          </h2>
-          <p>
-            We may update these Terms from time to time. Continued use of the Service
-            after changes take effect constitutes acceptance of the revised Terms.
-            Material changes will be reflected by updating the "Last updated" date above.
-          </p>
-
-          <h2>
-            <span className="feature-dot"></span> Governing Law
-          </h2>
-          <p>
-            These Terms are governed by the laws of India, and any disputes shall be
-            subject to the exclusive jurisdiction of the courts at Salem, Tamil Nadu.
-          </p>
-
-          <h2>
-            <span className="feature-dot"></span> Contact Us
-          </h2>
-          <p>
-            Questions about these Terms can be sent to{" "}
-            <a href="mailto:info@nulinz.com">info@nulinz.com</a> or call{" "}
-            <a href="tel:+919080408749">+91 90804 08749</a>. See our{" "}
+            or{" "}
             <a
-              href="/contact"
+              href="/termsandconditions"
               onClick={(e) => {
                 e.preventDefault();
-                navigate("/contact");
+                navigate("/termsandconditions");
               }}
             >
-              Contact Us
-            </a>{" "}
-            page for more ways to reach us.
+              Terms &amp; Conditions
+            </a>
+            .
           </p>
         </div>
       </section>
@@ -288,7 +445,7 @@ const Terms = ({ showLayout = true }) => {
   );
 
   if (!showLayout) {
-    return legalContent;
+    return contactContent;
   }
 
   return (
@@ -405,9 +562,9 @@ const Terms = ({ showLayout = true }) => {
       </header>
 
       {/* ─────────────────────────────────────────────────────────────
-          2. TERMS CONTENT (Exact Match from terms.blade.php)
+          2. CONTACT US CONTENT
       ───────────────────────────────────────────────────────────── */}
-      <main className="flex-grow">{legalContent}</main>
+      <main className="flex-grow">{contactContent}</main>
 
       {/* ─────────────────────────────────────────────────────────────
           3. COMPREHENSIVE FOOTER
@@ -446,7 +603,8 @@ const Terms = ({ showLayout = true }) => {
                   </svg>
                 </a>
                 <a
-                  href="https://www.instagram.com/gradenvyofficial?stkn=MWt2eWdkeXJhcno5Ng%3D%3D&utm_source=qr"                  className="w-9 h-9 rounded-full bg-white/10 flex items-center justify-center text-gray-300 hover:text-white hover:bg-white/20 transition-all"
+                  href="https://www.instagram.com/gradenvyofficial?stkn=MWt2eWdkeXJhcno5Ng%3D%3D&utm_source=qr"
+                  className="w-9 h-9 rounded-full bg-white/10 flex items-center justify-center text-gray-300 hover:text-white hover:bg-white/20 transition-all"
                   aria-label="Instagram"
                 >
                   <svg className="w-4 h-4 fill-none stroke-current stroke-2" viewBox="0 0 24 24" strokeLinecap="round" strokeLinejoin="round">
@@ -485,7 +643,7 @@ const Terms = ({ showLayout = true }) => {
                   ].map((item, idx) => (
                     <li key={idx}>
                       <button
-                        onClick={() => navigate("")}
+                        onClick={() => navigate("/auth/login")}
                         className="hover:text-white transition-colors text-left"
                       >
                         {item}
@@ -502,9 +660,9 @@ const Terms = ({ showLayout = true }) => {
                 </span>
                 <ul className="space-y-2.5 text-xs sm:text-sm text-gray-300">
                   {[
-                    { label: "About Grad Envy", path: "" },
-                    { label: "Vision", path: "" },
-                    { label: "Mission", path: "" },
+                    { label: "About Grad Envy", path: "/auth/login" },
+                    { label: "Vision", path: "/auth/login" },
+                    { label: "Mission", path: "/auth/login" },
                     { label: "Contact Us", path: "/contact" },
                   ].map((item, idx) => (
                     <li key={idx}>
@@ -555,5 +713,4 @@ const Terms = ({ showLayout = true }) => {
   );
 };
 
-export { Terms as TermsAndConditions };
-export default Terms;
+export default ContactUs;
