@@ -84,8 +84,8 @@ const CollegeDashboard = () => {
     { key: 'conferences', title: 'Total Conferences' },
     { key: 'today_events', title: 'Today Events' },
     // { key: 'live_events', title: 'Live Events' },
-    { key: 'total_registrations', title: 'Total Registrations' },
-    { key: 'total_attendance', title: 'Total Attendance' },
+    // { key: 'total_registrations', title: 'Total Registrations' },
+    // { key: 'total_attendance', title: 'Total Attendance' },
     { key: 'upcoming_events', title: 'Upcoming Events' },
     // { key: 'certificates', title: 'Certificates' },
   ];

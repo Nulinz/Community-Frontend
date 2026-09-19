@@ -47,11 +47,14 @@ const CompanyDashboard = () => {
 
   // ── Metric card config (maps to API stats keys) ───────────────────────────
   const metricCards = [
-
     { key: 'activeJobs', title: 'Active Jobs', highlighted: true },
     { key: 'activeInternships', title: 'Active Internship' },
     { key: 'activeFreelances', title: 'Active Projects' },
     { key: 'totalFollowers', title: 'Total followers' },
+    { key: 'liveEvents', title: 'Live Events' },
+    { key: 'upcomingEvents', title: 'Upcoming Events' },
+    { key: 'liveCompetitions', title: 'Live Competition/Hackathon' },
+    { key: 'upcomingCompetitions', title: 'Upcoming Competition/Hackathon' },
   ];
 
   // ── Table columns ─────────────────────────────────────────────────────────

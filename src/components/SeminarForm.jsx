@@ -2,12 +2,16 @@
 import { useState, useEffect } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
-import { createSeminar, getMyCompany } from "../services/admin/adminServices";
-import { getMyCollege } from "../services/collegeServices";
+import { createSeminar } from "../services/admin/adminServices";
 import FormLayout from "../layout/FormLayout";
 import { useOrganizerDisplayName } from "../utils/organizer";
 import { useTitle } from "../context/AdminTitle";
-import { useMain } from "../context/MainContext";
+import {
+  validateEventFieldChange,
+  validateEventSubmission,
+} from "../utils/dateTimeValidation";
+import { usePayoutValidation } from "../utils/usePayoutValidation";
+import PayoutNoticeModal from "./PayoutNoticeModal";
 
 
 const seminarFormConfig = [
@@ -211,53 +215,33 @@ const SeminarForm = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const editData = location.state?.editData;
-  const { user } = useMain();
-  const [profileCertConfig, setProfileCertConfig] = useState(null);
+  const organizerName = useOrganizerDisplayName();
+
+  const {
+    organizerProfile,
+    profileCertConfig,
+    showPayoutModal,
+    setShowPayoutModal,
+    validateRegistrationType,
+    validatePayoutOnSubmit,
+    userRole,
+  } = usePayoutValidation();
 
   const { setTitle } = useTitle();
   useEffect(() => {
     setTitle("Seminar / Workshop Form");
   }, []);
 
-  // Fetch organizer profile certificate configuration
-  useEffect(() => {
-    const fetchProfileConfig = async () => {
-      try {
-        let res;
-        if (user?.role === "college") {
-          res = await getMyCollege();
-          const col = res?.data?.college;
-          if (col) {
-            setProfileCertConfig({
-              signatoryName: col.signatoryName || "",
-              signatoryDesignation: col.signatoryDesignation || "",
-              signatureUrl: col.signatureUrl || "",
-              certificateContentBody: col.certificateContentBody || "",
-            });
-          }
-        } else {
-          res = await getMyCompany();
-          const comp = res?.data?.company;
-          if (comp) {
-            setProfileCertConfig({
-              signatoryName: comp.signatoryName || "",
-              signatoryDesignation: comp.signatoryDesignation || "",
-              signatureUrl: comp.signatureUrl || "",
-              certificateContentBody: comp.certificateContentBody || "",
-            });
-          }
-        }
-      } catch (err) {
-        console.log("Could not fetch organizer certificate configuration:", err);
-      }
-    };
-
-    if (user?.role) {
-      fetchProfileConfig();
-    }
-  }, [user?.role]);
-
   const handleFieldChange = (fieldName, value, currentData) => {
+    // ── Restrict Paid Registration if Payout Details Missing ────
+    if (fieldName === "registrationType") {
+      const payoutOverride = validateRegistrationType(value);
+      if (payoutOverride) {
+        return payoutOverride;
+      }
+    }
+
+    // ── Certificate auto-fill when enabled ──────────────────────
     if (fieldName === "certificateAvailability" && value === "Yes" && profileCertConfig) {
       return {
         signatoryName: currentData.signatoryName || profileCertConfig.signatoryName || "",
@@ -266,10 +250,32 @@ const SeminarForm = () => {
         certificateContentBody: currentData.certificateContentBody || profileCertConfig.certificateContentBody || "",
       };
     }
+
+    // ── Real-time Date and Time Validation ──────────────────────
+    const dateValidationOverride = validateEventFieldChange(
+      fieldName,
+      value,
+      currentData,
+      !!editData?._id,
+      false
+    );
+    if (dateValidationOverride) {
+      return dateValidationOverride;
+    }
   };
 
-  const handleSubmit = async (formData) => {
+  const handleSubmit = async (formData, payload) => {
     try {
+      // Payout validation check prior to submission
+      if (!validatePayoutOnSubmit(payload)) {
+        return;
+      }
+
+      // Secondary defensive validation before sending API request
+      if (!validateEventSubmission(payload, !!editData?._id, false, "Session / Topic")) {
+        return;
+      }
+
       const res = await createSeminar(formData);
 
       // Validate API response
@@ -293,17 +299,23 @@ const SeminarForm = () => {
     }
   };
 
-  const organizerName = useOrganizerDisplayName();
-
   return (
-    <FormLayout
-      config={seminarFormConfig}
-      editData={editData}
-      onSubmit={handleSubmit}
-      staticOverrides={{ organizer: organizerName }}
-      dateFields={["eventDate", "registrationStartDate", "registrationEndDate"]}
-      onFieldChange={handleFieldChange}
-    />
+    <>
+      <FormLayout
+        config={seminarFormConfig}
+        editData={editData}
+        onSubmit={handleSubmit}
+        staticOverrides={{ organizer: organizerName }}
+        dateFields={["eventDate", "registrationStartDate", "registrationEndDate"]}
+        onFieldChange={handleFieldChange}
+      />
+      <PayoutNoticeModal
+        isOpen={showPayoutModal}
+        onClose={() => setShowPayoutModal(false)}
+        organizerProfile={organizerProfile}
+        userRole={userRole}
+      />
+    </>
   );
 };
 

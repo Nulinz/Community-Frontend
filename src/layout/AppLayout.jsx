@@ -2,6 +2,9 @@ import React, { useEffect, useRef, useState, useCallback } from "react";
 import { Outlet, NavLink, useLocation } from "react-router-dom";
 import { ChevronRight, KeyRound, LogOut, X, Menu, ChevronDown, EyeOff, Eye } from "lucide-react";
 import { changePassword } from "../services/auth/authServices";
+import { getMyCompany } from "../services/admin/adminServices";
+import { getMyCollege } from "../services/collegeServices";
+import setFileName from "../utils/setFileName";
 import { toast } from "react-toastify";
 import { useTitle } from "../context/AdminTitle";
 import PageLoader from "../common/PageLoader";
@@ -21,6 +24,90 @@ const ProfileMenu = ({ user, onLogout }) => {
   const [formError, setFormError] = useState("");
   const menuRef = useRef(null);
   const [loading, setLoading] = useState(false);
+
+  // Dynamic company/college profile logo and display name
+  const [dynamicLogo, setDynamicLogo] = useState(
+    user?.companyLogo || user?.collegeLogo || user?.profile_pic || user?.logo || ""
+  );
+  const [displayName, setDisplayName] = useState(
+    user?.companyName || user?.collegeName || user?.name || "User"
+  );
+  const [imageError, setImageError] = useState(false);
+
+  // Sync with user prop and dynamically fetch organization logo if not present
+  useEffect(() => {
+    setImageError(false);
+
+    if (user?.companyLogo || user?.collegeLogo || user?.profile_pic || user?.logo) {
+      setDynamicLogo(user?.companyLogo || user?.collegeLogo || user?.profile_pic || user?.logo);
+    }
+    if (user?.companyName || user?.collegeName || user?.name) {
+      setDisplayName(user?.companyName || user?.collegeName || user?.name);
+    }
+
+    // Dynamic resolution for company role
+    if (user?.role === "company") {
+      getMyCompany()
+        .then((res) => {
+          const comp = res?.data?.company || res?.company;
+          if (comp?.companyLogo) {
+            setDynamicLogo(comp.companyLogo);
+          }
+          if (comp?.companyName) {
+            setDisplayName(comp.companyName);
+          }
+        })
+        .catch(() => {});
+    } else if (user?.role === "college") {
+      getMyCollege()
+        .then((res) => {
+          const col = res?.data?.college || res?.college;
+          if (col?.collegeLogo) {
+            setDynamicLogo(col.collegeLogo);
+          }
+          if (col?.collegeName) {
+            setDisplayName(col.collegeName);
+          }
+        })
+        .catch(() => {});
+    }
+  }, [user]);
+
+  // Listen for profile update events so navbar updates instantly when logo changes
+  useEffect(() => {
+    const handleProfileUpdate = () => {
+      if (user?.role === "company") {
+        getMyCompany()
+          .then((res) => {
+            const comp = res?.data?.company || res?.company;
+            if (comp?.companyLogo) {
+              setDynamicLogo(comp.companyLogo);
+              setImageError(false);
+            }
+            if (comp?.companyName) setDisplayName(comp.companyName);
+          })
+          .catch(() => {});
+      } else if (user?.role === "college") {
+        getMyCollege()
+          .then((res) => {
+            const col = res?.data?.college || res?.college;
+            if (col?.collegeLogo) {
+              setDynamicLogo(col.collegeLogo);
+              setImageError(false);
+            }
+            if (col?.collegeName) setDisplayName(col.collegeName);
+          })
+          .catch(() => {});
+      }
+    };
+
+    window.addEventListener("companyProfileUpdated", handleProfileUpdate);
+    window.addEventListener("collegeProfileUpdated", handleProfileUpdate);
+    return () => {
+      window.removeEventListener("companyProfileUpdated", handleProfileUpdate);
+      window.removeEventListener("collegeProfileUpdated", handleProfileUpdate);
+    };
+  }, [user?.role]);
 
   // Password visibility states
   const [showOld, setShowOld] = useState(false);
@@ -93,14 +180,23 @@ const ProfileMenu = ({ user, onLogout }) => {
           aria-expanded={isOpen}
           aria-haspopup="true"
         >
-          <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-orange-100 flex items-center justify-center border border-gray-200 flex-shrink-0 shadow-xs">
-            <span className="text-sm sm:text-base font-semibold text-orange-600">
-              {user?.name?.charAt(0)?.toUpperCase() || "U"}
-            </span>
+          <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-white flex items-center justify-center border border-gray-200 flex-shrink-0 shadow-xs overflow-hidden">
+            {dynamicLogo && !imageError ? (
+              <img
+                src={setFileName(dynamicLogo)}
+                alt={displayName}
+                onError={() => setImageError(true)}
+                className="w-full h-full object-contain p-0.5"
+              />
+            ) : (
+              <span className="text-sm sm:text-base font-semibold text-orange-600">
+                {displayName?.charAt(0)?.toUpperCase() || "U"}
+              </span>
+            )}
           </div>
           <div className="text-left hidden sm:block">
             <p className="text-sm font-bold text-gray-900 leading-tight max-w-[120px] md:max-w-[160px] truncate">
-              {user?.name || "User"}
+              {displayName}
             </p>
             <p className="text-[11px] md:text-[12px] text-blue-600 font-medium capitalize">
               {user?.role || "User"}
@@ -111,9 +207,25 @@ const ProfileMenu = ({ user, onLogout }) => {
         {/* Dropdown positioned cleanly inside right screen edge on all devices */}
         {isOpen && (
           <div className="absolute right-0 top-full mt-2 w-[220px] sm:w-[240px] max-w-[calc(100vw-1.5rem)] rounded-2xl border border-[#E5E7EB] bg-white shadow-xl z-50 animate-in fade-in zoom-in-95 duration-100">
-            <div className="px-4 py-3 border-b border-[#E5E7EB]">
-              <p className="text-sm font-semibold text-gray-900 truncate">{user?.name || "User"}</p>
-              <p className="text-xs text-blue-600 capitalize">{user?.role || "User"}</p>
+            <div className="px-4 py-3 border-b border-[#E5E7EB] flex items-center gap-3">
+              <div className="w-9 h-9 rounded-full bg-white flex items-center justify-center border border-gray-200 flex-shrink-0 overflow-hidden">
+                {dynamicLogo && !imageError ? (
+                  <img
+                    src={setFileName(dynamicLogo)}
+                    alt={displayName}
+                    onError={() => setImageError(true)}
+                    className="w-full h-full object-contain p-0.5"
+                  />
+                ) : (
+                  <span className="text-sm font-semibold text-orange-600">
+                    {displayName?.charAt(0)?.toUpperCase() || "U"}
+                  </span>
+                )}
+              </div>
+              <div className="min-w-0 flex-1">
+                <p className="text-sm font-semibold text-gray-900 truncate">{displayName}</p>
+                <p className="text-xs text-blue-600 capitalize">{user?.role || "User"}</p>
+              </div>
             </div>
             <button
               type="button"
@@ -255,6 +367,7 @@ const AppLayout = ({
   user,
   onLogout,
   onChangePassword,
+  sidebarAction,
 }) => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
@@ -421,12 +534,18 @@ const AppLayout = ({
 
       {/* ════════════ DESKTOP SIDEBAR ════════════ */}
       <aside className="hidden md:flex w-[260px] h-screen sticky top-0 bg-white border-r border-[#E5E7EB] flex-col py-6 flex-shrink-0">
-        <div className="px-6 mb-8 flex justify-center flex-shrink-0">
+        <div className="px-6 mb-6 flex justify-center flex-shrink-0">
           {logo && <img src={logo} alt="Logo" className="h-10 w-auto object-contain" />}
         </div>
+        {sidebarAction && (
+          <div className="px-3 mb-4 flex-shrink-0">
+            {sidebarAction}
+          </div>
+        )}
         <div className="flex-1 overflow-y-auto pb-8">
           <NavItems />
         </div>
+        <p className="text-black text-center text-[11px]">© 2026 GradEnvy. All rights reserved.</p>
       </aside>
 
       {/* ════════════ MOBILE DRAWER OVERLAY ════════════ */}
@@ -448,7 +567,7 @@ const AppLayout = ({
         aria-label="Navigation Sidebar"
       >
         {/* Drawer header */}
-        <div className="px-5 mb-6 flex items-center justify-between flex-shrink-0">
+        <div className="px-5 mb-5 flex items-center justify-between flex-shrink-0">
           {logo && <img src={logo} alt="Logo" className="h-9 w-auto object-contain" />}
           <button
             type="button"
@@ -459,6 +578,13 @@ const AppLayout = ({
             <X size={20} />
           </button>
         </div>
+
+        {/* Action Button for mobile drawer */}
+        {sidebarAction && (
+          <div className="px-3 mb-4 flex-shrink-0" onClick={() => setSidebarOpen(false)}>
+            {sidebarAction}
+          </div>
+        )}
 
         {/* Scrollable menu items */}
         <div className="flex-1 overflow-y-auto pb-10">

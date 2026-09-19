@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from "react";
-import { Trash2, Plus, ChevronDown, Calendar, ChevronDown as MultiIcon, ChevronLeft, ChevronRight } from "lucide-react";
+import { Trash2, Plus, ChevronDown, Calendar, ChevronDown as MultiIcon, ChevronLeft, ChevronRight, Search, X, Check, Info, AlertCircle } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 import setFileName from "../utils/setFileName";
@@ -10,7 +10,7 @@ const toCleanString = (value) => String(value || "").trim();
 
 const getInitialFieldValue = (field) => {
   if (field.defaultValue !== undefined) return field.defaultValue;
-  if (field.type === "checkbox" || field.type === "multiselect") return [];
+  if (field.type === "checkbox" || field.type === "multiselect" || field.type === "searchable-multiselect") return [];
   if (field.type === "toggle") {
     return Array.isArray(field.options) && field.options.length === 2
       ? field.options[1]
@@ -33,11 +33,15 @@ const safeParseArray = (val) => {
   if (!val) return [];
   if (Array.isArray(val)) return val;
   if (typeof val === "string") {
+    const trimmed = val.trim();
+    if (!trimmed) return [];
     try {
-      const parsed = JSON.parse(val);
+      const parsed = JSON.parse(trimmed);
       if (typeof parsed === "string") return JSON.parse(parsed);
-      return parsed;
-    } catch { return []; }
+      if (Array.isArray(parsed)) return parsed;
+    } catch {
+      return trimmed.includes(",") ? trimmed.split(",").map((s) => s.trim()).filter(Boolean) : [trimmed];
+    }
   }
   return [];
 };
@@ -81,9 +85,21 @@ const extractDynamicList = (rows = [], fieldName) =>
   rows.map((row) => toCleanString(row?.values?.[fieldName])).filter(Boolean);
 
 // ─── Label ──────────────────────────────────────────────────
-const Label = ({ text, required = true, className = "mb-2" }) => (
+const Label = ({ text, required = true, className = "mb-2", onInfoClick }) => (
   <label className={`block font-source font-semibold text-sm md:text-base leading-none tracking-normal text-primary ${className}`}>
-    {text} {required && <span className="text-red-500">*</span>}
+    <span className="inline-flex items-center gap-1.5">
+      <span>{text} {required && <span className="text-red-500">*</span>}</span>
+      {onInfoClick && (
+        <button
+          type="button"
+          onClick={onInfoClick}
+          className="text-gray-400 hover:text-blue-600 transition p-0.5 rounded cursor-pointer"
+          title="View notice"
+        >
+          <Info size={15} />
+        </button>
+      )}
+    </span>
   </label>
 );
 
@@ -267,8 +283,353 @@ const YearPickerInput = ({ field, value, onChange }) => {
   );
 };
 
+/**
+ * Reusable searchable multi-select input component with tag chips, popover dropdown,
+ * and live search filtering.
+ * Solves dense option selection UX by allowing real-time filtering without cluttering the screen.
+ * Handles single toggles, 'All' options, and chip removals with complete event isolation.
+ */
+const MultiSelectInput = ({ field, value, onChange, hasError = false }) => {
+  const selectedValues = Array.isArray(value) ? value : [];
+  const [open, setOpen] = useState(false);
+  const [searchTerm, setSearchTerm] = useState("");
+  const containerRef = useRef(null);
+  const searchInputRef = useRef(null);
+
+  // Close popover when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (e) => {
+      if (containerRef.current && !containerRef.current.contains(e.target)) {
+        setOpen(false);
+        setSearchTerm("");
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
+  // Auto-focus search field on popover open
+  useEffect(() => {
+    if (open && searchInputRef.current) {
+      searchInputRef.current.focus();
+    }
+  }, [open]);
+
+  const allOptions = Array.isArray(field.options) ? field.options : [];
+  const nonAllOptions = allOptions.filter((opt) => opt !== "All" && opt !== "All Departments");
+
+  // Determine if search input should be visible (searchable prop, searchable-multiselect type, or lists > 5 items)
+  const isSearchable = field.searchable !== false && (field.searchable === true || field.type === "searchable-multiselect" || allOptions.length > 5);
+
+  const filteredOptions = isSearchable && searchTerm.trim()
+    ? allOptions.filter((opt) => opt.toLowerCase().includes(searchTerm.toLowerCase().trim()))
+    : allOptions;
+
+  const toggleValue = (opt) => {
+    if (opt === "All" || opt === "All Departments") {
+      const isAllSelected = selectedValues.includes(opt) || (nonAllOptions.length > 0 && nonAllOptions.every((o) => selectedValues.includes(o)));
+      if (isAllSelected) {
+        onChange([]);
+      } else {
+        onChange([...allOptions]);
+      }
+      return;
+    }
+
+    let newSelected;
+    if (selectedValues.includes(opt)) {
+      newSelected = selectedValues.filter((i) => i !== opt && i !== "All" && i !== "All Departments");
+    } else {
+      const withoutAll = selectedValues.filter((i) => i !== "All" && i !== "All Departments");
+      newSelected = [...withoutAll, opt];
+      if (nonAllOptions.length > 0 && nonAllOptions.every((o) => newSelected.includes(o))) {
+        newSelected = [...allOptions];
+      }
+    }
+    onChange(newSelected);
+  };
+
+  const removeValue = (val, e) => {
+    e.stopPropagation();
+    onChange(selectedValues.filter((i) => i !== val));
+  };
+
+  return (
+    <div className="relative w-full" ref={containerRef}>
+      <div
+        onClick={() => setOpen(!open)}
+        className={`w-full min-h-10 px-2.5 pr-9 py-1.5 border rounded-lg bg-[#fcfcfc] hover:bg-white flex flex-wrap gap-1.5 cursor-pointer relative transition-colors shadow-sm ${
+          hasError
+            ? "border-red-400 focus-within:border-red-500 ring-1 ring-red-400"
+            : "border-gray-200 hover:border-gray-300 focus-within:border-gray-400"
+        }`}
+      >
+        {selectedValues.length === 0 ? (
+          <span className="text-gray-400 text-sm self-center">
+            {field.placeholder || "Select options"}
+          </span>
+        ) : (
+          selectedValues.map((val) => (
+            <span
+              key={val}
+              className="bg-blue-50 border border-blue-200 text-blue-700 px-2 py-0.5 rounded text-xs font-medium flex items-center gap-1 shrink-0"
+            >
+              <span>{val}</span>
+              <button
+                type="button"
+                onClick={(e) => removeValue(val, e)}
+                className="cursor-pointer text-blue-500 hover:text-red-500 font-bold leading-none p-0.5 ml-0.5"
+                title={`Remove ${val}`}
+              >
+                ×
+              </button>
+            </span>
+          ))
+        )}
+
+        {/* Custom chevron icon */}
+        <span className="pointer-events-none absolute right-2.5 top-1/2 -translate-y-1/2 text-gray-400">
+          <Icon
+            src="/icons/arrow_drop_down.png"
+            size={20}
+            strokeWidth={2}
+            className={`transition-transform duration-200 ${open ? "rotate-180" : ""}`}
+          />
+        </span>
+      </div>
+
+      {open && (
+        <div className="absolute z-50 mt-1.5 w-full bg-white border border-gray-200 rounded-lg shadow-xl overflow-hidden flex flex-col">
+          {isSearchable && (
+            <div className="p-2 border-b border-gray-100 bg-gray-50 flex items-center gap-2">
+              <Search size={15} className="text-gray-400 shrink-0" />
+              <input
+                ref={searchInputRef}
+                type="text"
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                onClick={(e) => e.stopPropagation()}
+                placeholder={field.searchPlaceholder || "Search options..."}
+                className="w-full bg-transparent text-sm outline-none text-gray-800 placeholder-gray-400"
+              />
+              {searchTerm && (
+                <button
+                  type="button"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setSearchTerm("");
+                  }}
+                  className="text-gray-400 hover:text-gray-600 p-0.5"
+                  title="Clear search"
+                >
+                  <X size={14} />
+                </button>
+              )}
+            </div>
+          )}
+
+          <div className="max-h-60 overflow-y-auto divide-y divide-gray-50">
+            {filteredOptions.length === 0 ? (
+              <div className="p-4 text-center text-xs text-gray-400">
+                No options found
+              </div>
+            ) : (
+              filteredOptions.map((opt) => {
+                const isSelected = selectedValues.includes(opt);
+                return (
+                  <label
+                    key={opt}
+                    onClick={(e) => e.stopPropagation()}
+                    className={`flex items-center gap-2.5 px-3 py-2 hover:bg-gray-50 cursor-pointer text-sm transition-colors ${
+                      isSelected ? "bg-blue-50/40 text-blue-900 font-medium" : "text-gray-700"
+                    }`}
+                  >
+                    <input
+                      type="checkbox"
+                      checked={isSelected}
+                      onChange={() => toggleValue(opt)}
+                      className="rounded border-gray-300 text-[#171717] focus:ring-0 cursor-pointer"
+                    />
+                    <span className="truncate">{opt}</span>
+                  </label>
+                );
+              })
+            )}
+          </div>
+
+          {selectedValues.length > 0 && (
+            <div className="p-2 border-t border-gray-100 bg-gray-50/80 flex items-center justify-between text-xs text-gray-500">
+              <span>{selectedValues.length} selected</span>
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onChange([]);
+                }}
+                className="text-red-500 hover:underline font-semibold"
+              >
+                Clear all
+              </button>
+            </div>
+          )}
+        </div>
+      )}
+    </div>
+  );
+};
+
+/**
+ * Reusable custom single-select dropdown component.
+ * Replaces native browser `<select>` with a refined popover interface matching
+ * the design system and aesthetic of the MultiSelect component.
+ * Provides live search filtering for long option sets, smooth chevron rotation,
+ * clear visual indicators for selected items, and responsive container layout.
+ */
+const SingleSelectInput = ({ field, value, onChange, hasError = false }) => {
+  const [open, setOpen] = useState(false);
+  const [searchTerm, setSearchTerm] = useState("");
+  const containerRef = useRef(null);
+  const searchInputRef = useRef(null);
+
+  // Close dropdown on outside click
+  useEffect(() => {
+    const handleClickOutside = (e) => {
+      if (containerRef.current && !containerRef.current.contains(e.target)) {
+        setOpen(false);
+        setSearchTerm("");
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
+  // Auto-focus search input when opened
+  useEffect(() => {
+    if (open && searchInputRef.current) {
+      searchInputRef.current.focus();
+    }
+  }, [open]);
+
+  const allOptions = Array.isArray(field.options) ? field.options : [];
+
+  // Helper to safely extract label and value if options are string or object
+  const getOptLabel = (opt) => (typeof opt === "object" && opt !== null ? opt.label ?? opt.value : String(opt));
+  const getOptValue = (opt) => (typeof opt === "object" && opt !== null ? opt.value ?? opt.label : opt);
+
+  // Search is activated if field explicitly enables it, or list is longer than 5 items
+  const isSearchable = field.searchable !== false && (field.searchable === true || allOptions.length > 5);
+
+  const filteredOptions = isSearchable && searchTerm.trim()
+    ? allOptions.filter((opt) => getOptLabel(opt).toLowerCase().includes(searchTerm.toLowerCase().trim()))
+    : allOptions;
+
+  const handleSelect = (opt) => {
+    onChange(getOptValue(opt));
+    setOpen(false);
+    setSearchTerm("");
+  };
+
+  const selectedOpt = allOptions.find((opt) => getOptValue(opt) === value);
+  const displayLabel = selectedOpt ? getOptLabel(selectedOpt) : (value || "");
+
+  return (
+    <div className="relative w-full" ref={containerRef}>
+      <div
+        onClick={() => setOpen(!open)}
+        className={`w-full h-10 px-3 pr-9 border rounded-lg bg-[#fcfcfc] hover:bg-white flex items-center cursor-pointer relative transition-colors shadow-sm ${
+          hasError
+            ? "border-red-400 focus-within:border-red-500 ring-1 ring-red-400"
+            : "border-gray-200 hover:border-gray-300 focus-within:border-gray-400"
+        }`}
+      >
+        {displayLabel ? (
+          <span className="text-gray-800 text-sm font-medium truncate">
+            {displayLabel}
+          </span>
+        ) : (
+          <span className="text-gray-400 text-sm select-none">
+            {field.placeholder || "Select Option"}
+          </span>
+        )}
+
+        {/* Custom chevron icon */}
+        <span className="pointer-events-none absolute right-2.5 top-1/2 -translate-y-1/2 text-gray-400">
+          <Icon
+            src="/icons/arrow_drop_down.png"
+            size={20}
+            strokeWidth={2}
+            className={`transition-transform duration-200 ${open ? "rotate-180" : ""}`}
+          />
+        </span>
+      </div>
+
+      {open && (
+        <div className="absolute z-50 mt-1.5 w-full bg-white border border-gray-200 rounded-lg shadow-xl overflow-hidden flex flex-col">
+          {isSearchable && (
+            <div className="p-2 border-b border-gray-100 bg-gray-50 flex items-center gap-2">
+              <Search size={15} className="text-gray-400 shrink-0" />
+              <input
+                ref={searchInputRef}
+                type="text"
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                onClick={(e) => e.stopPropagation()}
+                placeholder={field.searchPlaceholder || "Search options..."}
+                className="w-full bg-transparent text-sm outline-none text-gray-800 placeholder-gray-400"
+              />
+              {searchTerm && (
+                <button
+                  type="button"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setSearchTerm("");
+                  }}
+                  className="text-gray-400 hover:text-gray-600 p-0.5"
+                  title="Clear search"
+                >
+                  <X size={14} />
+                </button>
+              )}
+            </div>
+          )}
+
+          <div className="max-h-60 overflow-y-auto divide-y divide-gray-50">
+            {filteredOptions.length === 0 ? (
+              <div className="p-4 text-center text-xs text-gray-400">
+                No options found
+              </div>
+            ) : (
+              filteredOptions.map((opt) => {
+                const optVal = getOptValue(opt);
+                const optLab = getOptLabel(opt);
+                const isSelected = value === optVal;
+                return (
+                  <div
+                    key={optVal}
+                    onClick={() => handleSelect(opt)}
+                    className={`flex items-center justify-between px-3 py-2.5 hover:bg-gray-50 cursor-pointer text-sm transition-colors ${
+                      isSelected
+                        ? "bg-blue-50/50 text-blue-900 font-semibold"
+                        : "text-gray-700"
+                    }`}
+                  >
+                    <span className="truncate">{optLab}</span>
+                    {isSelected && (
+                      <Check size={16} className="text-blue-600 shrink-0" />
+                    )}
+                  </div>
+                );
+              })
+            )}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+};
+
 // ─── FormInput ──────────────────────────────────────────────
-const FormInput = ({ field, value, onChange, inputName }) => {
+const FormInput = ({ field, value, onChange, inputName, staticData, hasError = false, onFieldClick }) => {
   if (field.type === "checkbox") {
     const selectedValues = Array.isArray(value) ? value : [];
     return (
@@ -300,88 +661,9 @@ const FormInput = ({ field, value, onChange, inputName }) => {
     );
   }
 
-  // ── multiselect with custom chevron icon ──────────────────
-  if (field.type === "multiselect") {
-    const selectedValues = Array.isArray(value) ? value : [];
-    const [open, setOpen] = React.useState(false);
-    const ref = React.useRef(null);
-    const inputRef = useRef(null);
-    React.useEffect(() => {
-      const handleClickOutside = (e) => {
-        if (ref.current && !ref.current.contains(e.target)) setOpen(false);
-      };
-      document.addEventListener("mousedown", handleClickOutside);
-      return () => document.removeEventListener("mousedown", handleClickOutside);
-    }, []);
-
-    const allOptions = field.options || [];
-    const nonAllOptions = allOptions.filter((opt) => opt !== "All" && opt !== "All Departments");
-
-    const toggleValue = (opt) => {
-      if (opt === "All" || opt === "All Departments") {
-        const isAllSelected = selectedValues.includes(opt) || (nonAllOptions.length > 0 && nonAllOptions.every((o) => selectedValues.includes(o)));
-        if (isAllSelected) {
-          onChange([]);
-        } else {
-          onChange([...allOptions]);
-        }
-        return;
-      }
-
-      let newSelected;
-      if (selectedValues.includes(opt)) {
-        newSelected = selectedValues.filter((i) => i !== opt && i !== "All" && i !== "All Departments");
-      } else {
-        const withoutAll = selectedValues.filter((i) => i !== "All" && i !== "All Departments");
-        newSelected = [...withoutAll, opt];
-        if (nonAllOptions.length > 0 && nonAllOptions.every((o) => newSelected.includes(o))) {
-          newSelected = [...allOptions];
-        }
-      }
-      onChange(newSelected);
-    };
-
-    return (
-      <div className="relative w-full" ref={ref}>
-        <div
-          onClick={() => setOpen(!open)}
-          className="w-full min-h-10 px-2 pr-9 py-1.5 border border-gray-200 rounded bg-[#fcfcfc] flex flex-wrap gap-2 cursor-pointer relative"
-        >
-          {selectedValues.length === 0 ? (
-            <span className="text-gray-400 text-sm self-center">Select options</span>
-          ) : (
-            selectedValues.map((val) => (
-              <span key={val} className="bg-blue-100 text-blue-700 px-2 py-1 rounded text-xs font-medium flex items-center gap-1">
-                {val}
-                <span
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    onChange(selectedValues.filter((i) => i !== val));
-                  }}
-                  className="cursor-pointer hover:text-red-500 font-bold leading-none"
-                >
-                  ×
-                </span>
-              </span>
-            ))
-          )}
-          {/* Custom chevron icon */}
-          <span className="pointer-events-none absolute right-2.5 top-1/2 -translate-y-1/2 text-gray-400">
-            <Icon src="/icons/arrow_drop_down.png" size={20} strokeWidth={2} className={`transition-transform duration-200 ${open ? "rotate-180" : ""}`} />
-          </span>
-        </div>
-        {open && (
-          <div className="absolute z-50 mt-1 w-full bg-white border border-gray-200 rounded shadow-lg max-h-60 overflow-auto">
-            {field.options.map((opt) => (
-              <label key={opt} className="flex items-center gap-2 px-3 py-2 hover:bg-gray-100 cursor-pointer text-sm">
-                <input type="checkbox" checked={selectedValues.includes(opt)} onChange={() => toggleValue(opt)} />
-                <span>{opt}</span>
-              </label>
-            ))}
-          </div>
-        )}
-      </div>
-    );
+  // ── multiselect / searchable-multiselect ──────────────────
+  if (field.type === "multiselect" || field.type === "searchable-multiselect") {
+    return <MultiSelectInput field={field} value={value} onChange={onChange} hasError={hasError} />;
   }
 
   if (field.type === "toggle") {
@@ -429,26 +711,9 @@ const FormInput = ({ field, value, onChange, inputName }) => {
     );
   }
 
-  // ── select with custom chevron icon ──────────────────────
+  // ── select (single-select with search and custom UI) ──────
   if (field.type === "select") {
-    return (
-      <div className="relative w-full">
-        <select
-          value={value}
-          onChange={(e) => onChange(e.target.value)}
-          className="w-full appearance-none p-2.5 pr-9 border border-gray-200 rounded bg-[#fcfcfc] text-sm h-10 outline-none cursor-pointer"
-        >
-          {/* <option value="">Select Option</option> */}
-          {field.options.map((option) => (
-            <option key={option} value={option}>{option}</option>
-          ))}
-        </select>
-        {/* Custom chevron icon */}
-        <span className="pointer-events-none absolute right-2.5 top-1/2 -translate-y-1/2 text-gray-400">
-          <Icon src="/icons/arrow_drop_down.png" size={20} strokeWidth={2} />
-        </span>
-      </div>
-    );
+    return <SingleSelectInput field={field} value={value} onChange={onChange} hasError={hasError} />;
   }
 
   if (field.type === "file") {
@@ -550,8 +815,13 @@ const FormInput = ({ field, value, onChange, inputName }) => {
       <textarea
         rows={4}
         value={value}
+        placeholder={typeof field.placeholder === "function" ? field.placeholder(staticData) : field.placeholder}
         onChange={(e) => onChange(e.target.value)}
-        className="w-full p-3 border border-gray-200 rounded bg-[#fcfcfc] focus:ring-1 focus:ring-blue-400 outline-none text-sm resize-none"
+        className={`w-full p-3 border rounded bg-[#fcfcfc] outline-none text-sm resize-none transition-colors ${
+          hasError
+            ? "border-red-400 focus:ring-1 focus:ring-red-400 focus:border-red-500"
+            : "border-gray-200 focus:ring-1 focus:ring-blue-400"
+        }`}
       />
     );
   }
@@ -576,7 +846,11 @@ const FormInput = ({ field, value, onChange, inputName }) => {
             if (field.readOnly) return;
             onChange(e.target.value);
           }}
-          className="w-full p-2 pr-9 border border-gray-200 rounded bg-[#fcfcfc] focus:ring-1 focus:ring-blue-400 outline-none text-sm h-10 [&::-webkit-calendar-picker-indicator]:opacity-0 [&::-webkit-calendar-picker-indicator]:absolute [&::-webkit-calendar-picker-indicator]:inset-0 [&::-webkit-calendar-picker-indicator]:w-full [&::-webkit-calendar-picker-indicator]:cursor-pointer"
+          className={`w-full p-2 pr-9 border rounded bg-[#fcfcfc] outline-none text-sm h-10 transition-colors [&::-webkit-calendar-picker-indicator]:opacity-0 [&::-webkit-calendar-picker-indicator]:absolute [&::-webkit-calendar-picker-indicator]:inset-0 [&::-webkit-calendar-picker-indicator]:w-full [&::-webkit-calendar-picker-indicator]:cursor-pointer ${
+            hasError
+              ? "border-red-400 focus:ring-1 focus:ring-red-400 focus:border-red-500"
+              : "border-gray-200 focus:ring-1 focus:ring-blue-400"
+          }`}
         />
         {/* Custom calendar icon */}
         <span className="pointer-events-none absolute right-2.5 top-1/2 -translate-y-1/2 text-gray-400">
@@ -586,26 +860,48 @@ const FormInput = ({ field, value, onChange, inputName }) => {
     );
   }
 
-  return (
+  const isExternalReg = field.name === "externalRegistrationLink";
+
+  const inputElem = (
     <input
       type={field.type}
       value={value}
       readOnly={field.readOnly}
+      placeholder={typeof field.placeholder === "function" ? field.placeholder(staticData) : field.placeholder}
+      min={field.min !== undefined ? field.min : (field.type === "number" ? 0 : undefined)}
+      step={field.step || (field.type === "number" ? "any" : undefined)}
+      onClick={(e) => onFieldClick?.(field, e)}
+      onFocus={(e) => onFieldClick?.(field, e)}
       onChange={(e) => {
         if (field.readOnly) return;
         let nextValue = e.target.value;
         if (field.type === "tel") nextValue = nextValue.replace(/\D/g, "").slice(0, 10);
         if (field.sanitize === "noSpecialChars") nextValue = nextValue.replace(/[^a-zA-Z0-9\s.\-]/g, "");
         if (field.sanitize === "noExtraNum") nextValue = nextValue.replace(/\D/g, "").slice(0, 6);
-        if (field.sanitize === "noAlphabets") nextValue = nextValue.replace(/\D/g, "").slice(0, 18)
+        if (field.sanitize === "noAlphabets") nextValue = nextValue.replace(/\D/g, "").slice(0, 18);
         if (field.sanitize === "ifsc") nextValue = nextValue.replace(/[^A-Z0-9]/gi, "").slice(0, 11).toUpperCase();
         onChange(nextValue);
       }}
-      inputMode={field.type === "tel" ? "numeric" : undefined}
+      inputMode={field.type === "tel" || field.type === "number" ? "numeric" : undefined}
       maxLength={field.type === "tel" ? 10 : undefined}
-      className="w-full p-2 border border-gray-200 rounded bg-[#fcfcfc] focus:ring-1 focus:ring-blue-400 outline-none text-sm h-10"
+      className={`w-full p-2 ${isExternalReg ? "pr-9" : ""} border rounded bg-[#fcfcfc] outline-none text-sm h-10 transition-colors ${
+        hasError
+          ? "border-red-400 focus:ring-1 focus:ring-red-400 focus:border-red-500"
+          : "border-gray-200 focus:ring-1 focus:ring-blue-400"
+      }`}
     />
   );
+
+  if (isExternalReg) {
+    return (
+      <div className="relative w-full">
+        {inputElem}
+        
+      </div>
+    );
+  }
+
+  return inputElem;
 };
 
 // ─── FormLayout ─────────────────────────────────────────────
@@ -617,8 +913,30 @@ const FormLayout = ({
   submitLabel,
   dateFields,
   onFieldChange,
+  errors: externalErrors = {},
 }) => {
   const navigate = useNavigate();
+
+  // Helper to run field validators across all static sections
+  const runStaticValidators = (data) => {
+    const errs = {};
+    if (!data) return errs;
+    config
+      .filter((s) => s.type === "static")
+      .forEach((section) => {
+        section.fields.forEach((field) => {
+          if (typeof field.validate === "function") {
+            const err = field.validate(data[field.name], data);
+            if (err) {
+              errs[field.name] = err;
+            }
+          }
+        });
+      });
+    return errs;
+  };
+
+  const [validationErrors, setValidationErrors] = useState({});
 
   const [staticData, setStaticData] = useState(() => {
     if (editData) {
@@ -627,8 +945,9 @@ const FormLayout = ({
         section.fields.forEach((field) => {
           if (field.type === "file") {
             data[field.name] = editData[field.name] ?? "";
-          } else if (field.type === "multiselect") {
-            data[field.name] = safeParseArray(editData[field.name]);
+          } else if (field.type === "multiselect" || field.type === "searchable-multiselect") {
+            const rawVal = editData[field.name] ?? (field.name === "domains" ? (editData.domains || editData.domain) : (field.name === "domain" ? (editData.domain || editData.domains) : undefined));
+            data[field.name] = safeParseArray(rawVal);
           } else if (field.type === "year") {
             const val = editData[field.name];
             data[field.name] = val ? (String(val).match(/\b\d{4}\b/)?.[0] || String(val)) : "";
@@ -698,6 +1017,19 @@ const FormLayout = ({
   });
 
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const activeErrors = { ...validationErrors, ...(externalErrors || {}) };
+
+  // ── External registration notice modal state ──
+  const [isExternalNoticeOpen, setIsExternalNoticeOpen] = useState(false);
+  const [hasSeenExternalNotice, setHasSeenExternalNotice] = useState(false);
+
+  const handleFieldClick = (field, e, forceOpen = false) => {
+    if (field?.name === "externalRegistrationLink") {
+      if (forceOpen || !hasSeenExternalNotice) {
+        setIsExternalNoticeOpen(true);
+      }
+    }
+  };
 
   useEffect(() => {
     if (!editData && staticOverrides) {
@@ -735,9 +1067,14 @@ const FormLayout = ({
       if (onFieldChange) {
         const sideEffects = onFieldChange(fieldName, value, updated);
         if (sideEffects && typeof sideEffects === "object") {
-          return { ...updated, ...sideEffects };
+          Object.assign(updated, sideEffects);
         }
       }
+
+      // Re-run real-time static validators
+      const nextValidationErrors = runStaticValidators(updated);
+      setValidationErrors(nextValidationErrors);
+
       return updated;
     });
 
@@ -760,7 +1097,7 @@ const FormLayout = ({
           const rawValue = staticData[field.name];
           if (field.type === "file") {
             payload[payloadKey] = rawValue;
-          } else if (field.type === "multiselect" || Array.isArray(rawValue)) {
+          } else if (field.type === "multiselect" || field.type === "searchable-multiselect" || Array.isArray(rawValue)) {
             payload[payloadKey] = Array.isArray(rawValue) ? rawValue : [];
           } else {
             payload[payloadKey] = toCleanString(rawValue);
@@ -789,7 +1126,7 @@ const FormLayout = ({
               const rowKey = field.payloadKey || field.name;
               const rawValue = row?.values?.[field.name];
               if (field.type === "file") rowPayload[rowKey] = rawValue;
-              else if (field.type === "multiselect" || Array.isArray(rawValue))
+              else if (field.type === "multiselect" || field.type === "searchable-multiselect" || Array.isArray(rawValue))
                 rowPayload[rowKey] = Array.isArray(rawValue) ? rawValue : [];
               else rowPayload[rowKey] = toCleanString(rawValue);
             });
@@ -815,6 +1152,15 @@ const FormLayout = ({
 
   const validateForm = () => {
     const isEdit = !!staticData.id;
+
+    // ── Check real-time field validator errors first ───────────
+    const currentActiveErrors = { ...runStaticValidators(staticData), ...validationErrors, ...(externalErrors || {}) };
+    const firstActiveErrorKey = Object.keys(currentActiveErrors).find((k) => currentActiveErrors[k]);
+    if (firstActiveErrorKey) {
+      toast.error(currentActiveErrors[firstActiveErrorKey]);
+      return false;
+    }
+
     for (const section of config) {
       if (section.showWhen) {
         const { field: watchField, value } = section.showWhen;
@@ -981,18 +1327,32 @@ const FormLayout = ({
                       })
                       .map((field, fieldIndex) => (
                         <div key={fieldIndex} className={`${field.span === 2 ? "md:col-span-2" : ""} min-w-0 flex flex-col justify-start`}>
-                          <Label text={field.label} required={field.required !== false} />
+                          <Label
+                            text={field.label}
+                            required={field.required !== false}
+                            onInfoClick={field.name === "externalRegistrationLink" ? () => handleFieldClick(field, null, true) : undefined}
+                          />
                           <FormInput
                             field={field}
                             value={staticData[field.name]}
                             onChange={(value) => updateStaticField(field.name, value)}
                             inputName={field.name}
+                            staticData={staticData}
+                            hasError={!!activeErrors[field.name]}
+                            onFieldClick={handleFieldClick}
                           />
-                          {(field.hint || field.description || field.helpText) && (
-                            <p className="text-[12px] text-gray-500 mt-1 font-normal leading-relaxed">
-                              {field.hint || field.description || field.helpText}
+                          {activeErrors[field.name] ? (
+                            <p className="text-[12px] text-red-500 mt-1 font-medium flex items-center gap-1.5 animate-in fade-in duration-150">
+                              <span className="w-1.5 h-1.5 rounded-full bg-red-500 inline-block shrink-0" />
+                              {activeErrors[field.name]}
                             </p>
-                          )}
+                          ) : (field.hint || field.description || field.helpText || field.name === "externalRegistrationLink") ? (
+                            <p className="text-[12px] text-gray-500 mt-1 font-normal leading-relaxed">
+                              {typeof field.hint === "function"
+                                ? field.hint(staticData)
+                                : (field.hint || field.description || field.helpText)}
+                            </p>
+                          ) : null}
                           {field.conditionalInput && staticData[field.name] === (field.conditionalInput.showWhen || "Yes") && (
                             <div className="mt-3">
                               <Label
@@ -1007,7 +1367,15 @@ const FormLayout = ({
                                 value={staticData[field.conditionalInput.name]}
                                 onChange={(value) => updateStaticField(field.conditionalInput.name, value)}
                                 inputName={field.conditionalInput.name}
+                                staticData={staticData}
+                                hasError={!!activeErrors[field.conditionalInput.name]}
                               />
+                              {activeErrors[field.conditionalInput.name] && (
+                                <p className="text-[12px] text-red-500 mt-1 font-medium flex items-center gap-1.5">
+                                  <span className="w-1.5 h-1.5 rounded-full bg-red-500 inline-block shrink-0" />
+                                  {activeErrors[field.conditionalInput.name]}
+                                </p>
+                              )}
                             </div>
                           )}
                         </div>
@@ -1163,6 +1531,79 @@ const FormLayout = ({
           </button>
         </div>
       </form>
+
+      {/* ─── External Registration Notice Modal ──────────────────────── */}
+      {isExternalNoticeOpen && (
+        <div
+          className="fixed inset-0 z-[100] flex items-center justify-center bg-black/50 backdrop-blur-xs p-4 animate-in fade-in duration-150"
+          onClick={() => {
+            setIsExternalNoticeOpen(false);
+            setHasSeenExternalNotice(true);
+          }}
+        >
+          <div
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="external-notice-title"
+            className="relative w-full max-w-lg bg-white rounded-2xl shadow-2xl border border-gray-100 overflow-hidden transform transition-all animate-in zoom-in-95 duration-150"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Header */}
+            <div className="flex items-start justify-between p-5 md:p-6 pb-4 border-b border-gray-100">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-xl bg-amber-50 border border-amber-200 flex items-center justify-center text-amber-600 shrink-0 shadow-xs">
+                  <AlertCircle size={22} className="stroke-[2.2]" />
+                </div>
+                <div>
+                  <h3 id="external-notice-title" className="text-base md:text-lg font-bold text-gray-900 leading-tight">
+                    External Registration Notice
+                  </h3>
+                  <p className="text-xs text-gray-500 mt-0.5">
+                    Important details regarding external forms
+                  </p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => {
+                  setIsExternalNoticeOpen(false);
+                  setHasSeenExternalNotice(true);
+                }}
+                className="text-gray-400 hover:text-gray-700 p-1.5 rounded-lg hover:bg-gray-100 transition-colors cursor-pointer"
+                aria-label="Close modal"
+              >
+                <X size={20} />
+              </button>
+            </div>
+
+            {/* Modal Body */}
+            <div className="p-5 md:p-6 space-y-3.5 bg-gray-50/50">
+              <div className="bg-white p-4 sm:p-5 rounded-xl border border-amber-100/90 shadow-xs space-y-3">
+                <p className="text-gray-800 text-sm leading-relaxed">
+                  <span className="font-semibold text-gray-900">Please note:</span> GradEnvy’s event management features — including attendance tracking, college dashboards, participant data management, certificate generation, and related event services — are available only for events managed through GradEnvy and may not apply to externally registered events.
+                </p>
+                <p className="text-gray-600 text-xs sm:text-sm leading-relaxed pt-3 border-t border-gray-100">
+                  Any issues related to the external registration website or services should be addressed with the respective event organizer/platform.
+                </p>
+              </div>
+            </div>
+
+            {/* Footer Action */}
+            <div className="p-4 md:p-5 bg-white border-t border-gray-100 flex justify-end">
+              <button
+                type="button"
+                onClick={() => {
+                  setIsExternalNoticeOpen(false);
+                  setHasSeenExternalNotice(true);
+                }}
+                className="w-full sm:w-auto px-6 py-2.5 bg-[#171717] hover:bg-black text-white text-sm font-semibold rounded-xl transition-colors cursor-pointer shadow-sm focus:outline-none focus:ring-2 focus:ring-gray-900 focus:ring-offset-2"
+              >
+                I Understand
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

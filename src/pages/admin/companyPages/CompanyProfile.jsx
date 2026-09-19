@@ -1,4 +1,4 @@
-import React, { useRef, useState, useEffect } from 'react';
+import React, { useRef, useState, useEffect, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { BriefcaseBusiness, Clock3, LockKeyhole, MapPin, Plus, SquarePen, Upload, X, Loader2 } from 'lucide-react';
 import { assets } from '../../../assets/assets';
@@ -18,7 +18,7 @@ import Icon from '../../../components/icons';
 
 dayjs.extend(relativeTime);
 
-const tabs = ['About', 'Posts', 'Jobs', 'People'];
+const tabs = ['About', 'Posts', 'Jobs', 'Followers'];
 
 const CompanyProfile = ({ module }) => {
   const { id } = useParams();
@@ -46,33 +46,40 @@ const CompanyProfile = ({ module }) => {
   useEffect(() => {
     setTitle("Company Profile")
   }, [])
-  useEffect(() => {
-    const fetchCompanyData = async () => {
-      try {
-        setIsLoading(true);
-        let response;
-        if (id) {
-          response = await getCompanyById(id);
-        } else if (module === 'company') {
-          response = await getMyCompany();
-        }
-        console.log(response)
-        if (response?.success) {
-          setCompany(response.data.company);        // ✅ company is now nested
-          setJobs(response.data.jobs || { internships: [], freelances: [] });
-          setFollowers(response.data.followers || { count: 0, data: [] });
-        } else {
-          setError("Company not found");
-        }
-      } catch (err) {
-        setError("Failed to fetch company details");
-        console.error(err);
-      } finally {
-        setIsLoading(false);
+  const fetchCompanyData = useCallback(async () => {
+    try {
+      setIsLoading(true);
+      let response;
+      if (id) {
+        response = await getCompanyById(id);
+      } else if (module === 'company') {
+        response = await getMyCompany();
       }
-    };
-    fetchCompanyData();
+      console.log(response);
+      if (response?.success) {
+        setCompany(response.data.company);
+        setJobs(response.data.jobs || { internships: [], freelances: [] });
+        setFollowers(response.data.followers || { count: 0, data: [] });
+      } else {
+        setError("Company not found");
+      }
+    } catch (err) {
+      setError("Failed to fetch company details");
+      console.error(err);
+    } finally {
+      setIsLoading(false);
+    }
   }, [id, module]);
+
+  useEffect(() => {
+    fetchCompanyData();
+
+    const handlePostAdded = () => {
+      fetchCompanyData();
+    };
+    window.addEventListener("companyPostAdded", handlePostAdded);
+    return () => window.removeEventListener("companyPostAdded", handlePostAdded);
+  }, [fetchCompanyData]);
 
   if (isLoading) {
     return <PageLoader />;
@@ -345,17 +352,6 @@ const CompanyProfile = ({ module }) => {
                     </button>
                   </>
                 )}
-                {/* bg-[#171717] */}
-                {
-                  user?.role !== "admin" &&
-                  <button
-                    onClick={() => setIsAddPostModalOpen(true)}
-                    className="flex items-center gap-2 px-[20px] py-3 rounded-full  text-[15px] font-bold shadow-md  transition-all active:scale-95"
-                  >
-                    <Plus size={18} />
-                    Add Post
-                  </button>
-                }
                 {/* border border-[#EAECF0] bg-[#FFFFFF] */}
                 <button
                   onClick={() => navigate(`/${user.role}/company-form`, { state: { editData: company } })}

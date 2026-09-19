@@ -1,12 +1,17 @@
 
 import { useLocation, useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
-import { createInternship, updateInternship  } from "../services/admin/adminServices";
+import { createInternship, updateInternship } from "../services/admin/adminServices";
 import { useOrganizerDisplayName } from "../utils/organizer";
 import FormLayout from "../layout/FormLayout";
 import { useState } from "react";
 import { useEffect } from "react";
 import { useTitle } from "../context/AdminTitle";
+import { domainOptions } from "./CompanyForm";
+import {
+  validateOpportunityFieldChange,
+  validateOpportunitySubmission,
+} from "../utils/dateTimeValidation";
 
 
 const internshipFormConfig = [
@@ -14,9 +19,17 @@ const internshipFormConfig = [
     title: "Basic Details",
     type: "static",
     fields: [
-      { name: "internshipType", label: "Internship Type", type: "radio", options: ["Paid", "Unpaid"] },
+      { name: "internshipType", label: "Internship Type", type: "radio", options: ["Stipend", "Unpaid", "Paid"] },
       { name: "jobTitle", label: "Internship Title", type: "text" },
-      { name: "domain", label: "Domain", type: "text", placeholder: "e.g. Software Development, Marketing, Finance" },
+      {
+        name: "domains",
+        label: "Domains",
+        type: "multiselect",
+        searchable: true,
+        options: domainOptions,
+        placeholder: "Select domains",
+        // required: false,
+      },
       { name: "organizer", label: "Organizer", type: "text" },
       { name: "mode", label: "Mode", type: "select", options: ["On-site", "Hybrid", "Remote"] },
       {
@@ -37,7 +50,14 @@ const internshipFormConfig = [
       { name: "applicationDeadline", label: "Application Deadline", type: "date" },
       {
         name: "salary",
-        label: "Stipend",
+        label: "Stipend per month",
+        type: "number",
+        placeholder: "e.g. 15000",
+        showWhen: { field: "internshipType", value: "Stipend" },
+      },
+      {
+        name: "paymentAmount",
+        label: "Payment amount",
         type: "number",
         placeholder: "e.g. 15000",
         showWhen: { field: "internshipType", value: "Paid" },
@@ -67,7 +87,7 @@ const internshipFormConfig = [
     dynamicStyle: "grid-6",
     initialRows: 1,
     fields: [{ name: "skill_set", label: "Required skill set", type: "text", colSpan: "md:col-span-11" }],
-  },{
+  }, {
     title: "Learning Benefits",
     type: "dynamic",
     key: "benefits",
@@ -120,39 +140,61 @@ const InternshipForm = () => {
   const location = useLocation();
   const editData = location.state?.editData;
   const organizerName = useOrganizerDisplayName();
-const [loading, setLoading] = useState(false);
-const navigate=useNavigate()
-  const {setTitle}=useTitle()
-  useEffect(()=>{
-setTitle("Internship Form")
-  },[])
+  const [loading, setLoading] = useState(false);
+  const navigate = useNavigate()
+  const { setTitle } = useTitle()
+  useEffect(() => {
+    setTitle("Internship Form")
+  }, [])
 
 
-const handleSubmit = async (_, payload) => {
-  try {
-    setLoading(true);
-    const cleanPayload = { ...payload };
-    if (cleanPayload.internshipType === "Unpaid") {
-      cleanPayload.salary = 0;
+  const handleFieldChange = (fieldName, value, currentData) => {
+    return validateOpportunityFieldChange(fieldName, value, currentData, !!editData?._id, {
+      startDateField: "internStartDate",
+      startLabel: "Internship start date",
+      deadlineLabel: "Application deadline",
+    });
+  };
+
+  const handleSubmit = async (_, payload) => {
+    try {
+      // Secondary defensive validation before submitting
+      if (!validateOpportunitySubmission(payload, !!editData?._id, {
+        startDateField: "internStartDate",
+        startLabel: "Internship start date",
+        deadlineLabel: "Application deadline",
+      })) {
+        return;
+      }
+
+      setLoading(true);
+      const cleanPayload = { ...payload };
+      if (cleanPayload.internshipType === "Unpaid") {
+        cleanPayload.salary = 0;
+        cleanPayload.paymentAmount = 0;
+      } else if (cleanPayload.internshipType === "Paid") {
+        cleanPayload.salary = 0;
+      } else if (cleanPayload.internshipType === "Stipend") {
+        cleanPayload.paymentAmount = 0;
+      }
+      if (cleanPayload.mode === "Remote" && !cleanPayload.location) {
+        cleanPayload.location = "Remote";
+      }
+      const res = editData?._id
+        ? await updateInternship(editData._id, cleanPayload)
+        : await createInternship(cleanPayload);
+      if (res?.success) {
+        toast.success(`Internship ${editData?._id ? 'updated' : 'created'} successfully`);
+        navigate(-1);
+      } else {
+        toast.error(res?.message || "Failed to save internship");
+      }
+    } catch (error) {
+      toast.error(error?.response?.data?.message || "Server error. Please try again");
+    } finally {
+      setLoading(false);
     }
-    if (cleanPayload.mode === "Remote" && !cleanPayload.location) {
-      cleanPayload.location = "Remote";
-    }
-    const res = editData?._id
-      ? await updateInternship(editData._id, cleanPayload)
-      : await createInternship(cleanPayload);
-    if (res?.success) {
-      toast.success(`Internship ${editData?._id ? 'updated' : 'created'} successfully`);
-      navigate(-1);
-    } else {
-      toast.error(res?.message || "Failed to save internship");
-    }
-  } catch (error) {
-    toast.error(error?.response?.data?.message || "Server error. Please try again");
-  } finally {
-    setLoading(false);
-  }
-};
+  };
 
 
   return (
@@ -162,6 +204,7 @@ const handleSubmit = async (_, payload) => {
       onSubmit={handleSubmit}
       staticOverrides={{ companyName: organizerName, organizer: organizerName }}
       dateFields={["internStartDate", "applicationDeadline"]}
+      onFieldChange={handleFieldChange}
     />
   );
 };

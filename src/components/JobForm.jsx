@@ -5,6 +5,11 @@ import { useOrganizerDisplayName } from "../utils/organizer";
 import FormLayout from "../layout/FormLayout";
 import { useState, useEffect } from "react";
 import { useTitle } from "../context/AdminTitle";
+import { domainOptions } from "./CompanyForm";
+import {
+  validateOpportunityFieldChange,
+  validateOpportunitySubmission,
+} from "../utils/dateTimeValidation";
 
 const jobFormConfig = [
   {
@@ -13,7 +18,15 @@ const jobFormConfig = [
     fields: [
       { name: "jobType", label: "Job Type", type: "radio", options: ["Full Time", "Part Time", "Contract"] },
       { name: "jobTitle", label: "Job Title", type: "text" },
-      { name: "domain", label: "Domain", type: "text", placeholder: "e.g. Software Development, Marketing, Finance" },
+      {
+        name: "domains",
+        label: "Domains",
+        type: "multiselect",
+        searchable: true,
+        options: domainOptions,
+        placeholder: "Select domains",
+        // required: false,
+      },
       { name: "organizer", label: "Organizer", type: "text", },
       { name: "mode", label: "Mode", type: "select", options: ["On-site", "Hybrid", "Remote"] },
       {
@@ -43,7 +56,7 @@ const jobFormConfig = [
       },
       {
         name: "salary",
-        label: "Fixed Salary (₹)",
+        label: "Fixed Salary (₹) LPA",
         type: "number",
         placeholder: "e.g. 600000",
         required: false,
@@ -51,7 +64,7 @@ const jobFormConfig = [
       },
       {
         name: "salaryMin",
-        label: "Minimum Salary (₹)",
+        label: "Minimum Salary (₹) LPA",
         type: "number",
         placeholder: "e.g. 400000",
         required: false,
@@ -59,7 +72,7 @@ const jobFormConfig = [
       },
       {
         name: "salaryMax",
-        label: "Maximum Salary (₹)",
+        label: "Maximum Salary (₹) LPA",
         type: "number",
         placeholder: "e.g. 800000",
         required: false,
@@ -145,8 +158,25 @@ const JobForm = () => {
     setTitle("Job Form");
   }, [setTitle]);
 
+  const handleFieldChange = (fieldName, value, currentData) => {
+    return validateOpportunityFieldChange(fieldName, value, currentData, !!editData?._id, {
+      startDateField: "jobStartDate",
+      startLabel: "Job start date",
+      deadlineLabel: "Application deadline",
+    });
+  };
+
   const handleSubmit = async (_, payload) => {
     try {
+      // Secondary defensive validation before submitting
+      if (!validateOpportunitySubmission(payload, !!editData?._id, {
+        startDateField: "jobStartDate",
+        startLabel: "Job start date",
+        deadlineLabel: "Application deadline",
+      })) {
+        return;
+      }
+
       setLoading(true);
       const cleanPayload = { ...payload };
       if ((cleanPayload.mode === "Remote" || cleanPayload.mode === "Online") && !cleanPayload.location) {
@@ -188,6 +218,7 @@ const JobForm = () => {
       onSubmit={handleSubmit}
       staticOverrides={{ companyName: organizerName, organizer: organizerName }}
       dateFields={["jobStartDate", "applicationDeadline"]}
+      onFieldChange={handleFieldChange}
     />
   );
 };

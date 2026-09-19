@@ -1,10 +1,11 @@
-﻿import { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import DynamicTable from '../../common/DynamicTable';
 import { assets } from '../../assets/assets';
 import { apiGetAdminDashboard } from '../../services/admin/adminServices';
 import setFileName from '../../utils/setFileName';
 import { useTitle } from '../../context/AdminTitle';
 import { useNavigate } from 'react-router-dom';
+import AdminNotificationHubModal from '../../components/AdminNotificationHubModal';
 
 // ─── tiny helper ────────────────────────────────────────────────────────────
 const Skeleton = ({ className = '' }) => (
@@ -17,6 +18,7 @@ const Dashboard = () => {
   const [latestCompanies, setLatestCompanies] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [isNotificationHubOpen, setIsNotificationHubOpen] = useState(false);
   const navigate = useNavigate()
   const { setTitle } = useTitle()
   useEffect(() => {
@@ -108,6 +110,25 @@ const Dashboard = () => {
   // ── Render ────────────────────────────────────────────────────────────────
   return (
     <div className="space-y-5">
+      {/* ── Quick Actions / Notification Hub Header Bar ── */}
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 bg-white p-4 sm:p-5 rounded-[24px] border border-[#EAECF0]">
+        <div>
+          <h1 className="text-[20px] sm:text-[22px] font-bold text-primary tracking-tight">
+            Dashboard Overview
+          </h1>
+          <p className="text-xs sm:text-sm text-[#667085]">
+            Manage community performance, live metrics, and targeted notifications.
+          </p>
+        </div>
+        <button
+          type="button"
+          onClick={() => setIsNotificationHubOpen(true)}
+          className="inline-flex items-center justify-center gap-2 px-5 py-2.5 bg-[#171717] hover:bg-black text-white text-[14px] font-medium rounded-full shadow-sm hover:shadow transition-all cursor-pointer"
+        >
+          <span>Notification Hub</span>
+        </button>
+      </div>
+
       {/* ── Metric Cards ── */}
       <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
         {metricCards.map((card) => {
@@ -206,6 +227,12 @@ const Dashboard = () => {
           />
         )}
       </section>
+
+      {/* ── Notification Hub Modal ── */}
+      <AdminNotificationHubModal
+        isOpen={isNotificationHubOpen}
+        onClose={() => setIsNotificationHubOpen(false)}
+      />
     </div>
   );
 };

@@ -89,8 +89,8 @@ const collegeFormConfig = [
       {
         name: "coursesAvailable",
         label: "Courses Available",
-        type: "checkbox",
-        options: ["UG", "PG", "Diploma"],
+        type: "multiselect",
+        options: ["UG", "PG", "Diploma", "PhD", "Cert", "Int./Dual", "PG Dip.", "Prof./Voc.", "Other"],
       },
       {
         name: "placementAvailable",
@@ -98,7 +98,7 @@ const collegeFormConfig = [
         type: "radio",
         options: ["Yes", "No"],
       },
-      { name: "totalStudents", label: "Total Students", type: "number" },
+      { name: "totalStudents", label: "Approximate Students", type: "number" },
     ],
   },
   {
@@ -126,26 +126,31 @@ const collegeFormConfig = [
         name: "accountHolderName",
         label: "Account Holder",
         type: "text",
+        required: false
       },
       {
         name: "bankName",
         label: "Bank",
         type: "text",
+        required: false
       },
       {
         name: "branchName",
         label: "Branch",
         type: "text",
+        required: false
       },
       {
         name: "accountNumber",
         label: "Account Number",
         type: "text",
+        required: false
       },
       {
         name: "ifscCode",
         label: "IFSC",
         type: "text",
+        required: false
       },
     ],
   },

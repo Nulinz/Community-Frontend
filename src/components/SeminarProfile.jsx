@@ -395,7 +395,7 @@ const SeminarProfile = () => {
                                         <DataItem label="Food Provided" value={seminar.foodProvide} />
                                         <DataItem label="Food Type" value={seminar.vegNonVeg} />
                                         <DataItem label="Accommodation" value={seminar.accommodationProvide} />
-                                        <DataItem label="Midnight Snacks" value={seminar.midnightSnacks} />
+                                        <DataItem label="Snacks" value={seminar.midnightSnacks} />
                                     </div>
                                 </InfoCard>
                             )}

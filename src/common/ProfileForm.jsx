@@ -443,6 +443,11 @@ const ProfileForm = ({ formVariant: formVariantProp }) => {
       const payload = buildPayload();
       await submitFn(payload);
       toast.success(`${selectedVariant?.title || formType} saved successfully`);
+      if (formType === "company") {
+        window.dispatchEvent(new CustomEvent("companyProfileUpdated"));
+      } else if (formType === "college") {
+        window.dispatchEvent(new CustomEvent("collegeProfileUpdated"));
+      }
     } catch (error) {
       toast.error(error?.response?.data?.message || "Failed to save form");
     } finally {

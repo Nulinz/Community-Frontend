@@ -404,7 +404,7 @@ const CompetitionProfile = () => {
                                     <DataItem label="Food Provided" value={competition.foodProvide} />
                                     <DataItem label="Food Type" value={competition.vegNonVeg} />
                                     <DataItem label="Accommodation" value={competition.accommodationProvide} />
-                                    <DataItem label="Midnight Snacks" value={competition.midnightSnacks} />
+                                    <DataItem label="Snacks" value={competition.midnightSnacks} />
                                 </div>
                             </InfoCard>
 

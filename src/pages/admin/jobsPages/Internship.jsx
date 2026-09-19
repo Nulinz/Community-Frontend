@@ -46,7 +46,11 @@ const Internship = ({ module = 'admin' }) => {
                 company: item?.companyName || '-',
                 date: formatDate(item?.applicationDeadline || item?.createdAt),
                 jobType: item?.internshipType || '-',
-                salary: item?.salary ? `Rs ${item.salary}` : 'Rs 0',
+                salary: item?.internshipType === 'Unpaid'
+                    ? 'Unpaid'
+                    : item?.internshipType === 'Paid'
+                        ? (item?.paymentAmount ? `₹${item.paymentAmount}` : (item?.salary ? `₹${item.salary}` : 'Paid'))
+                        : (item?.salary ? `₹${item.salary}/mo` : '₹0'),
                 location: item?.location || '-',
                 applied: item?.appliedCount,
                 status: item?.isActive ? 'active' : 'inactive',

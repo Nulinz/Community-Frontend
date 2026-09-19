@@ -5,17 +5,49 @@ import { useOrganizerDisplayName } from "../utils/organizer";
 import FormLayout from "../layout/FormLayout";
 import { useEffect } from "react";
 import { useTitle } from "../context/AdminTitle";
+import { domainOptions } from "./CompanyForm";
+import {
+  validateFreelanceFieldChange,
+  validateFreelanceSubmission,
+} from "../utils/dateTimeValidation";
 
 /**
- * Freelance / Project form configuration.
- * Defines the static metadata and dynamic specification sections for creating
- * or editing freelance project listings.
+ * Minimum budget thresholds enforced per Project Type.
+ * Ensures consistent project budgeting across creation and edits.
  */
-const PROJECT_TYPE_MIN_BUDGET = {
+export const PROJECT_TYPE_MIN_BUDGET = {
   "Small Project": 1000,
   "Standard Project": 2500,
   "Medium Project": 5000,
   "Advanced Project": 10000,
+};
+
+/**
+ * Validates budget in real-time according to the selected projectType.
+ * Evaluates immediately on every keystroke while typing in the budget input,
+ * as well as when the user changes the projectType dropdown.
+ * Returns a human-friendly error string if invalid, or null if valid.
+ */
+export const validateFreelanceBudget = (value, projectType) => {
+  const selectedType = projectType || "Small Project";
+  const minAllowed = PROJECT_TYPE_MIN_BUDGET[selectedType] || 1000;
+
+  // Don't flag empty state before user starts entering data
+  if (value === "" || value === null || value === undefined) {
+    return null;
+  }
+
+  const numericBudget = parseFloat(String(value).replace(/[^0-9.]/g, ""));
+
+  if (isNaN(numericBudget) || numericBudget <= 0) {
+    return "Please enter a valid positive budget amount";
+  }
+
+  if (numericBudget < minAllowed) {
+    return `Minimum budget for ${selectedType} must be at least ₹${minAllowed.toLocaleString("en-IN")}`;
+  }
+
+  return null;
 };
 
 const freelanceFormConfig = [
@@ -24,7 +56,15 @@ const freelanceFormConfig = [
     type: "static",
     fields: [
       { name: "jobTitle", label: "Project Title", type: "text" },
-      { name: "domain", label: "Domain", type: "text", placeholder: "e.g. Web Development, UI/UX Design, Content Writing" },
+      {
+        name: "domains",
+        label: "Domains",
+        type: "multiselect",
+        searchable: true,
+        options: domainOptions,
+        placeholder: "Select domains",
+        // required: false,
+      },
       {
         name: "companyName",
         label: "Organizer",
@@ -69,7 +109,20 @@ const freelanceFormConfig = [
         name: "budget",
         label: "Budget (INR)",
         type: "number",
-        placeholder: "Enter budget in INR",
+        min: 0,
+        placeholder: (data) => {
+          const selectedType = data?.projectType || "Small Project";
+          const minAllowed = PROJECT_TYPE_MIN_BUDGET[selectedType] || 1000;
+          return `Min ₹${minAllowed.toLocaleString("en-IN")} for ${selectedType}`;
+        },
+        hint: (data) => {
+          const selectedType = data?.projectType || "Small Project";
+          const minAllowed = PROJECT_TYPE_MIN_BUDGET[selectedType] || 1000;
+          return `Minimum allowed budget for ${selectedType} is ₹${minAllowed.toLocaleString("en-IN")}`;
+        },
+        validate: (value, data) => {
+          return validateFreelanceBudget(value, data?.projectType);
+        },
       },
     ],
   },
@@ -167,36 +220,49 @@ const FreelanceForm = () => {
     setTitle("Projects Form")
   },[])
 
-const handleSubmit = async (_, payload, staticData) => {
-  try {
-    const selectedType = payload?.projectType || staticData?.projectType;
-    const rawBudget = payload?.budget || staticData?.budget || "";
-    const numericBudget = parseFloat(String(rawBudget).replace(/[^0-9.]/g, ""));
+  const handleFieldChange = (fieldName, value, currentData) => {
+    return validateFreelanceFieldChange(fieldName, value, currentData, !!editData?._id);
+  };
 
-    const minAllowed = PROJECT_TYPE_MIN_BUDGET[selectedType];
-    if (minAllowed && (!numericBudget || numericBudget < minAllowed)) {
+  const handleSubmit = async (_, payload, staticData) => {
+    try {
+      // Secondary defensive validation before making the API request
+      if (!validateFreelanceSubmission(payload, !!editData?._id)) {
+        return;
+      }
+
+      const selectedType = payload?.projectType || staticData?.projectType || "Small Project";
+      const rawBudget = payload?.budget || staticData?.budget || "";
+      const minAllowed = PROJECT_TYPE_MIN_BUDGET[selectedType] || 1000;
+      const numericBudget = parseFloat(String(rawBudget).replace(/[^0-9.]/g, ""));
+
+      if (!rawBudget || isNaN(numericBudget) || numericBudget < minAllowed) {
+        toast.error(
+          `Minimum budget for ${selectedType} must be at least ₹${minAllowed.toLocaleString("en-IN")}`
+        );
+        return;
+      }
+
+      const res = await createFreelance(payload); // JSON payload
+      
+      if (res?.success) {
+        toast.success(
+          editData
+            ? "Freelance updated successfully"
+            : "Freelance saved successfully"
+        );
+        navigate(-1);
+      } else {
+        toast.error(res?.message || "Failed to save freelance");
+      }
+    } catch (error) {
+      console.error("Error:", error);
+
       toast.error(
-        `Minimum budget for ${selectedType} must be at least ₹${minAllowed.toLocaleString("en-IN")}`
+        error?.response?.data?.message || "Server error. Please try again"
       );
-      return;
     }
-
-    const res = await createFreelance(payload); // JSON payload
-    
-    if (res?.success) {
-      toast.success("Freelance saved successfully");
-      navigate(-1)
-    } else {
-      toast.error(res?.message || "Failed to save freelance");
-    }
-  } catch (error) {
-    console.error("Error:", error);
-
-    toast.error(
-      error?.response?.data?.message || "Server error. Please try again"
-    );
-  }
-};
+  };
 
   return (
     <FormLayout
@@ -205,6 +271,7 @@ const handleSubmit = async (_, payload, staticData) => {
       onSubmit={handleSubmit}
       staticOverrides={{ companyName: organizerName }}
       dateFields={["jobStartDate", "jobEndDate", "applicationDeadline"]}
+      onFieldChange={handleFieldChange}
     />
   );
 };

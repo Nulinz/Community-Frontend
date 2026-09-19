@@ -382,7 +382,7 @@ const EventProfile = () => {
                                     <DataItem label="Food Provided" value={event.foodProvide} />
                                     <DataItem label="Food Type" value={event.vegNonVeg} />
                                     <DataItem label="Accommodation" value={event.accommodationProvide} />
-                                    <DataItem label="Midnight Snacks" value={event.midnightSnacks} />
+                                    <DataItem label="Snacks" value={event.midnightSnacks} />
                                 </div>
                             </InfoCard>
 

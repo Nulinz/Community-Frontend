@@ -5,6 +5,52 @@ import FormLayout from "../layout/FormLayout";
 import { useTitle } from "../context/AdminTitle";
 import { useEffect } from "react";
 
+/**
+ * Standardized domain options for company specialization.
+ * Deduplicated and structured with shortest domain names.
+ */
+export const domainOptions = [
+  "Software & IT",
+  "AI & ML",
+  "Data",
+  "Cybersecurity",
+  "Cloud & DevOps",
+  "Electronics",
+  "Embedded & IoT",
+  "Robotics",
+  "VLSI",
+  "Telecom & Networking",
+  "Design & Creative",
+  "Marketing & Advertising",
+  "Media & Communications",
+  "E-commerce & Retail",
+  "Finance & FinTech",
+  "Banking & Investment",
+  "Insurance",
+  "Consulting",
+  "Sales & BD",
+  "HR & Recruitment",
+  "Education & EdTech",
+  "Healthcare",
+  "Pharma & Biotech",
+  "Science & Research",
+  "Engineering & Manufacturing",
+  "Automotive & Mobility",
+  "Aerospace & Defence",
+  "Construction & Infrastructure",
+  "Real Estate",
+  "Energy & Utilities",
+  "Agritech",
+  "Logistics & Supply Chain",
+  "Food & Beverage",
+  "Travel & Hospitality",
+  "Entertainment & Gaming",
+  "Sustainability",
+  "Government",
+  "Social Impact",
+  "Professional Services",
+  "Other",
+];
 
 const companyFormConfig = [
   {
@@ -16,24 +62,45 @@ const companyFormConfig = [
         name: "companyType",
         label: "Company Type",
         type: "select",
-        options: ["Startup", "MNC", "Agency", "Product Company"],
+        options: ["Startup", "Small & Medium Business (SMB/SME)", "MNC", "Agency", "Enterprise", "Non-Profit / NGO", "Government / Public Organization", "Educational Institution", "Research Organization", "Other"],
       },
       {
         name: "industry",
         label: "Industry / Sector",
         type: "select",
         options: [
-          "Information Technology",
-          "Healthcare",
-          "Finance",
-          "EdTech",
-          "Manufacturing",
-          "Construction",
-          "Biotechnology",
-          "Consulting",
-          "Media & Entertainment",
-          "E-commerce",
+          "Technology & Software",
+          "AI, Data & Cybersecurity",
+          "Electronics & Semiconductors",
+          "Telecommunications",
+          "Finance, Banking & FinTech",
+          "Healthcare & Pharmaceuticals",
+          "Biotechnology & Life Sciences",
+          "Education & EdTech",
+          "Engineering & Manufacturing",
+          "Automotive & Mobility",
+          "Aerospace & Defence",
+          "Construction & Infrastructure",
+          "Energy & Utilities",
+          "Agriculture & Agritech",
+          "E-commerce & Retail",
+          "Logistics & Transportation",
+          "Food & Beverage",
+          "Media, Entertainment & Gaming",
+          "Marketing, Consulting & Professional Services",
+          "Real Estate, Hospitality & Travel",
+          "Government, NGO & Social Impact",
+          "Other",
         ],
+      },
+      {
+        name: "domains",
+        label: "Domains",
+        type: "multiselect",
+        searchable: true,
+        options: domainOptions,
+        placeholder: "Select domains",
+        // required: false,
       },
       { name: "companyTagLine", label: "Company Tagline", type: "text", required: false },
       {
@@ -142,23 +209,27 @@ const companyFormConfig = [
         name: "accountHolderName",
         label: "Account Holder Name",
         type: "text",
+        required: false,
       },
       {
         name: "bankName",
         label: "Bank Name",
         type: "text",
+        required: false
       },
       {
         name: "accountNumber",
         label: "Account Number",
         type: "text",
         sanitize: "noAlphabets",
+        required: false
       },
       {
         name: "ifscCode",
         label: "IFSC",
         type: "text",
         sanitize: "ifsc",
+        required: false
       },
     ],
   },
@@ -179,45 +250,47 @@ const CompanyForm = ({ module }) => {
   const location = useLocation();
   const navigate = useNavigate();
   const editData = location.state?.editData;
-  const {setTitle}=useTitle()
-  useEffect(()=>{
-setTitle("Company Form")
-  },[])
-  // ✅ Remap email/phone aliases from editData before passing to FormLayout
+  const { setTitle } = useTitle()
+  useEffect(() => {
+    setTitle("Company Form")
+  }, [])
+  // ✅ Remap email/phone aliases and domain tags from editData before passing to FormLayout
   const normalizedEditData = editData
     ? {
-        ...editData,
-        mailId: editData.mailId || editData.email || "",
-        phoneNumber: editData.phoneNumber || editData.phone || "",
-      }
+      ...editData,
+      mailId: editData.mailId || editData.email || "",
+      phoneNumber: editData.phoneNumber || editData.phone || "",
+      domains: editData.domains || editData.domain || [],
+    }
     : undefined;
 
-const handleSubmit = async (formData) => {
-  try {
-    const res = await createCompany(formData);
+  const handleSubmit = async (formData) => {
+    try {
+      const res = await createCompany(formData);
 
-    // Check API success flag
-    if (res?.success) {
-      toast.success(res.message || "Company updated successfully");
+      // Check API success flag
+      if (res?.success) {
+        toast.success(res.message || "Company updated successfully");
+        window.dispatchEvent(new CustomEvent("companyProfileUpdated"));
 
-      if (window.history.length > 2 && document.referrer.includes(window.location.host)) {
-        navigate(-1);
+        if (window.history.length > 2 && document.referrer.includes(window.location.host)) {
+          navigate(-1);
+        } else {
+          navigate(module === "company" ? "/company/dashboard" : "/admin/company");
+        }
       } else {
-        navigate(module === "company" ? "/company/dashboard" : "/admin/company");
+        // API responded but failed
+        toast.error(res?.message || "Something went wrong");
       }
-    } else {
-      // API responded but failed
-      toast.error(res?.message || "Something went wrong");
-    }
-  } catch (error) {
-    // Network / server error
-    console.error("Error:", error);
+    } catch (error) {
+      // Network / server error
+      console.error("Error:", error);
 
-    toast.error(
-      error?.response?.data?.message || "Server error. Please try again"
-    );
-  }
-};
+      toast.error(
+        error?.response?.data?.message || "Server error. Please try again"
+      );
+    }
+  };
 
   return (
     <FormLayout

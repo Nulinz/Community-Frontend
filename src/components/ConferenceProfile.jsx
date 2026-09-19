@@ -389,7 +389,7 @@ const ConferenceProfile = () => {
                                     <DataItem label="Food Provided" value={conference.foodProvide} />
                                     <DataItem label="Food Type" value={conference.vegNonVeg} />
                                     <DataItem label="Accommodation" value={conference.accommodationProvide} />
-                                    <DataItem label="Midnight Snacks" value={conference.midnightSnacks} />
+                                    <DataItem label="Snacks" value={conference.midnightSnacks} />
                                 </div>
                             </InfoCard>
 

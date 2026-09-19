@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { assets } from '../assets/assets';
+import setFileName from '../utils/setFileName';
 import { useNavigate, useParams } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import { getFreelanceById, toggleFreelanceStatus, updateJobStatus } from '../services/admin/adminServices';
@@ -54,7 +55,9 @@ const FreelanceProfile = ({ module = 'admin' }) => {
         setIsLoading(true);
         const response = await getFreelanceById(id);
         if (response.success) {
-          setFreelance(response.data.freelance);
+          const profileData = response.data?.freelance || response.data;
+          const companyLogo = profileData?.companyLogo || response.data?.companyLogo || profileData?.companyImage || "";
+          setFreelance({ ...profileData, companyLogo });
           setApplications(response.data.applications || { count: 0, list: [] });
         } else {
           setError("Freelance not found");
@@ -98,7 +101,7 @@ const FreelanceProfile = ({ module = 'admin' }) => {
   const eligibilityCriteria = cleanList(freelance?.eligibility_criteria);
   const learning = String(freelance?.learning || '').trim();
   const description = String(freelance?.description || '').trim();
-  const domain = String(freelance?.domain || '').trim();
+  const domain = String(freelance?.domain || (Array.isArray(freelance?.domains) ? freelance.domains.join(', ') : '') || '').trim();
   const budget = String(freelance?.budget || (freelance?.salary ? `Rs ${freelance.salary}` : '')).trim();
   const budgetType = String(freelance?.budgetType || '').trim();
   const paymentMethod = String(freelance?.paymentMethod || '').trim();
@@ -184,8 +187,24 @@ const FreelanceProfile = ({ module = 'admin' }) => {
       <section className="bg-white rounded-[16px] md:rounded-[24px] border border-gray-200 p-4 md:p-6 shadow-sm">
         <div className="flex flex-col xl:flex-row xl:items-center justify-between gap-6 pb-6 border-b border-gray-200">
           <div className="flex gap-4 md:gap-6">
-            <div className="w-[86px] h-[86px] md:w-[118px] md:h-[118px] rounded-[12px] border border-gray-300 flex items-center justify-center bg-white">
-              <img src={assets.logo} alt="Company logo" className="w-[54px] md:w-[84px] h-auto object-contain" />
+            <div className="w-[86px] h-[86px] md:w-[118px] md:h-[118px] rounded-[12px] border border-gray-300 flex items-center justify-center bg-white p-2 overflow-hidden">
+              {freelance?.companyLogo ? (
+                <img
+                  src={setFileName(freelance.companyLogo)}
+                  alt={freelance.companyName || "Company logo"}
+                  className="w-full h-full object-contain"
+                  onError={(e) => {
+                    e.currentTarget.onerror = null;
+                    e.currentTarget.src = assets.logo;
+                  }}
+                />
+              ) : (
+                <img
+                  src={assets.logo}
+                  alt="Company logo"
+                  className="w-[54px] md:w-[84px] h-auto object-contain"
+                />
+              )}
             </div>
 
             <div className="space-y-1">

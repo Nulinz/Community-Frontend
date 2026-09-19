@@ -1,5 +1,7 @@
 import React, { useEffect, useState, useMemo } from 'react';
+import { createPortal } from 'react-dom';
 import { assets } from '../assets/assets';
+import setFileName from '../utils/setFileName';
 import AppliedListSection from './AppliedListSection';
 import AttendanceSection from './AttendanceSection';
 import CandidateProfileSection from './CandidateProfileSection';
@@ -25,6 +27,8 @@ import ConfirmActionButton from './ConfirmActionButton';
 import { useTitle } from '../context/AdminTitle';
 import StatusActionButtons from './AcceptRejectButtons';
 import { useMain } from '../context/MainContext';
+import { Eye, AlertCircle } from 'lucide-react';
+import { apiDispatchApplicationViewedNotification } from '../services/admin/adminNotificationServices';
 
 const JobsProfile = ({ module = 'admin', jobType = 'Internship' }) => {
   const isJob = jobType === 'Job' || window.location.pathname.includes('/job-profile');
@@ -46,6 +50,36 @@ const JobsProfile = ({ module = 'admin', jobType = 'Internship' }) => {
   const [isLoading, setIsLoading] = useState(true);
   const [statusLoading, setStatusLoading] = useState(false);
   const [isTogglingStatus, setIsTogglingStatus] = useState(false);
+  const [isNotifyingViewed, setIsNotifyingViewed] = useState(false);
+  const [showViewedConfirmModal, setShowViewedConfirmModal] = useState(false);
+  const [viewedNotificationResult, setViewedNotificationResult] = useState(null);
+
+  /**
+   * Dispatches application viewed push and in-app alerts to all candidates
+   * who applied to this specific opportunity.
+   */
+  const handleNotifyApplicationViewed = async () => {
+    try {
+      setIsNotifyingViewed(true);
+      setShowViewedConfirmModal(false);
+      const effectiveJobType = isJob ? 'Job' : (jobType === 'Freelance' ? 'Freelance' : 'Internship');
+      const res = await apiDispatchApplicationViewedNotification(id, effectiveJobType);
+      if (res.success) {
+        const { sentCount } = res.data;
+        setViewedNotificationResult({ sentCount });
+        toast.success(
+          `Application viewed alerts dispatched to ${sentCount} candidate${sentCount === 1 ? '' : 's'}!`
+        );
+      } else {
+        toast.error(res.message || 'Failed to dispatch application viewed alerts');
+      }
+    } catch (err) {
+      console.error('handleNotifyApplicationViewed error:', err);
+      toast.error(err?.message || 'Failed to dispatch application viewed alerts');
+    } finally {
+      setIsNotifyingViewed(false);
+    }
+  };
 
   const { id } = useParams();
   const { user } = useMain();
@@ -93,7 +127,7 @@ const JobsProfile = ({ module = 'admin', jobType = 'Internship' }) => {
       setStatusLoading(true);
       const response = await updateJobStatus(id, isJob ? 'job' : 'internship', status, rejected_reason);
       if (response.success || response.status) {
-        setInternship(response.data);
+        setInternship(prev => ({ ...prev, ...(response.data?.job || response.data?.internship || response.data) }));
         toast.success(response.message);
       } else {
         toast.error(response.message);
@@ -119,7 +153,8 @@ const JobsProfile = ({ module = 'admin', jobType = 'Internship' }) => {
         const response = await fetchFn(id);
         if (response.success || response.status) {
           const profileData = response.data?.job || response.data?.internship || response.data;
-          setInternship(profileData);
+          const companyLogo = profileData?.companyLogo || profileData?.companyImage || response.data?.companyLogo || response.data?.companyImage || '';
+          setInternship({ ...profileData, companyLogo });
           setApplications(response.data?.applications || { count: 0, list: [] });
         }
       } catch (error) {
@@ -210,11 +245,17 @@ const JobsProfile = ({ module = 'admin', jobType = 'Internship' }) => {
   const description = String(internship?.description || '').trim();
   const certificateAvailability = String(internship?.certificateAvailability || '').trim();
   const jobCategory = String(internship?.jobCategory || '').trim();
-  const domain = String(internship?.domain || '').trim();
+  const domain = String(internship?.domain || (Array.isArray(internship?.domains) ? internship.domains.join(', ') : '') || '').trim();
 
   const formatSalary = (data) => {
     if (!data) return '-';
     if (data.internshipType === 'Unpaid') return 'Unpaid';
+    if (data.internshipType === 'Paid') {
+      return data.paymentAmount ? `Fee: ₹${data.paymentAmount}` : (data.salary ? `Fee: ₹${data.salary}` : 'Paid');
+    }
+    if (data.internshipType === 'Stipend') {
+      return data.salary ? `Stipend: ₹${data.salary}/month` : 'Stipend';
+    }
     if (data.salaryType === 'Negotiable') return 'Negotiable';
     if (data.salaryType === 'Not disclosed') return 'Not disclosed';
     if (data.salaryType === 'Range') {
@@ -278,7 +319,7 @@ const JobsProfile = ({ module = 'admin', jobType = 'Internship' }) => {
       setIsTogglingStatus(true);
       const toggleFn = isJob ? toggleJobStatus : toggleInternshipStatus;
       const response = await toggleFn(internship._id);
-      setInternship(response?.data || internship);
+      setInternship(prev => (response?.data ? { ...prev, ...response.data } : prev));
       toast.success(response?.message || `${isJob ? 'Job' : 'Internship'} status updated`);
     } catch (error) {
       toast.error(error?.response?.data?.message || `Failed to update ${isJob ? 'job' : 'internship'} status`);
@@ -406,8 +447,24 @@ const JobsProfile = ({ module = 'admin', jobType = 'Internship' }) => {
         {!isAddAttendance && (
           <div className="flex flex-col xl:flex-row justify-between xl:items-start gap-6 border-b border-gray-200 pb-6">
             <div className="flex gap-4 md:gap-6">
-              <div className="w-[86px] h-[86px] md:w-[118px] md:h-[118px] rounded-[12px] border border-gray-300 flex items-center justify-center bg-white p-2">
-                <img src={assets.logo} alt="Company logo" className="w-[54px] md:w-[84px] h-auto object-contain" />
+              <div className="w-[86px] h-[86px] md:w-[118px] md:h-[118px] rounded-[12px] border border-gray-300 flex items-center justify-center bg-white p-2 overflow-hidden">
+                {internship?.companyLogo ? (
+                  <img
+                    src={setFileName(internship.companyLogo)}
+                    alt={internship.companyName || "Company logo"}
+                    className="w-full h-full object-contain"
+                    onError={(e) => {
+                      e.currentTarget.onerror = null;
+                      e.currentTarget.src = assets.logo;
+                    }}
+                  />
+                ) : (
+                  <img
+                    src={assets.logo}
+                    alt="Company logo"
+                    className="w-[54px] md:w-[84px] h-auto object-contain"
+                  />
+                )}
               </div>
 
               <div className="space-y-1">
@@ -610,7 +667,56 @@ const JobsProfile = ({ module = 'admin', jobType = 'Internship' }) => {
             )}
           </div>
         ) : activeTab === 'applied' ? (
-          <div className="pt-2">
+          <div className="pt-2 space-y-4">
+            {/* Action Bar for Notifying Candidates */}
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-4 bg-white rounded-2xl border border-[#EAECF0]">
+              <div>
+                <h3 className="text-base font-bold text-gray-900">
+                  Candidate Applications ({applications.list.length})
+                </h3>
+                <p className="text-xs text-gray-500">
+                  Notify all applied candidates that their application has been viewed by the recruitment team.
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={() => setShowViewedConfirmModal(true)}
+                disabled={isNotifyingViewed || applications.list.length === 0}
+                className="inline-flex items-center justify-center gap-2 px-5 py-3 bg-primary hover:bg-black text-white text-xs font-semibold rounded-full shadow-sm transition-all disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+              >
+                {isNotifyingViewed ? (
+                  <>
+                    <svg className="animate-spin h-3.5 w-3.5 text-white" fill="none" viewBox="0 0 24 24">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+                    </svg>
+                    <span>Dispatching...</span>
+                  </>
+                ) : (
+                  <>
+                    <Eye size={15} />
+                    <span>Notify Application Viewed</span>
+                  </>
+                )}
+              </button>
+            </div>
+
+            {/* Execution status feedback banner */}
+            {viewedNotificationResult && (
+              <div className="p-3.5 bg-emerald-50 border border-emerald-200 rounded-xl text-xs text-emerald-900 flex items-center justify-between">
+                <div>
+                  <span className="font-semibold">Notification Status:</span> Successfully notified {viewedNotificationResult.sentCount} candidates.
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setViewedNotificationResult(null)}
+                  className="text-emerald-700 hover:text-emerald-900 font-semibold ml-2"
+                >
+                  ✕
+                </button>
+              </div>
+            )}
+
             <AppliedListSection
               data={applications.list.map((app, idx) => ({
                 ...app,
@@ -620,6 +726,53 @@ const JobsProfile = ({ module = 'admin', jobType = 'Internship' }) => {
               heading={appliedListHeading}
               onRowClick={handleCandidateSelect}
             />
+
+            {/* Confirmation Modal */}
+            {showViewedConfirmModal &&
+              createPortal(
+                <div
+                  className="fixed inset-0 z-[99999] flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs animate-in fade-in duration-150"
+                  onClick={() => setShowViewedConfirmModal(false)}
+                >
+                  <div
+                    className="w-full max-w-md p-6 bg-white rounded-2xl shadow-2xl border border-gray-100 animate-in zoom-in-95 duration-150"
+                    onClick={(e) => e.stopPropagation()}
+                  >
+                    <div className="flex items-center gap-3 mb-3">
+                      <span className="w-10 h-10 rounded-[12px] bg-[#FEE4E2] inline-flex items-center justify-center text-[#D92D20] shrink-0">
+                        <AlertCircle size={20} />
+                      </span>
+                      <h4 className="text-base font-bold text-gray-900">
+                        Notify Application Viewed
+                      </h4>
+                    </div>
+                    <p className="text-xs text-gray-600 mb-4 leading-relaxed">
+                      This will send push and in-app notifications to all{" "}
+                      <span className="font-semibold text-gray-900">
+                        {applications.list.length} applied candidates
+                      </span>{" "}
+                      letting them know their application for this {isJob ? "job" : "internship"} has been viewed.
+                    </p>
+                    <div className="flex items-center justify-end gap-3">
+                      <button
+                        type="button"
+                        onClick={() => setShowViewedConfirmModal(false)}
+                        className="px-5 py-3 text-xs font-semibold text-gray-600 bg-gray-100 hover:bg-gray-200 rounded-[10px] transition-colors cursor-pointer"
+                      >
+                        Cancel
+                      </button>
+                      <button
+                        type="button"
+                        onClick={handleNotifyApplicationViewed}
+                        className="px-5 py-3 text-xs font-semibold text-white bg-primary hover:bg-black rounded-[10px] transition-colors shadow-sm cursor-pointer"
+                      >
+                        Yes, Notify Candidates
+                      </button>
+                    </div>
+                  </div>
+                </div>,
+                document.body
+              )}
           </div>
         ) : activeTab === 'selected' ? (
           <div className="pt-2">
