@@ -81,13 +81,17 @@ export const validateEventFieldChange = (
       toast.error("Event date cannot be later than event end date");
       return { eventDate: "" };
     }
+    const overrides = {};
     if (currentData.registrationEndDate && value < currentData.registrationEndDate) {
-      toast.error("Event date cannot be earlier than registration end date");
-      return { eventDate: "" };
+      toast.info("Registration end date reset because it cannot be after the new event date");
+      overrides.registrationEndDate = "";
     }
     if (currentData.registrationStartDate && value < currentData.registrationStartDate) {
-      toast.error("Event date cannot be earlier than registration start date");
-      return { eventDate: "" };
+      toast.info("Registration start date reset because it cannot be after the new event date");
+      overrides.registrationStartDate = "";
+    }
+    if (Object.keys(overrides).length > 0) {
+      return overrides;
     }
   }
 
@@ -109,24 +113,32 @@ export const validateEventFieldChange = (
 
   // ── Registration Start Date ───────────────────────────────────
   if (fieldName === "registrationStartDate") {
+    if (!currentData.eventDate) {
+      toast.warning("Please select Event Date first");
+      return { registrationStartDate: "" };
+    }
     if (currentData.registrationEndDate && value > currentData.registrationEndDate) {
       toast.error("Registration start date cannot be after registration end date");
       return { registrationStartDate: "" };
     }
     if (currentData.eventDate && value > currentData.eventDate) {
-      toast.error("Registration start date cannot be after the event start date");
+      toast.error("Registration start date cannot be after the event date");
       return { registrationStartDate: "" };
     }
   }
 
   // ── Registration End Date ─────────────────────────────────────
   if (fieldName === "registrationEndDate") {
+    if (!currentData.eventDate) {
+      toast.warning("Please select Event Date first");
+      return { registrationEndDate: "" };
+    }
     if (currentData.registrationStartDate && value < currentData.registrationStartDate) {
       toast.error("Registration end date cannot be earlier than registration start date");
       return { registrationEndDate: "" };
     }
     if (currentData.eventDate && value > currentData.eventDate) {
-      toast.error("Registration end date cannot be after the event start date");
+      toast.error("Registration end date cannot be after the event date");
       return { registrationEndDate: "" };
     }
   }
@@ -204,12 +216,12 @@ export const validateEventSubmission = (
   }
 
   if (registrationEndDate && eventDate && registrationEndDate > eventDate) {
-    toast.error("Registration end date cannot be after the event start date");
+    toast.error("Registration end date cannot be after the event date");
     return false;
   }
 
   if (registrationStartDate && eventDate && registrationStartDate > eventDate) {
-    toast.error("Registration start date cannot be after the event start date");
+    toast.error("Registration start date cannot be after the event date");
     return false;
   }
 

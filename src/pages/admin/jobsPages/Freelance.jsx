@@ -36,22 +36,48 @@ const Freelance = ({ module = 'admin' }) => {
         return date.toLocaleDateString('en-GB');
     };
 
+    const formatBudget = (rawBudget, rawSalary) => {
+        const val = rawBudget !== undefined && rawBudget !== null && String(rawBudget).trim() !== ""
+            ? String(rawBudget).trim()
+            : (rawSalary !== undefined && rawSalary !== null && String(rawSalary).trim() !== "" && String(rawSalary).trim() !== "0"
+                ? String(rawSalary).trim()
+                : "");
+
+        if (!val || val === "0") return "-";
+
+        // Keep currency symbol if already formatted
+        if (/^(?:rs\.?|inr|₹)/i.test(val)) {
+            return val;
+        }
+
+        const numeric = parseFloat(val.replace(/[^0-9.]/g, ''));
+        if (!isNaN(numeric)) {
+            return `Rs ${numeric.toLocaleString('en-IN')}`;
+        }
+
+        return `Rs ${val}`;
+    };
+
     const fetchFreelances = async (status) => {
         try {
             setIsLoading(true);
             const response = await getAllFreelances(status);
-            const mappedData = (response?.data || []).map((item) => ({
-                ...item,
-                id: item?._id,
-                projectTitle: item?.jobTitle || '-',
-                category: item?.companyName || '-',
-                mode: item?.mode || '-',
-                salary: item?.salary ? `Rs ${item.salary}` : 'Rs 0',
-                duration: item?.duration || '-',
-                applied: item?.appliedCount,
-                deadline: formatDate(item?.applicationDeadline || item?.createdAt),
-                status: item?.isActive ? 'active' : 'inactive',
-            }));
+            const mappedData = (response?.data || []).map((item) => {
+                const formattedBudget = formatBudget(item?.budget, item?.salary);
+                return {
+                    ...item,
+                    id: item?._id,
+                    projectTitle: item?.jobTitle || '-',
+                    category: item?.companyName || '-',
+                    mode: item?.mode || '-',
+                    budget: formattedBudget,
+                    salary: formattedBudget,
+                    duration: item?.duration || '-',
+                    applied: item?.appliedCount ?? 0,
+                    deadline: formatDate(item?.applicationDeadline || item?.createdAt),
+                    status: item?.isActive ? 'active' : 'inactive',
+                };
+            });
             setFreelances(mappedData);
         } catch (error) {
             toast.error(error?.response?.data?.message || 'Failed to fetch projects');
@@ -76,8 +102,8 @@ const Freelance = ({ module = 'admin' }) => {
         },
         { title: 'Project Title', dataIndex: 'projectTitle', key: 'projectTitle' },
         { title: 'Organizer', dataIndex: 'category', key: 'category' },
-        { title: 'Mode', dataIndex: 'mode', key: 'mode' },
-        { title: 'Salary', dataIndex: 'salary', key: 'salary' },
+        // { title: 'Mode', dataIndex: 'mode', key: 'mode' },
+        { title: 'Budget', dataIndex: 'budget', key: 'budget' },
         { title: 'Duration', dataIndex: 'duration', key: 'duration' },
         { title: 'Applied', dataIndex: 'applied', key: 'applied' },
         { title: 'Deadline', dataIndex: 'deadline', key: 'deadline' },
@@ -101,7 +127,8 @@ const Freelance = ({ module = 'admin' }) => {
     const filteredData = freelances.filter(
         (item) =>
             (item.projectTitle || '').toLowerCase().includes(search.toLowerCase()) ||
-            (item.category || '').toLowerCase().includes(search.toLowerCase())
+            (item.category || '').toLowerCase().includes(search.toLowerCase()) ||
+            (item.budget || '').toLowerCase().includes(search.toLowerCase())
     );
 
     const handleSearch = (value) => {

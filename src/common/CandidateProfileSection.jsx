@@ -109,19 +109,21 @@ const CandidateProfileSection = ({
   };
 
   const getFullUrl = (rawUrl) => {
-    if (!rawUrl || rawUrl === '#') return '';
-    if (rawUrl.startsWith('http://') || rawUrl.startsWith('https://')) {
+    if (!rawUrl || rawUrl === '#' || typeof rawUrl !== 'string') return '';
+    const trimmed = rawUrl.trim().replace(/\\/g, '/');
+    if (!trimmed || trimmed === '#') return '';
+    if (trimmed.startsWith('http://') || trimmed.startsWith('https://')) {
       try {
-        const urlObj = new URL(rawUrl);
+        const urlObj = new URL(trimmed);
         if (urlObj.hostname === 'localhost' || urlObj.hostname === '127.0.0.1') {
           return `${BASE_URL}${urlObj.pathname}`;
         }
       } catch (e) {
         // Fallback if URL parsing fails
       }
-      return rawUrl;
+      return trimmed;
     }
-    const cleanPath = rawUrl.startsWith('/') ? rawUrl : `/${rawUrl}`;
+    const cleanPath = trimmed.startsWith('/') ? trimmed : `/${trimmed}`;
     return `${BASE_URL}${cleanPath}`;
   };
 
@@ -142,7 +144,16 @@ const CandidateProfileSection = ({
     ugModeOfStudy: candidate.ugModeOfStudy || '',
     academicAchievement: candidate.academicAchievement || '',
     status: candidate.status || 'applied',
-    resumeUrl: candidate.resumeUrl || '#',
+    resumeUrl:
+      candidate.resumeUrl ||
+      candidate.resume ||
+      candidate.resume_url ||
+      candidate.resumeFile ||
+      candidate.resumeId?.fileUrl ||
+      candidate.resumeId?.pdfUrl ||
+      candidate.application?.resumeId?.fileUrl ||
+      candidate.application?.resumeId?.pdfUrl ||
+      '',
     primarySkills: candidate.primarySkills?.length ? candidate.primarySkills : [],
     toolsAndTechnologies: candidate.toolsAndTechnologies?.length ? candidate.toolsAndTechnologies : [],
     languagesKnown: candidate.languagesKnown?.length ? candidate.languagesKnown : [],
@@ -155,14 +166,11 @@ const CandidateProfileSection = ({
     const fileName = `${cleanName}_resume.pdf`;
 
     if (!fullUrl) {
-      toast.info(`Resume URL not available for ${profileData.name}`);
+      toast.info(`Resume URL not available for ${profileData.name || 'this candidate'}`);
       return;
     }
 
-    // 1. Open URL in a new window/tab
-    window.open(fullUrl, '_blank', 'noopener,noreferrer');
-
-    // 2. Trigger download with custom filename personsName_resume.pdf
+    // Trigger download with custom filename personsName_resume.pdf
     try {
       const response = await fetch(fullUrl);
       if (!response.ok) throw new Error("Failed to fetch resume file");
@@ -177,13 +185,14 @@ const CandidateProfileSection = ({
       document.body.removeChild(link);
       window.URL.revokeObjectURL(blobUrl);
 
-      toast.success(`Downloaded as ${fileName}`);
+      toast.success(`Downloaded ${fileName}`);
     } catch (err) {
       console.warn("Direct blob download fallback to link click:", err);
       const link = document.createElement('a');
       link.href = fullUrl;
       link.setAttribute('download', fileName);
       link.setAttribute('target', '_blank');
+      link.setAttribute('rel', 'noopener noreferrer');
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);

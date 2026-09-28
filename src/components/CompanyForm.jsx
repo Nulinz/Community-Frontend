@@ -145,7 +145,14 @@ const companyFormConfig = [
         dimensions: { width: 512, height: 512 },
         hint: "Required dimensions: 512 × 512 px (Square format).",
       },
-      { name: "coverImage", label: "Cover Image", type: "file", required: false },
+      {
+        name: "coverImage",
+        label: "Cover Image",
+        type: "file",
+        required: false,
+        dimensions: { width: 1200, height: 400 },
+        hint: "Recommended dimensions: 1200 × 400 px (Banner format).",
+      },
     ],
   },
   {

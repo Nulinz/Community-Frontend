@@ -24,8 +24,8 @@ const InfluencerProfile = () => {
 
   // Set Password Modal State
   const [isPasswordModalOpen, setIsPasswordModalOpen] = useState(false);
-  const [password, setPassword] = useState("");
-  const [confirmPassword, setConfirmPassword] = useState("");
+  const [password, setPassword] = useState("12345678");
+  const [confirmPassword, setConfirmPassword] = useState("12345678");
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   useEffect(() => {
@@ -360,7 +360,7 @@ const InfluencerProfile = () => {
             <div className="space-y-4">
               <div>
                 <p className="text-[16px] font-source font-semibold text-secondary mb-1">Mobile / Email</p>
-                <p className="text-[16px] font-source text-primary">{influencer?.email || influencer?.phone}</p>
+                <p className="text-[16px] font-source text-primary">{influencer?.phone}</p>
               </div>
 
               <div>

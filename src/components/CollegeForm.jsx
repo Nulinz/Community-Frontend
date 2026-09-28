@@ -3,7 +3,7 @@
 import { useLocation, useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 import { createCollege, createEvent } from "../services/admin/adminServices";
-import FormLayout from "../layout/FormLayout";
+import FormLayout, { isValidAccountNumber, isValidIFSC } from "../layout/FormLayout";
 import { useTitle } from "../context/AdminTitle";
 import { useEffect } from "react";
 
@@ -65,12 +65,12 @@ const collegeFormConfig = [
     fields: [
       { name: "contactPersonName", label: "Contact Person Name", type: "text" },
       { name: "designation", label: "Designation", type: "text", placeholder: "e.g. Placement Officer / Principal / Dean" },
-      { name: "mailId", label: "Official Email", type: "text", placeholder: "e.g. contact@examplecollege.edu.in" },
+      { name: "mailId", label: "Official Email", type: "text", sanitize: "validMail", placeholder: "e.g. contact@examplecollege.edu.in" },
       { name: "phoneNumber", label: "Phone Number", type: "tel" },
       { name: "address", label: "Address", type: "text" },
       { name: "city", label: "City", type: "text" },
       { name: "state", label: "State", type: "text" },
-      { name: "pincode", label: "Pincode", type: "text" },
+      { name: "pincode", label: "Pincode", type: "text", sanitize: "noExtraNum" },
     ],
   },
   {
@@ -126,31 +126,57 @@ const collegeFormConfig = [
         name: "accountHolderName",
         label: "Account Holder",
         type: "text",
-        required: false
+        placeholder: "e.g. College Trust / Account Holder Name",
+        required: false,
       },
       {
         name: "bankName",
         label: "Bank",
         type: "text",
-        required: false
+        placeholder: "e.g. State Bank of India",
+        required: false,
       },
       {
         name: "branchName",
         label: "Branch",
         type: "text",
-        required: false
+        placeholder: "e.g. Main Branch",
+        required: false,
       },
       {
         name: "accountNumber",
         label: "Account Number",
         type: "text",
-        required: false
+        sanitize: "accountNumber",
+        placeholder: "e.g. 123456789012",
+        hint: "9 to 18 digits numeric account number",
+        required: false,
+        validate: (value) => {
+          if (!value || typeof value !== "string" || !value.trim()) return null;
+          const clean = value.trim();
+          if (!/^\d+$/.test(clean)) return "Account Number must contain only digits";
+          if (clean.length < 9 || clean.length > 18) return "Account Number must be between 9 and 18 digits";
+          if (/^0+$/.test(clean)) return "Account Number cannot be all zeros";
+          return null;
+        },
       },
       {
         name: "ifscCode",
         label: "IFSC",
         type: "text",
-        required: false
+        sanitize: "ifsc",
+        placeholder: "e.g. SBIN0001234",
+        hint: "11 characters (4 letters, 0, 6 letters/digits)",
+        required: false,
+        validate: (value) => {
+          if (!value || typeof value !== "string" || !value.trim()) return null;
+          const clean = value.trim().toUpperCase();
+          if (clean.length !== 11) return "IFSC must be exactly 11 characters";
+          if (!isValidIFSC(clean)) {
+            return "Invalid IFSC format. 4 letters, 0, 6 characters (e.g. SBIN0001234)";
+          }
+          return null;
+        },
       },
     ],
   },

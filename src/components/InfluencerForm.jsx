@@ -12,7 +12,7 @@ const influencerFormConfig = [
     fields: [
       { name: "name", label: "Full Name", type: "text" },
       { name: "mailId", label: "Mail Id", type: "text", sanitize: "validMail" },
-      { name: "phoneNumber", label: "Phone Number", type: "tel", required: false },
+      { name: "phoneNumber", label: "Phone Number", type: "tel", required: true },
       {
         name: "profileImage",
         label: "Profile Photo",

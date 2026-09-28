@@ -205,7 +205,9 @@ const EventProfile = () => {
                         <h1 className="text-[24px] sm:text-[30px] md:text-[34px] lg:text-[38px] xl:text-[48px] font-extrabold leading-tight mb-4 md:mb-6 xl:mb-8">{event.eventName}</h1>
                         <div className="grid grid-cols-1 gap-y-2 font-source text-[13px] sm:text-[14px] md:text-[15px] xl:text-[16px] font-normal text-[#FFFFFF]">
                             <span className="flex items-center gap-2"><EducationIcon /> {event.organizer}</span>
-                            <span className="flex items-center gap-2"><MapPin size={16} /> {formatAddress(event)}</span>
+                            {String(event?.mode || '').trim().toLowerCase() !== 'online' && (
+                                <span className="flex items-center gap-2"><MapPin size={16} /> {formatAddress(event)}</span>
+                            )}
                             <span className="flex items-center gap-2"><Briefcase size={16} /> {event.mode}</span>
                             <span className="flex items-center gap-2"><CalendarDays size={16} /> {event.eventDate ? new Date(event.eventDate).toLocaleDateString() : 'N/A'}</span>
                         </div>
@@ -226,9 +228,13 @@ const EventProfile = () => {
                                 </p>
                             </div>
                         </div>
-                        <div className="bg-white p-3 sm:p-3.5 md:p-4 xl:p-6 rounded-[14px] sm:rounded-[16px] xl:rounded-[24px] min-w-0 xl:min-w-[180px] flex flex-col justify-center items-start shadow-xl w-full xl:w-auto">
+                        <div className="bg-white p-3 sm:p-3.5 md:p-4 xl:p-6 rounded-[14px] sm:rounded-[16px] xl:rounded-[24px] min-w-0 xl:min-w-[180px] flex flex-col justify-center text-gray-900 shadow-xl w-full xl:w-auto col-span-2 sm:col-span-1">
                             <p className="font-source text-[8px] sm:text-[9px] md:text-[10px] xl:text-[10px] font-semibold leading-[13px] sm:leading-[14px] tracking-[0.5px] align-middle uppercase text-[#64748B] mb-1">Days Remaining</p>
-                            <p className="text-[18px] sm:text-[20px] md:text-[22px] lg:text-[24px] xl:text-[30px] font-bold leading-[24px] sm:leading-[26px] md:leading-[28px] lg:leading-[30px] xl:leading-[36px] tracking-[0px] align-middle text-[#171717] text-source">{getRemainingDays(event.eventDate)}</p>
+                            <div className="flex items-center gap-1">
+                                <p className="text-[18px] sm:text-[20px] md:text-[22px] lg:text-[24px] xl:text-[30px] font-bold leading-[24px] sm:leading-[26px] md:leading-[28px] lg:leading-[30px] xl:leading-[36px] tracking-[0px] align-middle text-[#171717] text-source">
+                                    {getRemainingDays(event.eventDate)}
+                                </p>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -317,7 +323,7 @@ const EventProfile = () => {
                 {activeTab === 'overview' ? (
                     <div className="space-y-6">
 
-                        {/* Row 1: Basic + Fees + Prize + Opportunities */}
+                        {/* Row 1: Basic + Fees + Prize */}
                         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                             <InfoCard title="Basic Details">
                                 <div className="grid grid-cols-2 xl:grid-cols-3 gap-6">
@@ -328,7 +334,7 @@ const EventProfile = () => {
                                     <DataItem label="Total Seats" value={event.totalSeats} />
                                     <DataItem label="Event Mode" value={event.mode} />
                                     <DataItem label="Event Time" value={event.eventStartTime ? `${event.eventStartTime}${event.eventEndTime ? ` - ${event.eventEndTime}` : ''}` : 'N/A'} />
-                                    {event.onlinePlatformLink && (
+                                    {event.mode !== "Offline" && event.onlinePlatformLink && (
                                         <DataItem
                                             label="Platform / Meeting Link"
                                             value={
@@ -364,15 +370,6 @@ const EventProfile = () => {
                                     </div>
                                 </InfoCard>
                             )}
-
-                            <InfoCard title="Opportunities">
-                                <div className="grid grid-cols-2 xl:grid-cols-3 gap-6">
-                                    <DataItem label="Internship" value={event.internshipOpportunity} />
-                                    <DataItem label="Placement" value={event.placementOpportunity} />
-                                    <DataItem label="Industry Exposure" value={event.industryExposure} />
-                                    <DataItem label="Industry Partners" value={event.industryPartners} />
-                                </div>
-                            </InfoCard>
                         </div>
 
                         {/* Row 2: Food + Team + Venue */}
@@ -453,7 +450,7 @@ const EventProfile = () => {
                                 <ul className="list-disc pl-5 space-y-1 text-secondary text-sm">
                                     {event?.allowedDepartments?.length > 0 ? (
                                         event.allowedDepartments.map((dept, index) => (
-                                            <li key={index}>{dept}</li>
+                                            <li key={index}>{dept === "All" ? "All Departments" : dept}</li>
                                         ))
                                     ) : (
                                         <li>Open to all departments</li>

@@ -152,9 +152,9 @@ const freelanceFormConfig = [
     payloadKey: "security",
     dynamicStyle: "grid-6",
     initialRows: 1,
-    fields: [{ name: "securityInfo", label: "Security", type: "text", colSpan: "md:col-span-11", required:false }],
+    fields: [{ name: "securityInfo", label: "Security", type: "text", colSpan: "md:col-span-11", required: false }],
   }, {
-    title: "Required Skills", 
+    title: "Required Skills",
     type: "dynamic",
     key: "skill_set",
     dynamicStyle: "grid-6",
@@ -197,7 +197,7 @@ const freelanceFormConfig = [
     initialRows: 1,
     fields: [{ name: "rules", label: "Project Rules / Terms", type: "text", colSpan: "md:col-span-11", required: false }],
   },
-  
+
   {
     title: " Project Details",
     type: "static",
@@ -205,7 +205,7 @@ const freelanceFormConfig = [
     fields: [
       // { name: "learning", label: "Learning", type: "textarea",span:2 },
       // { name: "certificateAvailability", label: "Certificate Availability", type: "textarea" ,span:2},
-      { name: "description", label: "Description", type: "textarea",span:2 },
+      { name: "description", label: "Description", type: "textarea", span: 2 },
     ],
   },
 ];
@@ -214,11 +214,11 @@ const FreelanceForm = () => {
   const location = useLocation();
   const editData = location.state?.editData;
   const organizerName = useOrganizerDisplayName();
-  const navigate =useNavigate()
-  const {setTitle}=useTitle()
-  useEffect(()=>{
-    setTitle("Projects Form")
-  },[])
+  const navigate = useNavigate()
+  const { setTitle } = useTitle()
+  useEffect(() => {
+    setTitle("Form")
+  }, [])
 
   const handleFieldChange = (fieldName, value, currentData) => {
     return validateFreelanceFieldChange(fieldName, value, currentData, !!editData?._id);
@@ -244,7 +244,7 @@ const FreelanceForm = () => {
       }
 
       const res = await createFreelance(payload); // JSON payload
-      
+
       if (res?.success) {
         toast.success(
           editData

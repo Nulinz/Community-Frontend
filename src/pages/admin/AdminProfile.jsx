@@ -18,7 +18,7 @@ import Icon from '../../../components/icons';
 
 dayjs.extend(relativeTime);
 
-const tabs = ['About', 'Posts', 'Jobs', 'People'];
+const tabs = ['About', 'Posts', 'Jobs', 'Followers'];
 
 const CompanyProfile = ({ module }) => {
   const { id } = useParams();
@@ -108,8 +108,9 @@ const CompanyProfile = ({ module }) => {
       <p className="text-[14px] font-medium text-secondary leading-normal">{value}</p>
     </div>
   );
-  const filteredPeople = followers?.data?.filter((item) =>
-    [item.name, item.status, item.education, item.degree, item.contact]
+  const filteredPeople = (followers?.data || []).filter((item) =>
+    [item?.name, item?.status, item?.education, item?.degree, item?.contact, item?.email]
+      .filter(Boolean)
       .join(' ')
       .toLowerCase()
       .includes(peopleSearch.toLowerCase())
@@ -537,7 +538,7 @@ const CompanyProfile = ({ module }) => {
           </div>
         )}
 
-        {activeTab === 'People' && (
+        {(activeTab === 'Followers' || activeTab === 'People') && (
           <div className="pt-6">
             <DynamicTable
               columns={[
@@ -548,16 +549,26 @@ const CompanyProfile = ({ module }) => {
                 { title: 'Degree', dataIndex: 'degree', key: 'degree' },
                 { title: 'Job Title', dataIndex: 'jobTitle', key: 'jobTitle' },
                 { title: 'Contact', dataIndex: 'contact', key: 'contact' },
+                { title: 'Email', dataIndex: 'email', key: 'email' },
                 { title: 'Followed On', dataIndex: 'followedAt', key: 'followedAt' },
               ]}
               dataSource={filteredPeople?.map((person, i) => ({
                 ...person,
                 index: String(i + 1).padStart(2, '0'),
-                followedAt: new Date(person.followedAt).toLocaleDateString(),
+                name: person?.name || '-',
+                status: person?.status || 'Active',
+                education: person?.education || '-',
+                degree: person?.degree || '-',
+                jobTitle: person?.jobTitle || '-',
+                contact: person?.contact || person?.phone || '-',
+                email: person?.email || '-',
+                followedAt: person?.followedAt && !isNaN(new Date(person.followedAt).getTime())
+                  ? new Date(person.followedAt).toLocaleDateString('en-GB')
+                  : '-',
               }))}
-              rowKey="userId"
+              rowKey={(record) => record.userId || record._id}
               showSearch={true}
-              searchPlaceholder="Search people..."
+              searchPlaceholder="Search followers..."
               onSearch={(value) => setPeopleSearch(value)}
               showPagination={true}
               currentPage={peoplePage}

@@ -102,7 +102,15 @@ const FreelanceProfile = ({ module = 'admin' }) => {
   const learning = String(freelance?.learning || '').trim();
   const description = String(freelance?.description || '').trim();
   const domain = String(freelance?.domain || (Array.isArray(freelance?.domains) ? freelance.domains.join(', ') : '') || '').trim();
-  const budget = String(freelance?.budget || (freelance?.salary ? `Rs ${freelance.salary}` : '')).trim();
+  const formatProfileBudget = (val) => {
+    if (!val || String(val).trim() === '' || String(val).trim() === '0') return '';
+    const str = String(val).trim();
+    if (/^(?:rs\.?|inr|₹)/i.test(str)) return str;
+    const num = parseFloat(str.replace(/[^0-9.]/g, ''));
+    return !isNaN(num) ? `Rs ${num.toLocaleString('en-IN')}` : `Rs ${str}`;
+  };
+
+  const budget = formatProfileBudget(freelance?.budget || freelance?.salary);
   const budgetType = String(freelance?.budgetType || '').trim();
   const paymentMethod = String(freelance?.paymentMethod || '').trim();
   const paymentStructureText = String(freelance?.paymentStructure || '').trim();
@@ -219,9 +227,9 @@ const FreelanceProfile = ({ module = 'admin' }) => {
                 </span>
               </div>
               <p className="font-jakarta font-semibold text-[16px] text-secondary">{freelance.companyName || '-'}</p>
-              <p className="font-jakarta font-medium text-[14px] text-[#344054]">{freelance.mode || '-'}</p>
+              {/* <p className="font-jakarta font-medium text-[14px] text-[#344054]">{freelance.mode || '-'}</p> */}
               <p className="font-jakarta font-medium text-[14px] text-[#344054]">
-                {freelance.budget ? freelance.budget : `Rs ${freelance.salary ?? 0}`} {freelance.budgetType ? `(${freelance.budgetType})` : ''}
+                {budget || '-'} {budgetType ? `(${budgetType})` : ''}
               </p>
             </div>
           </div>

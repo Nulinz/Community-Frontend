@@ -253,7 +253,7 @@ export const competitionFormConfig = [
     type: 'static',
     fields: [
       { label: 'Eligibility Details', type: 'text' },
-      { label: 'Allowed Departments', type: 'select', options: ['Select option', 'CS', 'IT', 'ECE', 'EEE'] },
+      { label: 'Allowed Departments', type: 'select', options: ['Select option', 'All', 'CS', 'IT', 'ECE', 'EEE'] },
       { label: 'Team Or Individual Event', type: 'radio', options: ['Team', 'Individual', 'Both'] },
       { label: 'Team Size Minimum', type: 'number' },
       { label: 'Team Size Maximum', type: 'number' },
@@ -397,7 +397,7 @@ export const eventFormConfig = [
     type: 'static',
     fields: [
       { label: 'Eligibility Details', type: 'text' },
-      { label: 'Allowed Departments', type: 'select', options: ['CS', 'IT', 'ECE', 'EEE'] },
+      { label: 'Allowed Departments', type: 'select', options: ['All', 'CS', 'IT', 'ECE', 'EEE'] },
       { label: 'Team Or Individual Event', type: 'radio', options: ['Team', 'Individual', 'Both'] },
       { label: 'Team Size Minimum', type: 'number' },
       { label: 'Team Size Maximum', type: 'number' },
@@ -523,7 +523,7 @@ export const seminarFormConfig = [
     type: 'static',
     fields: [
       { label: 'Eligibility Details', type: 'text' },
-      { label: 'Allowed Departments', type: 'select', options: ['CS', 'IT', 'ECE', 'EEE'] },
+      { label: 'Allowed Departments', type: 'select', options: ['All', 'CS', 'IT', 'ECE', 'EEE'] },
       { label: 'Team Or Individual Event', type: 'radio', options: ['Team', 'Individual', 'Both'] },
       { label: 'Team Size Minimum', type: 'number' },
       { label: 'Team Size Maximum', type: 'number' },
@@ -793,7 +793,7 @@ export const conferenceFormConfig = [
     type: 'static',
     fields: [
       { label: 'Eligibility Details', type: 'text' },
-      { label: 'Allowed Departments', type: 'select', options: ['CS', 'IT', 'ECE', 'EEE'] },
+      { label: 'Allowed Departments', type: 'select', options: ['All', 'CS', 'IT', 'ECE', 'EEE'] },
       { label: 'Team Or Individual Event', type: 'radio', options: ['Team', 'Individual', 'Both'] },
       { label: 'Team Size Minimum', type: 'number' },
       { label: 'Team Size Maximum', type: 'number' },

@@ -361,8 +361,38 @@ const JobsProfile = ({ module = 'admin', jobType = 'Internship' }) => {
       try {
         const getCandidateFn = isJob ? getAppliedCandidateProfileJob : getAppliedCandidateProfile;
         const response = await getCandidateFn(appId);
-        if (response.success && response.data) {
-          setSelectedCandidateProfile(response.data);
+        if ((response?.success || response?.status) && response?.data) {
+          const profileData = response.data?.candidateProfile || response.data;
+          if (response.data.application && response.data.userDetails) {
+            const app = response.data.application;
+            const ud = response.data.userDetails;
+            setSelectedCandidateProfile({
+              ...candidateRecord,
+              userId: app.userId?._id || app.userId,
+              applicationId: app._id,
+              status: app.status || "applied",
+              name: ud?.name || app.userId?.name || candidateRecord?.name || "",
+              email: app.userId?.email || candidateRecord?.mail || "",
+              mail: app.userId?.email || candidateRecord?.mail || "",
+              contact: app.userId?.phone || candidateRecord?.contact || "",
+              profilePic: ud?.profile_pic || null,
+              college: ud?.ugCollegeName || ud?.pgCollegeName || candidateRecord?.college || "",
+              department: ud?.ugFieldOfStudy || ud?.pgFieldOfStudy || candidateRecord?.department || "",
+              degree: ud?.ugDegree || ud?.pgDegree || "",
+              resumeUrl: app.resumeId?.fileUrl || app.resumeId?.pdfUrl || candidateRecord?.resumeUrl || "",
+              resumeName: app.resumeId?.fileName || "Resume.pdf",
+              primarySkills: ud?.skills?.primary_skills || [],
+              toolsAndTechnologies: ud?.skills?.tools || [],
+              languagesKnown: ud?.skills?.languages || [],
+            });
+            return;
+          }
+          setSelectedCandidateProfile({
+            ...candidateRecord,
+            ...profileData,
+            resumeUrl: profileData?.resumeUrl || candidateRecord?.resumeUrl || "",
+            resumeName: profileData?.resumeName || candidateRecord?.resumeName || "Resume.pdf",
+          });
           return;
         }
       } catch (err) {
@@ -400,7 +430,6 @@ const JobsProfile = ({ module = 'admin', jobType = 'Internship' }) => {
             candidate={selectedCandidateProfile}
             onBack={() => setIsEvaluatingPerformance(false)}
             onSave={() => {
-              toast.success('Performance evaluation saved successfully!');
               setIsEvaluatingPerformance(false);
             }}
           />
@@ -524,7 +553,7 @@ const JobsProfile = ({ module = 'admin', jobType = 'Internship' }) => {
                 </div>
 
                 <div className="rounded-[18px] bg-white border border-gray-200 text-[#0C5F94] p-4 md:p-5 min-h-[100px] md:min-h-[130px] flex flex-col justify-center sm:min-w-[150px]">
-                  <p className="uppercase tracking-[1px] text-[10px] md:text-[11px] font-bold mb-3 text-[#7D89A0]">Intern Start Date</p>
+                  <p className="uppercase tracking-[1px] text-[10px] md:text-[11px] font-bold mb-3 text-[#7D89A0]">Job Start Date</p>
                   <p className="text-[18px] md:text-[26px] leading-none font-bold">{formatDate(internship.internStartDate)}</p>
                 </div>
 

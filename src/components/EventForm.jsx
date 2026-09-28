@@ -49,13 +49,24 @@ const eventFormConfig = [
         placeholder: "e.g. Google Meet, Zoom link, or Platform URL",
         showWhen: { field: "mode", value: ["Online", "Hybrid"] },
       },
-      { name: "eventDate", label: "Event Date", type: "date" },
+      { name: "eventDate", label: "Event Date", type: "date", min: "today" },
       { name: "eventStartTime", label: "Event Start Time", type: "time" },
       { name: "eventEndTime", label: "Event End Time", type: "time" },
       { name: "registrationType", label: "Registration Type", type: "radio", options: ["Free", "Paid"] },
-      { name: "registrationStartDate", label: "Registration Start Date", type: "date" },
-      { name: "registrationEndDate", label: "Registration End Date", type: "date" },
-      { name: "totalSeats", label: "Total Seats", type: "number", required: false },
+      {
+        name: "registrationStartDate",
+        label: "Registration Start Date",
+        type: "date",
+        max: (data) => data.eventDate || undefined,
+      },
+      {
+        name: "registrationEndDate",
+        label: "Registration End Date",
+        type: "date",
+        min: (data) => data.registrationStartDate || undefined,
+        max: (data) => data.eventDate || undefined,
+      },
+      { name: "totalSeats", label: "Total Seats", type: "number", required: true },
       {
         name: "externalRegistrationLink",
         label: "External Registration Form (If any)",
@@ -176,7 +187,7 @@ const eventFormConfig = [
     type: "static",
     fields: [
       { name: "eligibilityDetails", label: "Eligibility Details", type: "text", required: false },
-      { name: "allowedDepartments", label: "Allowed Departments", type: "multiselect", options: ["CS", "IT", "ECE", "EEE"], required: false },
+      { name: "allowedDepartments", label: "Allowed Departments", type: "multiselect", options: ["All", "CS", "IT", "ECE", "EEE"], required: false },
       // { name: "teamOrIndividualEvent", label: "Team Or Individual Event", type: "radio", options: ["Team", "Individual", "Both"] },
       // {
       //   name: "teamSizeMinimum",
@@ -197,9 +208,9 @@ const eventFormConfig = [
     type: "static",
     showWhen: { field: "registrationType", value: "Paid" },
     fields: [
-      { name: "individualFees", label: "Individual Fees", type: "number" },
-      { showWhen: { field: "teamOrIndividualEvent", value: ["Team", "Both"] }, name: "teamFees", label: "Team Fees", type: "number" },
-      { name: "lateFees", label: "Late Fees", type: "number" },
+      { name: "individualFees", label: "Individual Fees", type: "number", min: 0, step: "1", allowDecimals: false },
+      { showWhen: { field: "teamOrIndividualEvent", value: ["Team", "Both"] }, name: "teamFees", label: "Team Fees", type: "number", min: 0, step: "1", allowDecimals: false },
+      { name: "lateFees", label: "Late Fees", type: "number", min: 0, step: "1", allowDecimals: false },
     ],
   },
   {

@@ -4,9 +4,69 @@ import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 import setFileName from "../utils/setFileName";
 import Icon from "../components/icons";
+import ImageCropperModal from "../components/ImageCropperModal";
 
 
 const toCleanString = (value) => String(value || "").trim();
+
+/**
+ * Returns today's local date string formatted as YYYY-MM-DD.
+ * Used for date input min constraints to prevent selecting past dates.
+ */
+export const getTodayDateString = () => {
+  const now = new Date();
+  const year = now.getFullYear();
+  const month = String(now.getMonth() + 1).padStart(2, "0");
+  const day = String(now.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
+};
+
+/**
+ * Resolves static or dynamic min/max date constraints against current form data.
+ */
+export const resolveDateConstraint = (constraint, data) => {
+  if (!constraint) return undefined;
+  if (typeof constraint === "function") return constraint(data);
+  if (constraint === "today" || constraint === "current") return getTodayDateString();
+  return constraint;
+};
+
+/**
+ * Checks whether a conditional showWhen rule is satisfied.
+ */
+export const isConditionMet = (condition, data) => {
+  if (!condition) return true;
+  const { field: watchField, value } = condition;
+  const currentVal = data?.[watchField];
+  return Array.isArray(value) ? value.includes(currentVal) : currentVal === value;
+};
+
+/**
+ * Automatically resets fields that are currently hidden via showWhen (on section
+ * or field level) back to their empty initial state to prevent submitting stale data.
+ */
+export const cleanHiddenFields = (config, data) => {
+  const cleaned = { ...data };
+  config.forEach((section) => {
+    const sectionVisible = isConditionMet(section.showWhen, cleaned);
+
+    if (!sectionVisible && section.type === "static") {
+      section.fields.forEach((f) => {
+        cleaned[f.name] = getInitialFieldValue(f);
+      });
+      return;
+    }
+
+    if (section.type === "static" && sectionVisible) {
+      section.fields.forEach((f) => {
+        if (f.showWhen && !isConditionMet(f.showWhen, cleaned)) {
+          cleaned[f.name] = getInitialFieldValue(f);
+        }
+      });
+    }
+  });
+  return cleaned;
+};
 
 const getInitialFieldValue = (field) => {
   if (field.defaultValue !== undefined) return field.defaultValue;
@@ -27,6 +87,39 @@ const getInitialFieldValue = (field) => {
 const hasMeaningfulValue = (value) => {
   if (Array.isArray(value)) return value.length > 0;
   return toCleanString(value).length > 0;
+};
+
+/**
+ * Validates that an email address follows standard RFC-compliant formatting.
+ * Rejects consecutive dots, missing or malformed domains, and ensures a valid 
+ * alphabetic top-level domain (TLD) of at least two characters.
+ */
+export const isValidEmail = (email) => {
+  if (!email || typeof email !== "string") return false;
+  const trimmed = email.trim();
+  if (!trimmed || trimmed.includes("..")) return false;
+  const emailRegex = /^[a-zA-Z0-9](?:[a-zA-Z0-9._%+-]*[a-zA-Z0-9])?@[a-zA-Z0-9](?:[a-zA-Z0-9-]*[a-zA-Z0-9])?(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]*[a-zA-Z0-9])?)*\.[a-zA-Z]{2,}$/;
+  return emailRegex.test(trimmed);
+};
+
+/**
+ * Validates Indian bank account numbers.
+ * Must be purely numeric and between 9 and 18 digits in length, not all zeros.
+ */
+export const isValidAccountNumber = (accountNumber) => {
+  if (!accountNumber || typeof accountNumber !== "string") return false;
+  const clean = accountNumber.trim();
+  return /^\d{9,18}$/.test(clean) && !/^0+$/.test(clean);
+};
+
+/**
+ * Validates Indian Financial System Code (IFSC).
+ * Exactly 11 characters: 4 alphabetic letters, followed by 0, and 6 alphanumeric characters.
+ */
+export const isValidIFSC = (ifsc) => {
+  if (!ifsc || typeof ifsc !== "string") return false;
+  const clean = ifsc.trim().toUpperCase();
+  return /^[A-Z]{4}0[A-Z0-9]{6}$/.test(clean);
 };
 
 const safeParseArray = (val) => {
@@ -351,7 +444,11 @@ const MultiSelectInput = ({ field, value, onChange, hasError = false }) => {
 
   const removeValue = (val, e) => {
     e.stopPropagation();
-    onChange(selectedValues.filter((i) => i !== val));
+    if (val === "All" || val === "All Departments") {
+      onChange([]);
+    } else {
+      onChange(selectedValues.filter((i) => i !== val && i !== "All" && i !== "All Departments"));
+    }
   };
 
   return (
@@ -435,7 +532,10 @@ const MultiSelectInput = ({ field, value, onChange, hasError = false }) => {
               </div>
             ) : (
               filteredOptions.map((opt) => {
-                const isSelected = selectedValues.includes(opt);
+                const isAllOpt = opt === "All" || opt === "All Departments";
+                const isSelected = isAllOpt
+                  ? selectedValues.includes(opt) || (nonAllOptions.length > 0 && nonAllOptions.every((o) => selectedValues.includes(o)))
+                  : selectedValues.includes(opt);
                 return (
                   <label
                     key={opt}
@@ -628,6 +728,137 @@ const SingleSelectInput = ({ field, value, onChange, hasError = false }) => {
   );
 };
 
+/**
+ * FileInput
+ *
+ * Dedicated file uploader for FormLayout with built-in interactive cropping.
+ * When an image field specifies dimensions or represents a logo/avatar, selecting
+ * an image opens ImageCropperModal with a movable, fixed-aspect crop box.
+ * Upon cropping, exports an authentic 512x512 File object directly to form state.
+ */
+const FileInput = ({ field, value, onChange, hasError }) => {
+  const [isCropperOpen, setIsCropperOpen] = useState(false);
+  const [pendingFile, setPendingFile] = useState(null);
+  const fileInputRef = useRef(null);
+
+  const isExisting = typeof value === "string" && value !== "";
+  const isNew = Boolean(value && (value instanceof File || (typeof value === "object" && value.name)));
+  const isLogo = field.name === "collegeLogo" || field.name === "companyLogo" || field.name?.toLowerCase().includes("logo") || field.label?.toLowerCase().includes("logo");
+  const isCover = field.name === "coverImage" || field.name?.toLowerCase().includes("cover") || field.label?.toLowerCase().includes("cover");
+  const isImage = isCover || isLogo || field.name === "signatureUrl" || !!field.dimensions;
+
+  const targetW = field.dimensions?.width || (isLogo ? 512 : (isCover ? 1200 : undefined));
+  const targetH = field.dimensions?.height || (isLogo ? 512 : (isCover ? 400 : undefined));
+  const shouldCrop = field.crop !== false && isImage && Boolean(targetW && targetH);
+
+  const handleFileChange = (e) => {
+    const selectedFile = e.target.files?.[0] || null;
+    if (!selectedFile) {
+      onChange(null);
+      return;
+    }
+
+    // If file requires cropping and is an image, open the interactive cropper modal
+    if (shouldCrop && selectedFile.type?.startsWith("image/")) {
+      setPendingFile(selectedFile);
+      setIsCropperOpen(true);
+      // Reset input value so re-selecting the same file triggers change
+      e.target.value = "";
+      return;
+    }
+
+    onChange(selectedFile);
+    e.target.value = "";
+  };
+
+  const handleCropComplete = (croppedFile) => {
+    onChange(croppedFile);
+    setPendingFile(null);
+    setIsCropperOpen(false);
+  };
+
+  const handleCropperClose = () => {
+    setIsCropperOpen(false);
+    setPendingFile(null);
+  };
+
+  const handleReCrop = () => {
+    if (value instanceof Blob) {
+      setPendingFile(value);
+      setIsCropperOpen(true);
+    }
+  };
+
+  let displayFileName = "No File Chosen";
+  if (isNew && value?.name) {
+    displayFileName = value.name;
+  } else if (isExisting) {
+    displayFileName = value.split("/").pop();
+  }
+
+  let previewSrc = null;
+  if (isNew && value instanceof Blob) {
+    try {
+      previewSrc = URL.createObjectURL(value);
+    } catch (_e) {
+      previewSrc = null;
+    }
+  } else if (isExisting) {
+    previewSrc = setFileName(value);
+  }
+
+  return (
+    <div className="space-y-1.5">
+      <div className={`flex relative border rounded overflow-hidden h-10 w-full font-source transition focus-within:border-blue-400 ${
+        hasError ? "border-red-400" : "border-gray-200"
+      }`}>
+        <label className="bg-[#171717] text-xs md:text-sm text-white px-3 md:px-5 py-2.5 font-medium cursor-pointer whitespace-nowrap hover:bg-[#171717] transition">
+          Choose File
+          <input
+            ref={fileInputRef}
+            type="file"
+            className="hidden"
+            onChange={handleFileChange}
+            accept={isImage ? "image/*" : undefined}
+          />
+        </label>
+        <span className="flex-1 min-w-0 bg-[#fcfcfc] px-3 md:px-4 py-2.5 text-gray-400 text-xs truncate">
+          {displayFileName}
+        </span>
+        {previewSrc && (
+          <div
+            onClick={shouldCrop && isNew ? handleReCrop : undefined}
+            className={`h-8 absolute right-1 top-1 rounded-lg border border-gray-200 bg-gray-50 overflow-hidden shadow-xs ${
+              shouldCrop && isNew ? "cursor-pointer hover:ring-2 hover:ring-blue-400" : ""
+            }`}
+            style={{ width: targetW && targetH ? `${Math.min(56, Math.max(32, Math.round(32 * (targetW / targetH))))}px` : "32px" }}
+            title={shouldCrop && isNew ? "Click to re-crop image" : "Image preview"}
+          >
+            <img
+              src={previewSrc}
+              alt="Preview"
+              className="w-full h-full object-cover"
+            />
+          </div>
+        )}
+      </div>
+
+      {isCropperOpen && pendingFile && (
+        <ImageCropperModal
+          isOpen={isCropperOpen}
+          onClose={handleCropperClose}
+          imageFile={pendingFile}
+          targetDimensions={{ width: targetW, height: targetH }}
+          aspectRatio={targetW / targetH}
+          title={`Crop & Frame ${field.label || "Image"}`}
+          description={`Drag the crop box to frame your logo. Output will be saved as ${targetW} × ${targetH} px.`}
+          onCropComplete={handleCropComplete}
+        />
+      )}
+    </div>
+  );
+};
+
 // ─── FormInput ──────────────────────────────────────────────
 const FormInput = ({ field, value, onChange, inputName, staticData, hasError = false, onFieldClick }) => {
   if (field.type === "checkbox") {
@@ -717,97 +948,7 @@ const FormInput = ({ field, value, onChange, inputName, staticData, hasError = f
   }
 
   if (field.type === "file") {
-    const isExisting = typeof value === "string" && value !== "";
-    const isNew = Boolean(value && (value instanceof File || (typeof value === "object" && value.name)));
-    const isLogo = field.name === "collegeLogo" || field.name === "companyLogo" || field.name?.toLowerCase().includes("logo") || field.label?.toLowerCase().includes("logo");
-    const isImage = field.name === "coverImage" || isLogo || field.name === "signatureUrl" || !!field.dimensions;
-
-    const handleFileChange = (e) => {
-      const selectedFile = e.target.files?.[0] || null;
-      if (!selectedFile) {
-        onChange(null);
-        return;
-      }
-
-      const hasDimensions = !!field.dimensions || isLogo;
-      if (hasDimensions && selectedFile.type?.startsWith("image/")) {
-        const targetW = field.dimensions?.width || (isLogo ? 512 : undefined);
-        const targetH = field.dimensions?.height || (isLogo ? 512 : undefined);
-
-        if (targetW && targetH) {
-          const img = new window.Image();
-          const objectUrl = URL.createObjectURL(selectedFile);
-
-          img.onload = () => {
-            URL.revokeObjectURL(objectUrl);
-            if (img.width !== targetW || img.height !== targetH) {
-              toast.error(
-                `${field.label || "Image"} dimensions must be exactly ${targetW} × ${targetH} px. (Selected: ${img.width} × ${img.height} px)`
-              );
-              e.target.value = "";
-              return;
-            }
-            onChange(selectedFile);
-          };
-
-          img.onerror = () => {
-            URL.revokeObjectURL(objectUrl);
-            toast.error("Invalid image file format");
-            e.target.value = "";
-          };
-
-          img.src = objectUrl;
-          return;
-        }
-      }
-      onChange(selectedFile);
-    };
-
-    let displayFileName = "No File Chosen";
-    if (isNew && value?.name) {
-      displayFileName = value.name;
-    } else if (isExisting) {
-      displayFileName = value.split("/").pop();
-    }
-
-    let previewSrc = null;
-    if (isNew && value instanceof Blob) {
-      try {
-        previewSrc = URL.createObjectURL(value);
-      } catch (e) {
-        previewSrc = null;
-      }
-    } else if (isExisting) {
-      previewSrc = setFileName(value);
-    }
-
-    return (
-      <div className="space-y-1.5">
-        <div className="flex relative border border-gray-200 rounded overflow-hidden h-10 w-full font-source transition focus-within:border-blue-400">
-          <label className="bg-[#171717] text-xs md:text-sm text-white px-3 md:px-5 py-2.5 font-medium cursor-pointer whitespace-nowrap hover:bg-[#171717] transition">
-            Choose File
-            <input
-              type="file"
-              className="hidden"
-              onChange={handleFileChange}
-              accept={isImage ? "image/*" : undefined}
-            />
-          </label>
-          <span className="flex-1 min-w-0 bg-[#fcfcfc] px-3 md:px-4 py-2.5 text-gray-400 text-xs truncate">
-            {displayFileName}
-          </span>
-          {previewSrc && (
-            <div className="w-8 absolute right-0 top-1 h-8 rounded-lg border border-gray-200 bg-gray-50 overflow-hidden shadow-sm">
-              <img
-                src={previewSrc}
-                alt="Preview"
-                className="w-full h-full object-cover"
-              />
-            </div>
-          )}
-        </div>
-      </div>
-    );
+    return <FileInput field={field} value={value} onChange={onChange} hasError={hasError} />;
   }
 
   if (field.type === "textarea") {
@@ -834,17 +975,60 @@ const FormInput = ({ field, value, onChange, inputName, staticData, hasError = f
   // ── date with custom calendar icon ────────────────────────
   if (field.type === "date") {
     const inputRef = useRef(null);
+    const todayStr = getTodayDateString();
+
+    let resolvedMin = resolveDateConstraint(field.min, staticData);
+    if (resolvedMin === undefined && (field.name === "eventDate" || field.name === "eventEndDate") && !field.allowPast) {
+      resolvedMin = todayStr;
+    }
+
+    let resolvedMax = resolveDateConstraint(field.max, staticData);
+
+    const isRegDateWithoutEvent =
+      (field.name === "registrationEndDate" || field.name === "registrationStartDate") &&
+      field.max &&
+      !staticData?.eventDate;
+
     return (
-      <div onClick={() => inputRef.current?.showPicker?.()} className="relative w-full">
+      <div
+        onClick={() => {
+          if (isRegDateWithoutEvent) {
+            toast.warning("Please select Event Date first");
+            return;
+          }
+          inputRef.current?.showPicker?.();
+        }}
+        className="relative w-full"
+      >
         <input
           ref={inputRef}
           type="date"
           value={value ? (String(value).includes("T") ? String(value).split("T")[0] : String(value)) : ""}
-          max={field.max}
+          min={resolvedMin}
+          max={resolvedMax}
           readOnly={field.readOnly}
           onChange={(e) => {
             if (field.readOnly) return;
-            onChange(e.target.value);
+            const selectedVal = e.target.value;
+            if (isRegDateWithoutEvent && selectedVal) {
+              toast.warning("Please select Event Date first");
+              return;
+            }
+            if (resolvedMin && selectedVal && selectedVal < resolvedMin) {
+              const minLabel = resolvedMin === todayStr
+                ? "the current date"
+                : (field.name === "registrationEndDate" && staticData?.registrationStartDate ? "Registration Start Date" : resolvedMin);
+              toast.error(`${field.label || "Date"} cannot be earlier than ${minLabel}`);
+              return;
+            }
+            if (resolvedMax && selectedVal && selectedVal > resolvedMax) {
+              const maxLabel = (field.name === "registrationEndDate" || field.name === "registrationStartDate") && staticData?.eventDate
+                ? "the Event Date"
+                : resolvedMax;
+              toast.error(`${field.label || "Date"} cannot be later than ${maxLabel}`);
+              return;
+            }
+            onChange(selectedVal);
           }}
           className={`w-full p-2 pr-9 border rounded bg-[#fcfcfc] outline-none text-sm h-10 transition-colors [&::-webkit-calendar-picker-indicator]:opacity-0 [&::-webkit-calendar-picker-indicator]:absolute [&::-webkit-calendar-picker-indicator]:inset-0 [&::-webkit-calendar-picker-indicator]:w-full [&::-webkit-calendar-picker-indicator]:cursor-pointer ${
             hasError
@@ -861,6 +1045,9 @@ const FormInput = ({ field, value, onChange, inputName, staticData, hasError = f
   }
 
   const isExternalReg = field.name === "externalRegistrationLink";
+  const isFeeField = field.name?.toLowerCase().includes("fee") || field.sanitize === "integer" || (field.type === "number" && field.allowDecimals === false);
+  const disallowNegative = field.allowNegative !== true;
+  const disallowDecimals = isFeeField || field.allowDecimals === false;
 
   const inputElem = (
     <input
@@ -868,21 +1055,57 @@ const FormInput = ({ field, value, onChange, inputName, staticData, hasError = f
       value={value}
       readOnly={field.readOnly}
       placeholder={typeof field.placeholder === "function" ? field.placeholder(staticData) : field.placeholder}
-      min={field.min !== undefined ? field.min : (field.type === "number" ? 0 : undefined)}
-      step={field.step || (field.type === "number" ? "any" : undefined)}
+      min={field.min !== undefined ? field.min : (field.type === "number" || isFeeField ? 0 : undefined)}
+      step={field.step || (field.type === "number" ? (disallowDecimals ? "1" : "any") : undefined)}
       onClick={(e) => onFieldClick?.(field, e)}
       onFocus={(e) => onFieldClick?.(field, e)}
+      onKeyDown={(e) => {
+        if (field.type === "number" || isFeeField) {
+          // Disallow negative sign, plus sign, and scientific notation
+          if (disallowNegative && (e.key === "-" || e.key === "+" || e.key === "e" || e.key === "E")) {
+            e.preventDefault();
+          }
+          // Disallow decimal point and comma for fee and integer fields
+          if (disallowDecimals && (e.key === "." || e.key === ",")) {
+            e.preventDefault();
+          }
+        }
+      }}
       onChange={(e) => {
         if (field.readOnly) return;
         let nextValue = e.target.value;
         if (field.type === "tel") nextValue = nextValue.replace(/\D/g, "").slice(0, 10);
+        if (field.type === "number" || isFeeField) {
+          if (disallowDecimals) {
+            // Strip any non-digit characters including decimal points and negative signs
+            nextValue = nextValue.replace(/\D/g, "");
+          } else if (disallowNegative) {
+            nextValue = nextValue.replace(/-/g, "");
+          }
+        }
         if (field.sanitize === "noSpecialChars") nextValue = nextValue.replace(/[^a-zA-Z0-9\s.\-]/g, "");
         if (field.sanitize === "noExtraNum") nextValue = nextValue.replace(/\D/g, "").slice(0, 6);
-        if (field.sanitize === "noAlphabets") nextValue = nextValue.replace(/\D/g, "").slice(0, 18);
-        if (field.sanitize === "ifsc") nextValue = nextValue.replace(/[^A-Z0-9]/gi, "").slice(0, 11).toUpperCase();
+        if (field.sanitize === "noAlphabets" || field.sanitize === "accountNumber" || field.name === "accountNumber") {
+          nextValue = nextValue.replace(/\D/g, "").slice(0, 18);
+        }
+        if (field.sanitize === "ifsc" || field.name === "ifscCode" || field.name === "ifsc") {
+          nextValue = nextValue.replace(/[^A-Z0-9]/gi, "").slice(0, 11).toUpperCase();
+        }
+        if (field.sanitize === "validMail" || field.type === "email" || field.name === "mailId") {
+          nextValue = nextValue.replace(/\s+/g, "");
+        }
         onChange(nextValue);
       }}
-      inputMode={field.type === "tel" || field.type === "number" ? "numeric" : undefined}
+      inputMode={
+        field.type === "tel" ||
+        field.type === "number" ||
+        isFeeField ||
+        field.name === "accountNumber" ||
+        field.sanitize === "accountNumber" ||
+        field.sanitize === "noAlphabets"
+          ? "numeric"
+          : undefined
+      }
       maxLength={field.type === "tel" ? 10 : undefined}
       className={`w-full p-2 ${isExternalReg ? "pr-9" : ""} border rounded bg-[#fcfcfc] outline-none text-sm h-10 transition-colors ${
         hasError
@@ -1063,13 +1286,16 @@ const FormLayout = ({
 
   const updateStaticField = (fieldName, value) =>
     setStaticData((prev) => {
-      const updated = { ...prev, [fieldName]: value };
+      let updated = { ...prev, [fieldName]: value };
       if (onFieldChange) {
         const sideEffects = onFieldChange(fieldName, value, updated);
         if (sideEffects && typeof sideEffects === "object") {
           Object.assign(updated, sideEffects);
         }
       }
+
+      // Automatically prune hidden dependent fields when a condition field changes
+      updated = cleanHiddenFields(config, updated);
 
       // Re-run real-time static validators
       const nextValidationErrors = runStaticValidators(updated);
@@ -1090,11 +1316,31 @@ const FormLayout = ({
     const payload = {};
     if (staticData.id) payload.id = staticData.id;
 
+    // Prune any stale values for fields that are currently hidden
+    const sanitizedData = cleanHiddenFields(config, staticData);
+
     config.forEach((section) => {
+      const sectionVisible = isConditionMet(section.showWhen, sanitizedData);
+      if (!sectionVisible) {
+        if (section.type === "static") {
+          section.fields.forEach((f) => {
+            const payloadKey = f.payloadKey || f.name;
+            payload[payloadKey] = Array.isArray(f.defaultValue) ? [] : "";
+          });
+        }
+        return;
+      }
+
       if (section.type === "static") {
         section.fields.forEach((field) => {
+          const fieldVisible = !field.showWhen || isConditionMet(field.showWhen, sanitizedData);
           const payloadKey = field.payloadKey || field.name;
-          const rawValue = staticData[field.name];
+          if (!fieldVisible) {
+            payload[payloadKey] = Array.isArray(field.defaultValue) ? [] : "";
+            return;
+          }
+
+          const rawValue = sanitizedData[field.name];
           if (field.type === "file") {
             payload[payloadKey] = rawValue;
           } else if (field.type === "multiselect" || field.type === "searchable-multiselect" || Array.isArray(rawValue)) {
@@ -1104,7 +1350,7 @@ const FormLayout = ({
           }
           if (field.conditionalInput) {
             const condKey = field.conditionalInput.payloadKey || field.conditionalInput.name;
-            const condRaw = staticData[field.conditionalInput.name];
+            const condRaw = sanitizedData[field.conditionalInput.name];
             payload[condKey] = toCleanString(condRaw);
           }
         });
@@ -1181,14 +1427,16 @@ const FormLayout = ({
               : currentValue !== value;
             if (isHidden) continue;
           }
-          if (field.required === false) continue;
+          const isFieldRequired = field.required !== false;
           const value = staticData[field.name];
           if (field.type === "file" && isEdit && typeof value === "string" && value.trim() !== "") continue;
+          if (!isFieldRequired && !hasMeaningfulValue(value)) continue;
           if (!hasMeaningfulValue(value)) {
             toast.error(`${field.label} is required`);
             return false;
           }
-          if (field.sanitize === "validMail" && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)) {
+          const isEmailField = field.sanitize === "validMail" || field.name === "mailId" || field.type === "email";
+          if (isEmailField && !isValidEmail(value)) {
             toast.error(`${field.label} must be a valid email`);
             return false;
           }
@@ -1196,9 +1444,63 @@ const FormLayout = ({
             toast.error(`${field.label} must be between 5 and 6 digits`);
             return false;
           }
-          if (field.sanitize === "ifsc" && hasMeaningfulValue(value) && value.length !== 11) {
-            toast.error(`${field.label} must be exactly 11 characters`);
-            return false;
+          const isIfscField = field.sanitize === "ifsc" || field.name === "ifscCode" || field.name === "ifsc";
+          if (isIfscField && hasMeaningfulValue(value)) {
+            const cleanIfsc = String(value).trim().toUpperCase();
+            if (cleanIfsc.length !== 11) {
+              toast.error(`${field.label} must be exactly 11 characters`);
+              return false;
+            }
+            if (!isValidIFSC(cleanIfsc)) {
+              toast.error(`${field.label} format is invalid. Format: 4 letters, 0, 6 characters (e.g. SBIN0001234)`);
+              return false;
+            }
+          }
+          const isAccountNumField = field.sanitize === "accountNumber" || field.sanitize === "noAlphabets" || field.name === "accountNumber";
+          if (isAccountNumField && hasMeaningfulValue(value)) {
+            const cleanAcc = String(value).trim();
+            if (!/^\d+$/.test(cleanAcc)) {
+              toast.error(`${field.label} must contain only digits`);
+              return false;
+            }
+            if (!isValidAccountNumber(cleanAcc)) {
+              toast.error(`${field.label} must be between 9 and 18 digits`);
+              return false;
+            }
+          }
+          const isFeeValidationField = field.name?.toLowerCase().includes("fee") || (field.type === "number" && field.allowDecimals === false);
+          if (isFeeValidationField && hasMeaningfulValue(value)) {
+            const numVal = Number(value);
+            if (isNaN(numVal) || numVal < 0) {
+              toast.error(`${field.label} cannot be negative`);
+              return false;
+            }
+            if (!Number.isInteger(numVal) || String(value).includes(".")) {
+              toast.error(`${field.label} cannot contain decimal values`);
+              return false;
+            }
+          }
+          if (field.type === "date" && hasMeaningfulValue(value)) {
+            const todayStr = getTodayDateString();
+            let resolvedMin = resolveDateConstraint(field.min, staticData);
+            if (resolvedMin === undefined && (field.name === "eventDate" || field.name === "eventEndDate") && !field.allowPast) {
+              resolvedMin = todayStr;
+            }
+            if (resolvedMin && value < resolvedMin) {
+              const minLabel = resolvedMin === todayStr
+                ? "the current date"
+                : (field.name === "registrationEndDate" && staticData?.registrationStartDate ? "Registration Start Date" : resolvedMin);
+              toast.error(`${field.label} cannot be earlier than ${minLabel}`);
+              return false;
+            }
+            const resolvedMax = resolveDateConstraint(field.max, staticData);
+            if (resolvedMax && value > resolvedMax) {
+              const maxLabel = (field.name === "registrationEndDate" || field.name === "registrationStartDate") && staticData?.eventDate
+                ? "the Event Date"
+                : resolvedMax;
+              toast.error(`${field.label} cannot be later than ${maxLabel}`);
+              return false;
+            }
           }
           if (field.conditionalInput) {
             const isCondActive = staticData[field.name] === (field.conditionalInput.showWhen || "Yes");
@@ -1236,7 +1538,8 @@ const FormLayout = ({
                 toast.error(`${section.title} (Row ${i + 1}): ${field.label} must be exactly 10 digits`);
                 return false;
               }
-              if (field.name === "mailId" && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)) {
+              const isEmailField = field.sanitize === "validMail" || field.name === "mailId" || field.type === "email";
+              if (isEmailField && !isValidEmail(value)) {
                 toast.error(`${section.title} (Row ${i + 1}): Please enter a valid Email Id`);
                 return false;
               }
@@ -1244,15 +1547,54 @@ const FormLayout = ({
                 toast.error(`${section.title} (Row ${i + 1}): ${field.label} must be between 5 and 6 digits`);
                 return false;
               }
-              if (field.sanitize === "ifsc" && value.length !== 11) {
-                toast.error(`${section.title} (Row ${i + 1}): ${field.label} must be exactly 11 characters`);
-                return false;
+              const isIfscField = field.sanitize === "ifsc" || field.name === "ifscCode" || field.name === "ifsc";
+              if (isIfscField && hasMeaningfulValue(value)) {
+                const cleanIfsc = String(value).trim().toUpperCase();
+                if (cleanIfsc.length !== 11) {
+                  toast.error(`${section.title} (Row ${i + 1}): ${field.label} must be exactly 11 characters`);
+                  return false;
+                }
+                if (!isValidIFSC(cleanIfsc)) {
+                  toast.error(`${section.title} (Row ${i + 1}): ${field.label} format is invalid (e.g. SBIN0001234)`);
+                  return false;
+                }
+              }
+              const isAccountNumField = field.sanitize === "accountNumber" || field.sanitize === "noAlphabets" || field.name === "accountNumber";
+              if (isAccountNumField && hasMeaningfulValue(value)) {
+                const cleanAcc = String(value).trim();
+                if (!isValidAccountNumber(cleanAcc)) {
+                  toast.error(`${section.title} (Row ${i + 1}): ${field.label} must be between 9 and 18 digits`);
+                  return false;
+                }
               }
             }
           }
         }
       }
     }
+
+    // ── Global Event & Registration Date Relationship Validations ──────────
+    if (hasMeaningfulValue(staticData.eventDate)) {
+      if (hasMeaningfulValue(staticData.registrationStartDate) && staticData.registrationStartDate > staticData.eventDate) {
+        toast.error("Registration Start Date cannot be later than Event Date");
+        return false;
+      }
+      if (hasMeaningfulValue(staticData.registrationEndDate) && staticData.registrationEndDate > staticData.eventDate) {
+        toast.error("Registration End Date cannot be later than Event Date");
+        return false;
+      }
+      if (hasMeaningfulValue(staticData.eventEndDate) && staticData.eventEndDate < staticData.eventDate) {
+        toast.error("Event End Date cannot be earlier than Event Date");
+        return false;
+      }
+    }
+    if (hasMeaningfulValue(staticData.registrationStartDate) && hasMeaningfulValue(staticData.registrationEndDate)) {
+      if (staticData.registrationEndDate < staticData.registrationStartDate) {
+        toast.error("Registration End Date cannot be earlier than Registration Start Date");
+        return false;
+      }
+    }
+
     return true;
   };
 

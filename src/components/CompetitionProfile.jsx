@@ -193,7 +193,9 @@ const CompetitionProfile = () => {
                         <h1 className="text-[24px] sm:text-[30px] md:text-[34px] lg:text-[38px] xl:text-[48px] font-extrabold leading-[32px] sm:leading-[38px] md:leading-[44px] lg:leading-[48px] xl:leading-[60px] tracking-[0px] align-middle mb-4 md:mb-6 xl:mb-8">{competition.eventName}</h1>
                         <div className="grid grid-cols-1 gap-y-2 font-source text-[13px] sm:text-[14px] md:text-[15px] xl:text-[16px] font-normal leading-[18px] sm:leading-[19px] md:leading-[20px] tracking-[0px] align-middle text-[#FFFFFF]">
                             <span className="flex items-center gap-2 "><EducationIcon /> {competition.organizer}</span>
-                            <span className="flex items-center gap-2 "><MapPin size={16} /> {formatAddress(competition)}</span>
+                            {String(competition?.mode || '').trim().toLowerCase() !== 'online' && (
+                                <span className="flex items-center gap-2 "><MapPin size={16} /> {formatAddress(competition)}</span>
+                            )}
                             <span className="flex items-center gap-2 "><Briefcase size={16} /> {competition.mode}</span>
                             <span className="flex items-center gap-2 "><CalendarDays size={16} /> {competition.eventDate ? new Date(competition.eventDate).toLocaleDateString() : 'N/A'}</span>
                         </div>
@@ -215,9 +217,13 @@ const CompetitionProfile = () => {
                                 </p>
                             </div>
                         </div>
-                        <div className="bg-white p-3 sm:p-3.5 md:p-4 xl:p-6 rounded-[14px] sm:rounded-[16px] xl:rounded-[24px] min-w-0 xl:min-w-[180px] flex flex-col justify-center items-start shadow-xl w-full xl:w-auto">
+                        <div className="bg-white p-3 sm:p-3.5 md:p-4 xl:p-6 rounded-[14px] sm:rounded-[16px] xl:rounded-[24px] min-w-0 xl:min-w-[180px] flex flex-col justify-center text-gray-900 shadow-xl w-full xl:w-auto col-span-2 sm:col-span-1">
                             <p className="font-source text-[8px] sm:text-[9px] md:text-[10px] xl:text-[10px] font-semibold leading-[13px] sm:leading-[14px] tracking-[0.5px] align-middle uppercase text-[#64748B] mb-1">Days Remaining</p>
-                            <p className="text-[18px] sm:text-[20px] md:text-[22px] lg:text-[24px] xl:text-[30px] font-bold leading-[24px] sm:leading-[26px] md:leading-[28px] lg:leading-[30px] xl:leading-[36px] tracking-[0px] align-middle text-[#171717] text-source">{getRemainingDays(competition.eventDate)}</p>
+                            <div className="flex items-center gap-1">
+                                <p className="text-[18px] sm:text-[20px] md:text-[22px] lg:text-[24px] xl:text-[30px] font-bold leading-[24px] sm:leading-[26px] md:leading-[28px] lg:leading-[30px] xl:leading-[36px] tracking-[0px] align-middle text-[#171717] text-source">
+                                    {getRemainingDays(competition.eventDate)}
+                                </p>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -323,7 +329,7 @@ const CompetitionProfile = () => {
                                     <DataItem label="Event Time" value={competition.eventStartTime ? `${competition.eventStartTime}${competition.eventEndTime ? ` - ${competition.eventEndTime}` : ''}` : 'N/A'} />
                                     <DataItem label="Total Seats" value={competition.totalSeats ? competition.totalSeats : 'Unlimited / Not specified'} />
                                     <DataItem label="Event Mode" value={competition.mode} />
-                                    {competition.onlinePlatformLink && (
+                                    {competition.mode !== "Offline" && competition.onlinePlatformLink && (
                                         <DataItem
                                             label="Platform / Meeting Link"
                                             value={

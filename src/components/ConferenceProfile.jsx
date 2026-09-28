@@ -208,7 +208,9 @@ const ConferenceProfile = () => {
                         <h1 className="text-[24px] sm:text-[30px] md:text-[34px] lg:text-[38px] xl:text-[48px] font-extrabold leading-[32px] sm:leading-[38px] md:leading-[44px] lg:leading-[48px] xl:leading-[60px] tracking-[0px]  mb-4 md:mb-6 xl:mb-8">{conference.eventName}</h1>
                         <div className="grid grid-cols-1 gap-y-2 font-source text-[13px] sm:text-[14px] md:text-[15px] xl:text-[16px] font-normal leading-[18px] sm:leading-[19px] md:leading-[20px] tracking-[0px] align-middle text-[#FFFFFF]">
                             <span className="flex items-center gap-2 "><EducationIcon />  {conference.organizer}</span>
-                            <span className="flex items-center gap-2 "><MapPin size={16} />{formatAddress(conference)}</span>
+                            {String(conference?.mode || '').trim().toLowerCase() !== 'online' && (
+                                <span className="flex items-center gap-2 "><MapPin size={16} />{formatAddress(conference)}</span>
+                            )}
                             <span className="flex items-center gap-2 "><Briefcase size={16} /> {conference.mode}</span>
                             <span className="flex items-center gap-2 "><CalendarDays size={16} /> {conference.eventDate ? new Date(conference.eventDate).toLocaleDateString() : 'N/A'}</span>
                         </div>
@@ -229,9 +231,13 @@ const ConferenceProfile = () => {
                                 </p>
                             </div>
                         </div>
-                        <div className="bg-white p-3 sm:p-3.5 md:p-4 xl:p-6 rounded-[14px] sm:rounded-[16px] xl:rounded-[24px] min-w-0 xl:min-w-[180px] flex flex-col justify-center items-start shadow-xl w-full xl:w-auto">
+                        <div className="bg-white p-3 sm:p-3.5 md:p-4 xl:p-6 rounded-[14px] sm:rounded-[16px] xl:rounded-[24px] min-w-0 xl:min-w-[180px] flex flex-col justify-center text-gray-900 shadow-xl w-full xl:w-auto col-span-2 sm:col-span-1">
                             <p className="font-source text-[8px] sm:text-[9px] md:text-[10px] xl:text-[10px] font-semibold leading-[13px] sm:leading-[14px] tracking-[0.5px] align-middle uppercase text-[#64748B] mb-1">Days Remaining</p>
-                            <p className="text-[18px] sm:text-[20px] md:text-[22px] lg:text-[24px] xl:text-[30px] font-bold leading-[24px] sm:leading-[26px] md:leading-[28px] lg:leading-[30px] xl:leading-[36px] tracking-[0px] align-middle text-[#171717] text-source">{getRemainingDays(conference.eventDate)}</p>
+                            <div className="flex items-center gap-1">
+                                <p className="text-[18px] sm:text-[20px] md:text-[22px] lg:text-[24px] xl:text-[30px] font-bold leading-[24px] sm:leading-[26px] md:leading-[28px] lg:leading-[30px] xl:leading-[36px] tracking-[0px] align-middle text-[#171717] text-source">
+                                    {getRemainingDays(conference.eventDate)}
+                                </p>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -336,7 +342,7 @@ const ConferenceProfile = () => {
                                     <DataItem label="Reg End Date" value={conference.registrationEndDate ? new Date(conference.registrationEndDate).toLocaleDateString() : 'N/A'} />
                                     <DataItem label="Total Seats" value={conference.totalSeats} />
                                     <DataItem label="Event Mode" value={conference.mode} />
-                                    {conference.onlinePlatformLink && (
+                                    {conference.mode !== "Offline" && conference.onlinePlatformLink && (
                                         <DataItem
                                             label="Platform / Meeting Link"
                                             value={
@@ -357,7 +363,7 @@ const ConferenceProfile = () => {
                             <InfoCard title="Fees Details">
                                 <div className="grid grid-cols-2 xl:grid-cols-3 gap-6">
                                     <DataItem label="Individual Fees" value={`₹${conference.individualFees || 0}`} />
-                                    <DataItem label="Team Fees" value={`₹${conference.teamFees || 0}`} />
+                                    {/* <DataItem label="Team Fees" value={`₹${conference.teamFees || 0}`} /> */}
                                     <DataItem label="Late Fees" value={`₹${conference.lateFees || 0}`} />
                                 </div>
                             </InfoCard>
@@ -383,21 +389,13 @@ const ConferenceProfile = () => {
                             </InfoCard>
                         </div>
 
-                        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                             <InfoCard title="Food & Accommodation">
                                 <div className="grid grid-cols-2 gap-4">
                                     <DataItem label="Food Provided" value={conference.foodProvide} />
                                     <DataItem label="Food Type" value={conference.vegNonVeg} />
                                     <DataItem label="Accommodation" value={conference.accommodationProvide} />
                                     <DataItem label="Snacks" value={conference.midnightSnacks} />
-                                </div>
-                            </InfoCard>
-
-                            <InfoCard title="Team Rules">
-                                <div className="grid grid-cols-2 gap-4">
-                                    <DataItem label="Type" value={conference.teamOrIndividualEvent} />
-                                    <DataItem label="Min Size" value={conference.teamSizeMinimum} />
-                                    <DataItem label="Max Size" value={conference.teamSizeMaximum} />
                                 </div>
                             </InfoCard>
 
@@ -453,7 +451,7 @@ const ConferenceProfile = () => {
                             )}
                         </div>
 
-                        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                             <InfoCard title="Allowed Departments">
                                 <ul className="list-disc pl-5 space-y-1 text-secondary text-sm">
                                     {conference?.allowedDepartments?.length > 0 ? (
@@ -464,9 +462,6 @@ const ConferenceProfile = () => {
                                         <li>Open to all departments</li>
                                     )}
                                 </ul>
-                            </InfoCard>
-                            <InfoCard title="Eligibility">
-                                <p className="text-secondary text-sm leading-relaxed">{conference.eligibilityDetails}</p>
                             </InfoCard>
                             <InfoCard title="Description">
                                 <p className="text-secondary text-sm leading-relaxed whitespace-pre-wrap">{conference.description}</p>
