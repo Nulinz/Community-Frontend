@@ -67,6 +67,7 @@ const LandingPage = () => {
 
     return () => observer.disconnect();
   }, []);
+  console.log("App running")
 
   const scrollToSection = (id) => {
     setActiveTab(id);
