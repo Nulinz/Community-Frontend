@@ -274,7 +274,11 @@ const CompanyProfile = ({ module }) => {
     </ul>
   );
 
-  const mergedJobs = [...jobs?.internships, ...jobs?.freelances]
+  const mergedJobs = [
+    ...(jobs?.jobs || jobs?.jobList || []),
+    ...(jobs?.internships || []),
+    ...(jobs?.freelances || []),
+  ];
 
 
   return (
@@ -574,7 +578,7 @@ const CompanyProfile = ({ module }) => {
 
             )}
             {/* Empty state */}
-            {jobs.internships.length === 0 && jobs.freelances.length === 0 && (
+            {mergedJobs.length === 0 && (
               <div className="py-12 text-center bg-gray-50 rounded-[16px] border border-dashed border-gray-300">
                 <p className="text-secondary font-medium italic">No jobs posted yet.</p>
               </div>
