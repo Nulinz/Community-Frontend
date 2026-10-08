@@ -334,7 +334,7 @@ const ConferenceProfile = () => {
 
                 {activeTab === 'overview' ? (
                     <div className="space-y-6">
-                        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                        <div className={`grid grid-cols-1 ${String(conference.registrationType || '').trim().toLowerCase() === 'paid' ? 'lg:grid-cols-2' : ''} gap-6`}>
                             <InfoCard title="Basic Details">
                                 <div className="grid grid-cols-2 xl:grid-cols-3 gap-6">
                                     <DataItem label="Registration Type" value={conference.registrationType} />
@@ -360,13 +360,15 @@ const ConferenceProfile = () => {
                                 </div>
                             </InfoCard>
 
-                            <InfoCard title="Fees Details">
-                                <div className="grid grid-cols-2 xl:grid-cols-3 gap-6">
-                                    <DataItem label="Individual Fees" value={`₹${conference.individualFees || 0}`} />
-                                    {/* <DataItem label="Team Fees" value={`₹${conference.teamFees || 0}`} /> */}
-                                    <DataItem label="Late Fees" value={`₹${conference.lateFees || 0}`} />
-                                </div>
-                            </InfoCard>
+                            {String(conference.registrationType || '').trim().toLowerCase() === 'paid' && (
+                                <InfoCard title="Fees Details">
+                                    <div className="grid grid-cols-2 xl:grid-cols-3 gap-6">
+                                        <DataItem label="Individual Fees" value={`₹${conference.individualFees || 0}`} />
+                                        {/* <DataItem label="Team Fees" value={`₹${conference.teamFees || 0}`} /> */}
+                                        <DataItem label="Late Fees" value={`₹${conference.lateFees || 0}`} />
+                                    </div>
+                                </InfoCard>
+                            )}
 
                             {(conference.prizesAvailable === "Yes" || conference.firstPrize || conference.secondPrize || conference.thirdPrize || conference.participationPrize) && (
                                 <InfoCard title="Prize Details">
@@ -379,33 +381,35 @@ const ConferenceProfile = () => {
                                 </InfoCard>
                             )}
 
-                            <InfoCard title="Opportunities">
+                            {/* <InfoCard title="Opportunities">
                                 <div className="grid grid-cols-2 xl:grid-cols-3 gap-6">
                                     <DataItem label="Internship" value={conference.internshipOpportunity} />
                                     <DataItem label="Placement" value={conference.placementOpportunity} />
                                     <DataItem label="Industry Exposure" value={conference.industryExposure} />
                                     <DataItem label="Industry Partners" value={conference.industryPartners} />
                                 </div>
-                            </InfoCard>
+                            </InfoCard> */}
                         </div>
 
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                            <InfoCard title="Food & Accommodation">
-                                <div className="grid grid-cols-2 gap-4">
-                                    <DataItem label="Food Provided" value={conference.foodProvide} />
-                                    <DataItem label="Food Type" value={conference.vegNonVeg} />
-                                    <DataItem label="Accommodation" value={conference.accommodationProvide} />
-                                    <DataItem label="Snacks" value={conference.midnightSnacks} />
-                                </div>
-                            </InfoCard>
+                        {String(conference?.mode || '').trim().toLowerCase() !== 'online' && (
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                <InfoCard title="Food & Accommodation">
+                                    <div className="grid grid-cols-2 gap-4">
+                                        <DataItem label="Food Provided" value={conference.foodProvide} />
+                                        <DataItem label="Food Type" value={conference.vegNonVeg} />
+                                        <DataItem label="Accommodation" value={conference.accommodationProvide} />
+                                        <DataItem label="Snacks" value={conference.midnightSnacks} />
+                                    </div>
+                                </InfoCard>
 
-                            <InfoCard title="Venue Details">
-                                <div className="space-y-4">
-                                    <DataItem label="Venue Name" value={conference.venueName} />
-                                    <DataItem label="Address" value={formatAddress(conference)} />
-                                </div>
-                            </InfoCard>
-                        </div>
+                                <InfoCard title="Venue Details">
+                                    <div className="space-y-4">
+                                        <DataItem label="Venue Name" value={conference.venueName} />
+                                        <DataItem label="Address" value={formatAddress(conference)} />
+                                    </div>
+                                </InfoCard>
+                            </div>
+                        )}
 
                         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                             {conference.rounds?.length > 0 && (

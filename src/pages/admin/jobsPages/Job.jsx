@@ -4,6 +4,7 @@ import DynamicTable from '../../../common/DynamicTable';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import { getAllJobs } from '../../../services/admin/adminServices';
+import { hasNewRegistrations, markItemAsSeen, setCategoryBadge, hasAnyUnreadInList } from '../../../utils/applicantTracker';
 import { useTitle } from '../../../context/AdminTitle';
 import { useMain } from '../../../context/MainContext';
 
@@ -41,7 +42,8 @@ const Job = ({ module = 'admin' }) => {
         try {
             setIsLoading(true);
             const response = await getAllJobs(status);
-            const mappedData = (response?.data || []).map((item) => ({
+            const rawList = response?.data || [];
+            const mappedData = rawList.map((item) => ({
                 ...item,
                 id: item?._id,
                 company: item?.companyName || '-',
@@ -51,8 +53,10 @@ const Job = ({ module = 'admin' }) => {
                 location: item?.location || '-',
                 applied: item?.appliedCount || 0,
                 status: item?.isActive ? 'active' : 'inactive',
+                isNewApplicant: hasNewRegistrations(item?._id, item?.appliedCount || 0),
             }));
             setJobs(mappedData);
+            setCategoryBadge("jobs", hasAnyUnreadInList(mappedData, ["appliedCount", "applied"]));
         } catch (error) {
             toast.error(error?.response?.data?.message || 'Failed to fetch jobs');
             setJobs([]);
@@ -60,6 +64,22 @@ const Job = ({ module = 'admin' }) => {
             setIsLoading(false);
         }
     };
+
+    // Re-check seen status when notification storage updates
+    useEffect(() => {
+        const handleSync = () => {
+            setJobs((prevJobs) => {
+                const updated = prevJobs.map((j) => ({
+                    ...j,
+                    isNewApplicant: hasNewRegistrations(j.id || j._id, j.applied || j.appliedCount || 0),
+                }));
+                setCategoryBadge("jobs", hasAnyUnreadInList(updated, ["appliedCount", "applied"]));
+                return updated;
+            });
+        };
+        window.addEventListener("nulinz_seen_updated", handleSync);
+        return () => window.removeEventListener("nulinz_seen_updated", handleSync);
+    }, []);
 
     const handleTabChange = (value) => {
         setActiveTab(value);
@@ -72,9 +92,24 @@ const Job = ({ module = 'admin' }) => {
             title: '#',
             dataIndex: 'index',
             key: 'index',
-            render: (_text, _record, index) => index + 1
+            render: (_text, _record, index) => (currentPage - 1) * 10 + index + 1
         },
-        { title: 'Job Title', dataIndex: 'jobTitle', key: 'jobTitle' },
+        {
+            title: 'Job Title',
+            dataIndex: 'jobTitle',
+            key: 'jobTitle',
+            render: (text, record) => (
+                <div className="flex items-center gap-2">
+                    <span className="font-semibold text-[#101828]">{text}</span>
+                    {record.isNewApplicant && (
+                        <span className="relative flex h-2 w-2 flex-shrink-0" title="New applicant arrived">
+                            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-blue-400 opacity-75"></span>
+                            <span className="relative inline-flex rounded-full h-2 w-2 bg-blue-600"></span>
+                        </span>
+                    )}
+                </div>
+            )
+        },
         { title: 'Date', dataIndex: 'date', key: 'date' },
         { title: 'Job Type', dataIndex: 'jobType', key: 'jobType' },
         { title: 'Salary', dataIndex: 'salary', key: 'salary' },
@@ -144,7 +179,10 @@ const Job = ({ module = 'admin' }) => {
                 currentPage={currentPage}
                 pageSize={10}
                 onPageChange={setCurrentPage}
-                onRowClick={(record) => navigate(`/${module}/jobs/job-profile/${record._id}`)}
+                onRowClick={(record) => {
+                    markItemAsSeen(record._id || record.id, record.applied || record.appliedCount || 0);
+                    navigate(`/${module}/jobs/job-profile/${record._id}`);
+                }}
             />
         </div>
     );

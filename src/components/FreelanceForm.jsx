@@ -1,10 +1,11 @@
 import { useLocation, useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
-import { createFreelance } from "../services/admin/adminServices";
+import { createFreelance, updateFreelance, getCompanyNames } from "../services/admin/adminServices";
 import { useOrganizerDisplayName } from "../utils/organizer";
 import FormLayout from "../layout/FormLayout";
-import { useEffect } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { useTitle } from "../context/AdminTitle";
+import { useMain } from "../context/MainContext";
 import { domainOptions } from "./CompanyForm";
 import {
   validateFreelanceFieldChange,
@@ -50,7 +51,16 @@ export const validateFreelanceBudget = (value, projectType) => {
   return null;
 };
 
-const freelanceFormConfig = [
+/**
+ * Generates the Freelance (Envy) form field configuration based on user privileges.
+ * When role is admin:
+ *   - Searchable company dropdown + "Other" option.
+ *   - Automatically inherits registered company's name and existing logo.
+ *   - If "Other" chosen, shows company name and 512x512 logo upload.
+ * When role is not admin:
+ *   - Standard behavior with prefilled organizer info.
+ */
+const getFreelanceFormConfig = ({ isAdmin, companyOptions }) => [
   {
     title: "Basic Details",
     type: "static",
@@ -63,13 +73,44 @@ const freelanceFormConfig = [
         searchable: true,
         options: domainOptions,
         placeholder: "Select domains",
-        // required: false,
       },
-      {
-        name: "companyName",
-        label: "Organizer",
-        type: "text",
-      },
+      ...(isAdmin
+        ? [
+            {
+              name: "selectedCompany",
+              label: "Company",
+              type: "select",
+              searchable: true,
+              options: companyOptions,
+              defaultValue: "",
+              placeholder: "Select Company or Other",
+              required: true,
+            },
+            {
+              name: "companyName",
+              label: "Company Name",
+              type: "text",
+              placeholder: "Enter company name",
+              required: true,
+              showWhen: { field: "selectedCompany", value: "Other" },
+            },
+            {
+              name: "companyLogo",
+              label: "Company Logo",
+              type: "file",
+              dimensions: { width: 512, height: 512 },
+              crop: true,
+              required: true,
+              showWhen: { field: "selectedCompany", value: "Other" },
+            },
+          ]
+        : [
+            {
+              name: "companyName",
+              label: "Organizer",
+              type: "text",
+            },
+          ]),
       {
         name: "projectType",
         label: "Project Type",
@@ -144,7 +185,6 @@ const freelanceFormConfig = [
     initialRows: 1,
     fields: [{ name: "eligibilityCriteria", label: "Eligibility ", type: "text", colSpan: "md:col-span-11" }],
   },
-
   {
     title: "Security",
     type: "dynamic",
@@ -153,7 +193,8 @@ const freelanceFormConfig = [
     dynamicStyle: "grid-6",
     initialRows: 1,
     fields: [{ name: "securityInfo", label: "Security", type: "text", colSpan: "md:col-span-11", required: false }],
-  }, {
+  },
+  {
     title: "Required Skills",
     type: "dynamic",
     key: "skill_set",
@@ -179,15 +220,6 @@ const freelanceFormConfig = [
     initialRows: 1,
     fields: [{ name: "supporting_files", label: "Project Attachments", type: "text", colSpan: "md:col-span-11", required: false }],
   },
-  // {
-  //   title: "Payment / Milestones",
-  //   type: "dynamic",
-  //   key: "payment_structure",
-  //   payloadKey: "payment_structure",
-  //   dynamicStyle: "grid-6",
-  //   initialRows: 1,
-  //   fields: [{ name: "payment_structure", label: "Payment / Milestones", type: "text", colSpan: "md:col-span-11", required: false }],
-  // },
   {
     title: "Project Rules / Terms",
     type: "dynamic",
@@ -197,14 +229,11 @@ const freelanceFormConfig = [
     initialRows: 1,
     fields: [{ name: "rules", label: "Project Rules / Terms", type: "text", colSpan: "md:col-span-11", required: false }],
   },
-
   {
     title: " Project Details",
     type: "static",
     dynamicStyle: "grid-6",
     fields: [
-      // { name: "learning", label: "Learning", type: "textarea",span:2 },
-      // { name: "certificateAvailability", label: "Certificate Availability", type: "textarea" ,span:2},
       { name: "description", label: "Description", type: "textarea", span: 2 },
     ],
   },
@@ -214,11 +243,62 @@ const FreelanceForm = () => {
   const location = useLocation();
   const editData = location.state?.editData;
   const organizerName = useOrganizerDisplayName();
-  const navigate = useNavigate()
-  const { setTitle } = useTitle()
+  const navigate = useNavigate();
+  const { setTitle } = useTitle();
+  const { user } = useMain();
+  const isAdmin = user?.role === "admin";
+
+  const [companyList, setCompanyList] = useState([]);
+  const [companyOptions, setCompanyOptions] = useState(["Other"]);
+
   useEffect(() => {
-    setTitle("Form")
-  }, [])
+    setTitle("Form");
+  }, [setTitle]);
+
+  // Fetch registered companies when creator has admin privileges
+  useEffect(() => {
+    if (!isAdmin) return;
+    let isMounted = true;
+    const fetchCompanies = async () => {
+      try {
+        const res = await getCompanyNames();
+        if (isMounted && res?.success) {
+          const names = Array.isArray(res.data) ? res.data : [];
+          setCompanyOptions([...names, "Other"]);
+          if (Array.isArray(res.companies)) {
+            setCompanyList(res.companies);
+          }
+        }
+      } catch (err) {
+        console.error("Failed to load company names:", err);
+      }
+    };
+    fetchCompanies();
+    return () => {
+      isMounted = false;
+    };
+  }, [isAdmin]);
+
+  // Resolve initial data for edit mode, matching registered company or defaulting to Other
+  const resolvedEditData = useMemo(() => {
+    if (!editData) return undefined;
+    if (!isAdmin) return editData;
+
+    const currentCompany = editData.companyName || editData.organizer || "";
+    const isKnown = companyOptions.length > 1 && companyOptions.includes(currentCompany) && currentCompany !== "Other";
+    const selectedCompany = isKnown ? currentCompany : (currentCompany ? "Other" : "");
+
+    return {
+      ...editData,
+      selectedCompany: selectedCompany || "Other",
+      companyName: currentCompany,
+      companyLogo: editData.companyLogo || "",
+    };
+  }, [editData, isAdmin, companyOptions]);
+
+  const formConfig = useMemo(() => {
+    return getFreelanceFormConfig({ isAdmin, companyOptions });
+  }, [isAdmin, companyOptions]);
 
   const handleFieldChange = (fieldName, value, currentData) => {
     return validateFreelanceFieldChange(fieldName, value, currentData, !!editData?._id);
@@ -243,9 +323,55 @@ const FreelanceForm = () => {
         return;
       }
 
-      const res = await createFreelance(payload); // JSON payload
+      const cleanPayload = { ...payload };
 
-      if (res?.success) {
+      if (isAdmin) {
+        if (cleanPayload.selectedCompany && cleanPayload.selectedCompany !== "Other") {
+          cleanPayload.companyName = cleanPayload.selectedCompany;
+          cleanPayload.organizer = cleanPayload.selectedCompany;
+
+          // Propagate registered company's logo if found
+          const matched = companyList.find(
+            (c) => c.companyName?.toLowerCase() === cleanPayload.selectedCompany.toLowerCase()
+          );
+          if (matched?.companyLogo) {
+            cleanPayload.companyLogo = matched.companyLogo;
+          }
+        } else if (cleanPayload.selectedCompany === "Other") {
+          cleanPayload.organizer = cleanPayload.companyName;
+        }
+        delete cleanPayload.selectedCompany;
+      } else {
+        cleanPayload.companyName = organizerName;
+        cleanPayload.organizer = organizerName;
+      }
+
+      // Check if file upload is provided (ImageCropperModal outputs File)
+      const hasFileUpload = cleanPayload.companyLogo instanceof File;
+      let dataToSend;
+      if (hasFileUpload) {
+        dataToSend = new FormData();
+        Object.entries(cleanPayload).forEach(([key, val]) => {
+          if (val == null) return;
+          if (val instanceof File) {
+            dataToSend.append(key, val);
+            return;
+          }
+          if (Array.isArray(val)) {
+            dataToSend.append(key, JSON.stringify(val));
+            return;
+          }
+          dataToSend.append(key, String(val));
+        });
+      } else {
+        dataToSend = cleanPayload;
+      }
+
+      const res = editData?._id
+        ? await updateFreelance(editData._id, dataToSend)
+        : await createFreelance(dataToSend);
+
+      if (res?.success || res?.status) {
         toast.success(
           editData
             ? "Freelance updated successfully"
@@ -266,14 +392,14 @@ const FreelanceForm = () => {
 
   return (
     <FormLayout
-      config={freelanceFormConfig}
-      editData={editData}
+      config={formConfig}
+      editData={resolvedEditData}
       onSubmit={handleSubmit}
-      staticOverrides={{ companyName: organizerName }}
+      staticOverrides={!isAdmin ? { companyName: organizerName } : undefined}
       dateFields={["jobStartDate", "jobEndDate", "applicationDeadline"]}
       onFieldChange={handleFieldChange}
     />
   );
 };
 
-export default FreelanceForm;
+export default FreelanceForm;

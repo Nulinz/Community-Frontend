@@ -359,8 +359,8 @@ const InfluencerProfile = () => {
 
             <div className="space-y-4">
               <div>
-                <p className="text-[16px] font-source font-semibold text-secondary mb-1">Mobile / Email</p>
-                <p className="text-[16px] font-source text-primary">{influencer?.phone}</p>
+                <p className="text-[16px] font-source font-semibold text-secondary mb-1">Email Address</p>
+                <p className="text-[16px] font-source text-primary">{influencer?.email}</p>
               </div>
 
               <div>

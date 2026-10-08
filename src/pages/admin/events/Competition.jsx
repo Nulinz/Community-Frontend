@@ -4,6 +4,7 @@ import DynamicTable from "../../../common/DynamicTable";
 import PageLoader from "../../../common/PageLoader";
 import { useNavigate } from 'react-router-dom';
 import { getAllCompetitions } from '../../../services/admin/adminServices';
+import { hasNewRegistrations, markItemAsSeen, setCategoryBadge, hasAnyUnreadInList } from '../../../utils/applicantTracker';
 import { toast } from 'react-toastify';
 import { useMain } from '../../../context/MainContext';
 import { useTitle } from '../../../context/AdminTitle';
@@ -37,7 +38,13 @@ const Competition = () => {
       setIsLoading(true);
       const response = await getAllCompetitions(status);
       if (response.success) {
-        setCompetitions(response.data);
+        const rawList = response.data || [];
+        const mapped = rawList.map((item) => ({
+          ...item,
+          isNewRegistration: hasNewRegistrations(item._id || item.id, item.registeredCount || 0),
+        }));
+        setCompetitions(mapped);
+        setCategoryBadge("competition", hasAnyUnreadInList(mapped, ["registeredCount"]));
       } else {
         toast.error("Failed to fetch competitions");
       }
@@ -48,6 +55,22 @@ const Competition = () => {
       setIsLoading(false);
     }
   };
+
+  // Re-check seen status when notification storage updates
+  useEffect(() => {
+    const handleSync = () => {
+      setCompetitions((prev) => {
+        const updated = prev.map((item) => ({
+          ...item,
+          isNewRegistration: hasNewRegistrations(item._id || item.id, item.registeredCount || 0),
+        }));
+        setCategoryBadge("competition", hasAnyUnreadInList(updated, ["registeredCount"]));
+        return updated;
+      });
+    };
+    window.addEventListener("nulinz_seen_updated", handleSync);
+    return () => window.removeEventListener("nulinz_seen_updated", handleSync);
+  }, []);
 
   const handleTabChange = (value) => {
     setActiveTab(value);
@@ -65,8 +88,16 @@ const Competition = () => {
       title: 'Competition Name',
       dataIndex: 'eventName',
       key: 'eventName',
-      render: (text) => (
-        <p className="max-w-[150px] truncate" title={text}>{text}</p>
+      render: (text, record) => (
+        <div className="flex items-center gap-2">
+          <p className="max-w-[150px] truncate" title={text}>{text}</p>
+          {record?.isNewRegistration && (
+            <span className="relative flex h-2 w-2 flex-shrink-0" title="New registration arrived">
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-blue-400 opacity-75"></span>
+              <span className="relative inline-flex rounded-full h-2 w-2 bg-blue-600"></span>
+            </span>
+          )}
+        </div>
       )
     },
     { title: 'Organizer', dataIndex: 'organizer', key: 'organizer' },
@@ -152,7 +183,10 @@ const Competition = () => {
         currentPage={currentPage}
         pageSize={10}
         onPageChange={setCurrentPage}
-        onRowClick={(record) => navigate(dynamicPath(`competition-profile/${record._id}`))}
+        onRowClick={(record) => {
+          markItemAsSeen(record._id || record.id, record.registeredCount || 0);
+          navigate(dynamicPath(`competition-profile/${record._id}`));
+        }}
       />
     </div>
   );

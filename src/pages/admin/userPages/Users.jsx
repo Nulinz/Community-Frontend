@@ -49,7 +49,7 @@ const Users = () => {
             title: '#', 
             dataIndex: 'index', 
             key: 'index',
-            render: (_text, _record, index) => index + 1
+            render: (_text, _record, index) => (currentPage - 1) * 10 + index + 1
         },
         { title: 'Name', dataIndex: 'name', key: 'name', render: (val) => val || 'N/A' },
         { title: 'Email', dataIndex: 'email', key: 'email', render: (val) => val || 'N/A' },

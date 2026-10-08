@@ -330,7 +330,7 @@ const SeminarProfile = () => {
                     <div className="space-y-6">
 
                         {/* Row 1: Basic + Fees + Prize + Opportunities */}
-                        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                        <div className={`grid grid-cols-1 ${String(seminar.registrationType || '').trim().toLowerCase() === 'paid' ? 'lg:grid-cols-2' : ''} gap-6`}>
                             <InfoCard title="Basic Details">
                                 <div className="grid grid-cols-2 xl:grid-cols-3 gap-6">
                                     <DataItem label="Event Type" value={seminar.eventType} />
@@ -366,13 +366,15 @@ const SeminarProfile = () => {
                                 </div>
                             </InfoCard>
 
-                            <InfoCard title="Fees Details">
-                                <div className="grid grid-cols-2 xl:grid-cols-3 gap-6">
-                                    <DataItem label="Individual Fees" value={`₹${seminar.individualFees || 0}`} />
-                                    <DataItem label="Team Fees" value={`₹${seminar.teamFees || 0}`} />
-                                    <DataItem label="Late Fees" value={`₹${seminar.lateFees || 0}`} />
-                                </div>
-                            </InfoCard>
+                            {String(seminar.registrationType || '').trim().toLowerCase() === 'paid' && (
+                                <InfoCard title="Fees Details">
+                                    <div className="grid grid-cols-2 xl:grid-cols-3 gap-6">
+                                        <DataItem label="Individual Fees" value={`₹${seminar.individualFees || 0}`} />
+                                        {/* <DataItem label="Team Fees" value={`₹${seminar.teamFees || 0}`} /> */}
+                                        <DataItem label="Late Fees" value={`₹${seminar.lateFees || 0}`} />
+                                    </div>
+                                </InfoCard>
+                            )}
 
                             {/* <InfoCard title="Prize Details">
                                 <div className="grid grid-cols-2 xl:grid-cols-4 gap-6">

@@ -6,7 +6,7 @@ import AppliedListSection from './AppliedListSection';
 import AttendanceSection from './AttendanceSection';
 import CandidateProfileSection from './CandidateProfileSection';
 import PerformanceEvaluationSection from './PerformanceEvaluationSection';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useNavigate, useParams, useLocation } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import {
   getInternshipById,
@@ -31,7 +31,8 @@ import { Eye, AlertCircle } from 'lucide-react';
 import { apiDispatchApplicationViewedNotification } from '../services/admin/adminNotificationServices';
 
 const JobsProfile = ({ module = 'admin', jobType = 'Internship' }) => {
-  const isJob = jobType === 'Job' || window.location.pathname.includes('/job-profile');
+  const location = useLocation();
+  const isJob = jobType === 'Job' || (location.pathname || window.location.pathname).includes('/job-profile');
   const [activeTab, setActiveTab] = useState('overview');
   const [attendanceSubView, setAttendanceSubView] = useState('list'); // 'list' | 'view' | 'mark'
   const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0]);
@@ -371,6 +372,8 @@ const JobsProfile = ({ module = 'admin', jobType = 'Internship' }) => {
               userId: app.userId?._id || app.userId,
               applicationId: app._id,
               status: app.status || "applied",
+              portfolios: app.portfolios || candidateRecord?.portfolios || (app.portfolio ? (Array.isArray(app.portfolio) ? app.portfolio : [{ field_name: "Portfolio", portfolio: app.portfolio }]) : []),
+              portfolio: app.portfolios || app.portfolio || candidateRecord?.portfolios || candidateRecord?.portfolio || null,
               name: ud?.name || app.userId?.name || candidateRecord?.name || "",
               email: app.userId?.email || candidateRecord?.mail || "",
               mail: app.userId?.email || candidateRecord?.mail || "",
@@ -390,6 +393,8 @@ const JobsProfile = ({ module = 'admin', jobType = 'Internship' }) => {
           setSelectedCandidateProfile({
             ...candidateRecord,
             ...profileData,
+            portfolios: profileData?.portfolios || candidateRecord?.portfolios || (profileData?.portfolio ? (Array.isArray(profileData.portfolio) ? profileData.portfolio : [{ field_name: "Portfolio", portfolio: profileData.portfolio }]) : []),
+            portfolio: profileData?.portfolios || profileData?.portfolio || candidateRecord?.portfolios || candidateRecord?.portfolio || null,
             resumeUrl: profileData?.resumeUrl || candidateRecord?.resumeUrl || "",
             resumeName: profileData?.resumeName || candidateRecord?.resumeName || "Resume.pdf",
           });
@@ -553,8 +558,12 @@ const JobsProfile = ({ module = 'admin', jobType = 'Internship' }) => {
                 </div>
 
                 <div className="rounded-[18px] bg-white border border-gray-200 text-[#0C5F94] p-4 md:p-5 min-h-[100px] md:min-h-[130px] flex flex-col justify-center sm:min-w-[150px]">
-                  <p className="uppercase tracking-[1px] text-[10px] md:text-[11px] font-bold mb-3 text-[#7D89A0]">Job Start Date</p>
-                  <p className="text-[18px] md:text-[26px] leading-none font-bold">{formatDate(internship.internStartDate)}</p>
+                  <p className="uppercase tracking-[1px] text-[10px] md:text-[11px] font-bold mb-3 text-[#7D89A0]">
+                    {(location.pathname.includes('/admin/jobs') && location.pathname.includes('/job-profile')) || isJob
+                      ? 'Job start date'
+                      : 'intern start date'}
+                  </p>
+                    <p className="text-[18px] md:text-[26px] leading-none font-bold">{formatDate(internship.jobStartDate)}</p>
                 </div>
 
                 <div className="rounded-[18px] bg-white border border-gray-200 text-[#0C5F94] p-4 md:p-5 min-h-[100px] md:min-h-[130px] flex flex-col justify-center sm:min-w-[150px]">

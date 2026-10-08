@@ -44,6 +44,13 @@ export const addCompanyPost = async (id, formData) => {
   return response.data;
 };
 
+export const deleteCompanyPost = async (id, imageUrl) => {
+  const response = await API.delete(`/company/delete-post/${id}`, {
+    data: { imageUrl },
+  });
+  return response.data;
+};
+
 export const setCompanyPassword = async (payload) => {
   const response = await API.post("/company/set-password", payload);
   return response.data;
@@ -242,12 +249,18 @@ export const addSeminarPost = async (id, formData) => {
 
 
 export const createInternship = async (payload) => {
-  const response = await API.post("/internship/create", payload);
+  const isFormData = typeof FormData !== "undefined" && payload instanceof FormData;
+  const response = await API.post("/internship/create", payload, isFormData ? {
+    headers: { "Content-Type": "multipart/form-data" },
+  } : undefined);
   return response.data;
 };
 
 export const updateInternship = async (id, data) => {
-  const response = await API.put(`/internship/update/${id}`, data);
+  const isFormData = typeof FormData !== "undefined" && data instanceof FormData;
+  const response = await API.put(`/internship/update/${id}`, data, isFormData ? {
+    headers: { "Content-Type": "multipart/form-data" },
+  } : undefined);
   return response.data;
 };
 
@@ -280,12 +293,18 @@ export const updateCandidateApplicationStatus = async (applicationId, status) =>
 
 // ── JOB SERVICES ──────────────────────────────────────────────────────────
 export const createJob = async (payload) => {
-  const response = await API.post("/job/create", payload);
+  const isFormData = typeof FormData !== "undefined" && payload instanceof FormData;
+  const response = await API.post("/job/create", payload, isFormData ? {
+    headers: { "Content-Type": "multipart/form-data" },
+  } : undefined);
   return response.data;
 };
 
 export const updateJob = async (id, data) => {
-  const response = await API.put(`/job/update/${id}`, data);
+  const isFormData = typeof FormData !== "undefined" && data instanceof FormData;
+  const response = await API.put(`/job/update/${id}`, data, isFormData ? {
+    headers: { "Content-Type": "multipart/form-data" },
+  } : undefined);
   return response.data;
 };
 
@@ -320,7 +339,18 @@ export const updateCandidateApplicationStatusJob = async (applicationId, status)
 
 
 export const createFreelance = async (payload) => {
-  const response = await API.post("/freelance/create", payload);
+  const isFormData = typeof FormData !== "undefined" && payload instanceof FormData;
+  const response = await API.post("/freelance/create", payload, isFormData ? {
+    headers: { "Content-Type": "multipart/form-data" },
+  } : undefined);
+  return response.data;
+};
+
+export const updateFreelance = async (id, data) => {
+  const isFormData = typeof FormData !== "undefined" && data instanceof FormData;
+  const response = await API.put(`/freelance/update/${id}`, data, isFormData ? {
+    headers: { "Content-Type": "multipart/form-data" },
+  } : undefined);
   return response.data;
 };
 

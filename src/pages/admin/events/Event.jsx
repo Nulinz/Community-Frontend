@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import DynamicTable from "../../../common/DynamicTable";
 import PageLoader from "../../../common/PageLoader";
 import { getAllEvents } from '../../../services/admin/adminServices';
+import { hasNewRegistrations, markItemAsSeen, setCategoryBadge, hasAnyUnreadInList } from '../../../utils/applicantTracker';
 import { toast } from 'react-toastify';
 import { useMain } from '../../../context/MainContext';
 import { useTitle } from '../../../context/AdminTitle';
@@ -36,7 +37,13 @@ const Event = () => {
       setIsLoading(true);
       const response = await getAllEvents(status);
       if (response.success) {
-        setEvents(response.data);
+        const rawList = response.data || [];
+        const mapped = rawList.map((item) => ({
+          ...item,
+          isNewRegistration: hasNewRegistrations(item._id || item.id, item.registeredCount || 0),
+        }));
+        setEvents(mapped);
+        setCategoryBadge("events", hasAnyUnreadInList(mapped, ["registeredCount"]));
       } else {
         toast.error("Failed to fetch events");
       }
@@ -47,6 +54,22 @@ const Event = () => {
       setIsLoading(false);
     }
   };
+
+  // Re-check seen status when notification storage updates
+  useEffect(() => {
+    const handleSync = () => {
+      setEvents((prev) => {
+        const updated = prev.map((item) => ({
+          ...item,
+          isNewRegistration: hasNewRegistrations(item._id || item.id, item.registeredCount || 0),
+        }));
+        setCategoryBadge("events", hasAnyUnreadInList(updated, ["registeredCount"]));
+        return updated;
+      });
+    };
+    window.addEventListener("nulinz_seen_updated", handleSync);
+    return () => window.removeEventListener("nulinz_seen_updated", handleSync);
+  }, []);
 
   const handleTabChange = (value) => {
     setActiveTab(value);
@@ -64,8 +87,16 @@ const Event = () => {
       title: 'Event Name',
       dataIndex: 'eventName',
       key: 'eventName',
-      render: (text) => (
-        <p className="max-w-[150px] truncate" title={text}>{text}</p>
+      render: (text, record) => (
+        <div className="flex items-center gap-2">
+          <p className="max-w-[150px] truncate" title={text}>{text}</p>
+          {record?.isNewRegistration && (
+            <span className="relative flex h-2 w-2 flex-shrink-0" title="New registration arrived">
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-blue-400 opacity-75"></span>
+              <span className="relative inline-flex rounded-full h-2 w-2 bg-blue-600"></span>
+            </span>
+          )}
+        </div>
       )
     },
     { title: 'Type', dataIndex: 'eventType', key: 'eventType' },
@@ -141,7 +172,10 @@ const Event = () => {
         columns={columns}
         dataSource={filteredData}
         rowKey="_id"
-        onRowClick={(record) => navigate(dynamicPath(`event-profile/${record._id}`))}
+        onRowClick={(record) => {
+          markItemAsSeen(record._id || record.id, record.registeredCount || 0);
+          navigate(dynamicPath(`event-profile/${record._id}`));
+        }}
         showSearch={true}
         searchPlaceholder="Search ..."
         onSearch={handleSearch}

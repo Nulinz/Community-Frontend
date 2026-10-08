@@ -319,7 +319,7 @@ const CompetitionProfile = () => {
 
                 {activeTab === 'overview' ? (
                     <div className="space-y-6">
-                        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                        <div className={`grid grid-cols-1 ${String(competition.registrationType || '').trim().toLowerCase() === 'paid' ? 'lg:grid-cols-2' : ''} gap-6`}>
                             <InfoCard title="Basic Details">
                                 <div className="grid grid-cols-2 xl:grid-cols-3 gap-6">
                                     <DataItem label="Registration Type" value={competition.registrationType} />
@@ -347,13 +347,15 @@ const CompetitionProfile = () => {
                                 </div>
                             </InfoCard>
 
-                            <InfoCard title="Fees Details">
-                                <div className="grid grid-cols-2 xl:grid-cols-3 gap-6">
-                                    <DataItem label="Individual Fees" value={`₹${competition.individualFees || 0}`} />
-                                    <DataItem label="Team Fees" value={`₹${competition.teamFees || 0}`} />
-                                    <DataItem label="Late Fees" value={`₹${competition.lateFees || 0}`} />
-                                </div>
-                            </InfoCard>
+                            {String(competition.registrationType || '').trim().toLowerCase() === 'paid' && (
+                                <InfoCard title="Fees Details">
+                                    <div className="grid grid-cols-2 xl:grid-cols-3 gap-6">
+                                        <DataItem label="Individual Fees" value={`₹${competition.individualFees || 0}`} />
+                                        <DataItem label="Team Fees" value={`₹${competition.teamFees || 0}`} />
+                                        <DataItem label="Late Fees" value={`₹${competition.lateFees || 0}`} />
+                                    </div>
+                                </InfoCard>
+                            )}
 
                             {(competition.prizesAvailable === "Yes" || competition.firstPrize || competition.secondPrize || competition.thirdPrize || competition.participationPrize) && (
                                 <InfoCard title="Prize Details">

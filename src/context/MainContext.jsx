@@ -22,9 +22,9 @@ const dynamicPath = useCallback((path = "") => {
   return `/${role}/${cleanPath}`.replace(/\/+$/, "");
 }, [user?.role]);
 
-  const login = async ({ phone, password }) => {
+  const login = async (credentials) => {
     try {
-      const res = await loginUser({ phone, password });
+      const res = await loginUser(credentials);
       const token = res?.data?.token;
      
       if (!token) {

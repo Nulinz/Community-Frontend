@@ -125,7 +125,7 @@ const FreelanceProfile = ({ module = 'admin' }) => {
     { title: 'Year', dataIndex: 'year', key: 'year' },
     { title: 'Contact Number', dataIndex: 'contact', key: 'contact' },
     { title: 'Mail id', dataIndex: 'mail', key: 'mail' },
-    { title: 'Location', dataIndex: 'location', key: 'location' },
+    { title: 'Location', dataIndex: 'city', key: 'city' },
   ];
 
   const appliedListData = [];
@@ -229,7 +229,7 @@ const FreelanceProfile = ({ module = 'admin' }) => {
               <p className="font-jakarta font-semibold text-[16px] text-secondary">{freelance.companyName || '-'}</p>
               {/* <p className="font-jakarta font-medium text-[14px] text-[#344054]">{freelance.mode || '-'}</p> */}
               <p className="font-jakarta font-medium text-[14px] text-[#344054]">
-                {budget || '-'} {budgetType ? `(${budgetType})` : ''}
+                {budget || '-'}
               </p>
             </div>
           </div>
@@ -353,7 +353,7 @@ const FreelanceProfile = ({ module = 'admin' }) => {
               <ListCard title="Eligibility Criteria" items={eligibilityCriteria} />
             )}
             {budget.length > 0 && (
-              <TextCard title="Budget / Budget Range" text={budget} />
+              <TextCard title="Budget" text={budget} />
             )}
             {budgetType.length > 0 && (
               <TextCard title="Budget Type" text={budgetType} />

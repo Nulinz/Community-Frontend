@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import DynamicTable from "../../../common/DynamicTable";
 import PageLoader from "../../../common/PageLoader";
 import { getAllConferences } from '../../../services/admin/adminServices';
+import { hasNewRegistrations, markItemAsSeen, setCategoryBadge, hasAnyUnreadInList } from '../../../utils/applicantTracker';
 import { toast } from 'react-toastify';
 import { useMain } from '../../../context/MainContext';
 import { useTitle } from '../../../context/AdminTitle';
@@ -37,7 +38,13 @@ const Conference = () => {
       const response = await getAllConferences(status);
       console.log("Conferences API Response:", response);
       if (response.success) {
-        setConferences(response.data);
+        const rawList = response.data || [];
+        const mapped = rawList.map((item) => ({
+          ...item,
+          isNewRegistration: hasNewRegistrations(item._id || item.id, item.registeredCount || 0),
+        }));
+        setConferences(mapped);
+        setCategoryBadge("conference", hasAnyUnreadInList(mapped, ["registeredCount"]));
       } else {
         toast.error("Failed to fetch conferences");
       }
@@ -48,6 +55,22 @@ const Conference = () => {
       setIsLoading(false);
     }
   };
+
+  // Re-check seen status when notification storage updates
+  useEffect(() => {
+    const handleSync = () => {
+      setConferences((prev) => {
+        const updated = prev.map((item) => ({
+          ...item,
+          isNewRegistration: hasNewRegistrations(item._id || item.id, item.registeredCount || 0),
+        }));
+        setCategoryBadge("conference", hasAnyUnreadInList(updated, ["registeredCount"]));
+        return updated;
+      });
+    };
+    window.addEventListener("nulinz_seen_updated", handleSync);
+    return () => window.removeEventListener("nulinz_seen_updated", handleSync);
+  }, []);
 
   const handleTabChange = (value) => {
     setActiveTab(value);
@@ -65,8 +88,16 @@ const Conference = () => {
       title: 'Conference Name',
       dataIndex: 'eventName',
       key: 'eventName',
-      render: (text) => (
-        <p className="max-w-[150px] truncate" title={text}>{text}</p>
+      render: (text, record) => (
+        <div className="flex items-center gap-2">
+          <p className="max-w-[150px] truncate" title={text}>{text}</p>
+          {record?.isNewRegistration && (
+            <span className="relative flex h-2 w-2 flex-shrink-0" title="New registration arrived">
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-blue-400 opacity-75"></span>
+              <span className="relative inline-flex rounded-full h-2 w-2 bg-blue-600"></span>
+            </span>
+          )}
+        </div>
       )
     },
     { title: 'Organizer', dataIndex: 'organizer', key: 'organizer' },
@@ -141,7 +172,10 @@ const Conference = () => {
         columns={columns}
         dataSource={filteredData}
         rowKey="_id"
-        onRowClick={(record) => navigate(dynamicPath(`conference-profile/${record._id}`))}
+        onRowClick={(record) => {
+          markItemAsSeen(record._id || record.id, record.registeredCount || 0);
+          navigate(dynamicPath(`conference-profile/${record._id}`));
+        }}
         showSearch={true}
         searchPlaceholder="Search ..."
         onSearch={handleSearch}

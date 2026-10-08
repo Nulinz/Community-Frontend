@@ -4,6 +4,7 @@ import DynamicTable from '../../../common/DynamicTable';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import { getAllFreelances } from '../../../services/admin/adminServices';
+import { hasNewRegistrations, markItemAsSeen, setCategoryBadge, hasAnyUnreadInList } from '../../../utils/applicantTracker';
 import { useTitle } from '../../../context/AdminTitle';
 import { useMain } from '../../../context/MainContext';
 
@@ -62,6 +63,7 @@ const Freelance = ({ module = 'admin' }) => {
         try {
             setIsLoading(true);
             const response = await getAllFreelances(status);
+            const isAdmin = user?.role === "admin";
             const mappedData = (response?.data || []).map((item) => {
                 const formattedBudget = formatBudget(item?.budget, item?.salary);
                 return {
@@ -76,9 +78,13 @@ const Freelance = ({ module = 'admin' }) => {
                     applied: item?.appliedCount ?? 0,
                     deadline: formatDate(item?.applicationDeadline || item?.createdAt),
                     status: item?.isActive ? 'active' : 'inactive',
+                    isNewApplicant: isAdmin && hasNewRegistrations(item?._id, item?.appliedCount || 0),
                 };
             });
             setFreelances(mappedData);
+            if (isAdmin) {
+                setCategoryBadge("freelance", hasAnyUnreadInList(mappedData, ["appliedCount", "applied"]));
+            }
         } catch (error) {
             toast.error(error?.response?.data?.message || 'Failed to fetch projects');
             setFreelances([]);
@@ -86,6 +92,23 @@ const Freelance = ({ module = 'admin' }) => {
             setIsLoading(false);
         }
     };
+
+    // Re-check seen status when notification storage updates (Admin only for Envy)
+    useEffect(() => {
+        const handleSync = () => {
+            if (user?.role !== "admin") return;
+            setFreelances((prev) => {
+                const updated = prev.map((item) => ({
+                    ...item,
+                    isNewApplicant: hasNewRegistrations(item.id || item._id, item.applied || item.appliedCount || 0),
+                }));
+                setCategoryBadge("freelance", hasAnyUnreadInList(updated, ["appliedCount", "applied"]));
+                return updated;
+            });
+        };
+        window.addEventListener("nulinz_seen_updated", handleSync);
+        return () => window.removeEventListener("nulinz_seen_updated", handleSync);
+    }, [user?.role]);
 
     const handleTabChange = (value) => {
         setActiveTab(value);
@@ -98,9 +121,24 @@ const Freelance = ({ module = 'admin' }) => {
             title: '#',
             dataIndex: 'index',
             key: 'index',
-            render: (_text, _record, index) => index + 1
+            render: (_text, _record, index) => (currentPage - 1) * 10 + index + 1
         },
-        { title: 'Project Title', dataIndex: 'projectTitle', key: 'projectTitle' },
+        {
+            title: 'Project Title',
+            dataIndex: 'projectTitle',
+            key: 'projectTitle',
+            render: (text, record) => (
+                <div className="flex items-center gap-2">
+                    <span className="font-semibold text-[#101828]">{text}</span>
+                    {user?.role === "admin" && record.isNewApplicant && (
+                        <span className="relative flex h-2 w-2 flex-shrink-0" title="New applicant arrived">
+                            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-blue-400 opacity-75"></span>
+                            <span className="relative inline-flex rounded-full h-2 w-2 bg-blue-600"></span>
+                        </span>
+                    )}
+                </div>
+            )
+        },
         { title: 'Organizer', dataIndex: 'category', key: 'category' },
         // { title: 'Mode', dataIndex: 'mode', key: 'mode' },
         { title: 'Budget', dataIndex: 'budget', key: 'budget' },
@@ -174,7 +212,12 @@ const Freelance = ({ module = 'admin' }) => {
                 currentPage={currentPage}
                 pageSize={10}
                 onPageChange={setCurrentPage}
-                onRowClick={(record) => navigate(`/${module}/jobs/freelance-profile/${record._id}`)}
+                onRowClick={(record) => {
+                    if (user?.role === "admin") {
+                        markItemAsSeen(record._id || record.id, record.applied || record.appliedCount || 0);
+                    }
+                    navigate(`/${module}/jobs/freelance-profile/${record._id}`);
+                }}
             />
         </div>
     );

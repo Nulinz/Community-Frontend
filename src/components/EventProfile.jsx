@@ -108,13 +108,25 @@ const EventProfile = () => {
         );
     }
 
+    /**
+     * Reusable card container standardizing padding, rounded surface borders,
+     * and full-height flex column stretching so that sibling cards in any grid
+     * row maintain equal vertical alignment.
+     */
     const InfoCard = ({ title, children, className = "" }) => (
-        <div className={`bg-white p-5 sm:p-6 lg:p-7 rounded-[20px] md:rounded-[24px] shadow-sm border border-gray-100 ${className}`}>
-            <h3 className="text-[18px] sm:text-[20px] font-bold text-[#1a1a1a] mb-5 sm:mb-7">{title}</h3>
-            {children}
+        <div className={`bg-white p-5 sm:p-6 lg:p-7 rounded-[20px] md:rounded-[24px] shadow-sm border border-gray-100 flex flex-col h-full ${className}`}>
+            {title && <h3 className="text-[18px] sm:text-[20px] font-bold text-[#1a1a1a] mb-5 sm:mb-7">{title}</h3>}
+            <div className="flex-1 min-w-0">
+                {children}
+            </div>
         </div>
     );
 
+    /**
+     * Standard key-value data pair used across profile cards.
+     * Enforces the global typography system (Source Sans label over Plus Jakarta Sans value)
+     * and handles proper word-breaking for long strings.
+     */
     const DataItem = ({ label, value }) => (
         <div className="flex flex-col gap-2 min-w-0">
             <p className="font-source text-[15px] sm:text-[16px] font-semibold leading-snug tracking-normal text-primary break-words">
@@ -125,6 +137,26 @@ const EventProfile = () => {
             </p>
         </div>
     );
+
+    // Derived visibility flags to establish balanced, gap-free grid alignments across rows
+    const hasPrizes = Boolean(
+        event?.prizesAvailable === "Yes" ||
+        event?.firstPrize ||
+        event?.secondPrize ||
+        event?.thirdPrize ||
+        event?.participationPrize
+    );
+
+    const hasTeamRules = Boolean(
+        event?.teamOrIndividualEvent ||
+        event?.teamSizeMinimum ||
+        event?.teamSizeMaximum
+    );
+
+    const hasRounds = Boolean(event?.rounds && event.rounds.length > 0);
+    const hasIncharges = Boolean(event?.incharges && event.incharges.length > 0);
+    const hasSchedule = Boolean(event?.schedule && event.schedule.length > 0);
+    const programCardsCount = [hasRounds, hasIncharges, hasSchedule].filter(Boolean).length;
 
     const onUploadInputChange = (e) => {
         const files = Array.from(e.target.files);
@@ -188,7 +220,7 @@ const EventProfile = () => {
     ];
 
     return (
-        <div className="bg-[#f8f9fa] min-h-screen ">
+        <div className="bg-[#f8f9fa] min-h-screen">
             <section className="bg-white rounded-[16px] md:rounded-[24px] border border-gray-200 p-4 md:p-6 shadow-sm">
 
                 {/* Hero Banner */}
@@ -323,8 +355,8 @@ const EventProfile = () => {
                 {activeTab === 'overview' ? (
                     <div className="space-y-6">
 
-                        {/* Row 1: Basic + Fees + Prize */}
-                        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                        {/* Section 1: Top Row - Basic Details & Fees Details in same row */}
+                        <div className={`grid grid-cols-1 ${String(event.registrationType || '').trim().toLowerCase() === 'paid' ? 'lg:grid-cols-2' : ''} gap-6`}>
                             <InfoCard title="Basic Details">
                                 <div className="grid grid-cols-2 xl:grid-cols-3 gap-6">
                                     <DataItem label="Event Type" value={event.eventType} />
@@ -352,42 +384,44 @@ const EventProfile = () => {
                                 </div>
                             </InfoCard>
 
-                            <InfoCard title="Fees Details">
-                                <div className="grid grid-cols-2 xl:grid-cols-3 gap-6">
-                                    <DataItem label="Individual Fees" value={`₹${event.individualFees || 0}`} />
-                                    <DataItem label="Team Fees" value={`₹${event.teamFees || 0}`} />
-                                    <DataItem label="Late Fees" value={`₹${event.lateFees || 0}`} />
-                                </div>
-                            </InfoCard>
-
-                            {(event.prizesAvailable === "Yes" || event.firstPrize || event.secondPrize || event.thirdPrize || event.participationPrize) && (
-                                <InfoCard title="Prize Details">
-                                    <div className="grid grid-cols-2 xl:grid-cols-4 gap-6">
-                                        <DataItem label="1st Prize" value={event.firstPrize || '-'} />
-                                        <DataItem label="2nd Prize" value={event.secondPrize || '-'} />
-                                        <DataItem label="3rd Prize" value={event.thirdPrize || '-'} />
-                                        <DataItem label="Participation" value={event.participationPrize || '-'} />
+                            {String(event.registrationType || '').trim().toLowerCase() === 'paid' && (
+                                <InfoCard title="Fees Details">
+                                    <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-6">
+                                        <DataItem label="Individual Fees" value={`₹${event.individualFees || 0}`} />
+                                        {/* <DataItem label="Team Fees" value={`₹${event.teamFees || 0}`} /> */}
+                                        <DataItem label="Late Fees" value={`₹${event.lateFees || 0}`} />
                                     </div>
                                 </InfoCard>
                             )}
                         </div>
 
-                        {/* Row 2: Food + Team + Venue */}
-                        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
-                            <InfoCard title="Food & Accommodation">
-                                <div className="grid grid-cols-2 gap-4">
+                        {/* Optional Prize Details (rendered if prizes are configured) */}
+                        {hasPrizes && (
+                            <InfoCard title="Prize Details" className="w-full">
+                                <div className="grid grid-cols-2 sm:grid-cols-4 gap-6">
+                                    <DataItem label="1st Prize" value={event.firstPrize || '-'} />
+                                    <DataItem label="2nd Prize" value={event.secondPrize || '-'} />
+                                    <DataItem label="3rd Prize" value={event.thirdPrize || '-'} />
+                                    <DataItem label="Participation" value={event.participationPrize || '-'} />
+                                </div>
+                            </InfoCard>
+                        )}
+
+                        {/* Section 2: Food, Accommodation & Venue (3 cards displayed across the row) */}
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                            <InfoCard title="Food Details">
+                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                     <DataItem label="Food Provided" value={event.foodProvide} />
                                     <DataItem label="Food Type" value={event.vegNonVeg} />
-                                    <DataItem label="Accommodation" value={event.accommodationProvide} />
                                     <DataItem label="Snacks" value={event.midnightSnacks} />
                                 </div>
                             </InfoCard>
 
-                            <InfoCard title="Team Rules">
-                                <div className="grid grid-cols-2 gap-4">
-                                    <DataItem label="Type" value={event.teamOrIndividualEvent} />
-                                    <DataItem label="Min Size" value={event.teamSizeMinimum} />
-                                    <DataItem label="Max Size" value={event.teamSizeMaximum} />
+                            <InfoCard title="Accommodation Details">
+                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                    <DataItem label="Accommodation" value={event.accommodationProvide} />
+                                    <DataItem label="Separated for Boys & Girls" value={event.separatedForBoysGirls} />
+                                    <DataItem label="Outstation Participants" value={event.onlyForOutstationParticipants} />
                                 </div>
                             </InfoCard>
 
@@ -399,58 +433,64 @@ const EventProfile = () => {
                             </InfoCard>
                         </div>
 
-                        {/* Row 3: Rounds + Contact + Schedule */}
-                        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                            {event.rounds?.length > 0 && (
-                                <InfoCard title="Round Details">
-                                    <div className="grid grid-cols-1 gap-6">
-                                        {event.rounds.map((round, index) => (
-                                            <DataItem
-                                                key={index}
-                                                label={`Round ${round.roundNumber}: ${round.roundName}`}
-                                                value={round.roundDescription}
-                                            />
-                                        ))}
-                                    </div>
-                                </InfoCard>
-                            )}
+                        {/* Section 3: Program Structure & Incharges (Only renders when data exists, auto-sizing columns) */}
+                        {programCardsCount > 0 && (
+                            <div className={`grid grid-cols-1 ${
+                                programCardsCount === 3 ? 'md:grid-cols-2 lg:grid-cols-3' :
+                                programCardsCount === 2 ? 'md:grid-cols-2' :
+                                'grid-cols-1'
+                            } gap-6`}>
+                                {hasRounds && (
+                                    <InfoCard title="Round Details">
+                                        <div className="grid grid-cols-1 gap-6">
+                                            {event.rounds.map((round, index) => (
+                                                <DataItem
+                                                    key={index}
+                                                    label={`Round ${round.roundNumber}: ${round.roundName}`}
+                                                    value={round.roundDescription}
+                                                />
+                                            ))}
+                                        </div>
+                                    </InfoCard>
+                                )}
 
-                            {event.incharges?.length > 0 && (
-                                <InfoCard title="Contact Info">
-                                    <div className="grid grid-cols-1 gap-6">
-                                        {event.incharges.map((person, index) => (
-                                            <div key={index} className="space-y-1">
-                                                <p className="font-bold text-primary">{person.type}: {person.name}</p>
-                                                <p className="text-sm text-secondary">Call: {person.phoneNumber}</p>
-                                                <p className="text-sm text-secondary">Mail: {person.mailId}</p>
-                                            </div>
-                                        ))}
-                                    </div>
-                                </InfoCard>
-                            )}
+                                {hasIncharges && (
+                                    <InfoCard title="Contact Info">
+                                        <div className="grid grid-cols-1 gap-6">
+                                            {event.incharges.map((person, index) => (
+                                                <div key={index} className="space-y-1">
+                                                    <p className="font-bold text-primary">{person.type}: {person.name}</p>
+                                                    <p className="text-sm text-secondary">Call: {person.phoneNumber}</p>
+                                                    <p className="text-sm text-secondary">Mail: {person.mailId}</p>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    </InfoCard>
+                                )}
 
-                            {event.schedule?.length > 0 && (
-                                <InfoCard title="Schedule">
-                                    <div className="space-y-4">
-                                        {event.schedule.map((slot, index) => (
-                                            <DataItem
-                                                key={index}
-                                                label={slot.name}
-                                                value={`${slot.startTime} - ${slot.endTime}`}
-                                            />
-                                        ))}
-                                    </div>
-                                </InfoCard>
-                            )}
-                        </div>
+                                {hasSchedule && (
+                                    <InfoCard title="Schedule">
+                                        <div className="space-y-4">
+                                            {event.schedule.map((slot, index) => (
+                                                <DataItem
+                                                    key={index}
+                                                    label={slot.name}
+                                                    value={`${slot.startTime} - ${slot.endTime}`}
+                                                />
+                                            ))}
+                                        </div>
+                                    </InfoCard>
+                                )}
+                            </div>
+                        )}
 
-                        {/* Row 4: Departments + Eligibility + Description */}
+                        {/* Section 4: Eligibility, Scope & Description */}
                         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                             <InfoCard title="Allowed Departments">
-                                <ul className="list-disc pl-5 space-y-1 text-secondary text-sm">
+                                <ul className="list-disc pl-5 space-y-1.5 text-secondary text-sm">
                                     {event?.allowedDepartments?.length > 0 ? (
                                         event.allowedDepartments.map((dept, index) => (
-                                            <li key={index}>{dept === "All" ? "All Departments" : dept}</li>
+                                            <li key={index} className="break-words">{dept === "All" ? "All Departments" : dept}</li>
                                         ))
                                     ) : (
                                         <li>Open to all departments</li>
@@ -458,54 +498,71 @@ const EventProfile = () => {
                                 </ul>
                             </InfoCard>
                             <InfoCard title="Eligibility">
-                                <p className="text-secondary text-sm leading-relaxed">{event.eligibilityDetails}</p>
+                                <div className="space-y-3">
+                                    <p className="text-secondary text-sm leading-relaxed break-words">{event.eligibilityDetails || "—"}</p>
+                                    {hasTeamRules && (
+                                        <div className="pt-3 border-t border-gray-100 grid grid-cols-1 sm:grid-cols-3 gap-3">
+                                            <DataItem label="Type" value={event.teamOrIndividualEvent} />
+                                            {/* <DataItem label="Min Size" value={event.teamSizeMinimum} /> */}
+                                            {/* <DataItem label="Max Size" value={event.teamSizeMaximum} /> */}
+                                        </div>
+                                    )}
+                                </div>
                             </InfoCard>
                             <InfoCard title="Description">
-                                <p className="text-secondary text-sm leading-relaxed whitespace-pre-wrap">{event.description}</p>
+                                <p className="text-secondary text-sm leading-relaxed whitespace-pre-wrap break-words">{event.description || "—"}</p>
                             </InfoCard>
                         </div>
 
+                        {/* Section 5: Certificate Information */}
                         {event.certificateAvailability === "Yes" && (
-                            <InfoCard title="Certificate Information" className="max-w-2xl">
-                                <div className="space-y-4">
-                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                                        {event.signatoryName && (
-                                            <DataItem label="Authorized Signatory" value={event.signatoryName} />
-                                        )}
-                                        {event.signatoryDesignation && (
-                                            <DataItem label="Designation" value={event.signatoryDesignation} />
+                            <InfoCard title="Certificate Information" className="w-full">
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                    <div className="space-y-4">
+                                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                            {event.signatoryName && (
+                                                <DataItem label="Authorized Signatory" value={event.signatoryName} />
+                                            )}
+                                            {event.signatoryDesignation && (
+                                                <DataItem label="Designation" value={event.signatoryDesignation} />
+                                            )}
+                                        </div>
+                                        {event.signatureUrl && (
+                                            <div>
+                                                <p className="font-source text-[15px] sm:text-[16px] font-semibold leading-snug tracking-normal text-primary mb-2">
+                                                    Authorized Signature
+                                                </p>
+                                                <img
+                                                    src={`${BASE_URL}/${event.signatureUrl}`}
+                                                    alt="Authorized Signature"
+                                                    className="h-16 object-contain rounded-lg border border-gray-200 p-2 bg-white shadow-sm"
+                                                />
+                                            </div>
                                         )}
                                     </div>
                                     {event.certificateContentBody && (
-                                        <div>
-                                            <p className="text-xs text-gray-500 font-semibold mb-1">Certificate Body</p>
-                                            <p className="text-secondary text-sm leading-relaxed whitespace-pre-wrap">{event.certificateContentBody}</p>
-                                        </div>
-                                    )}
-                                    {event.signatureUrl && (
-                                        <div>
-                                            <p className="text-xs text-gray-500 font-semibold mb-1">Authorized Signature</p>
-                                            <img
-                                                src={`${BASE_URL}/${event.signatureUrl}`}
-                                                alt="Authorized Signature"
-                                                className="h-16 object-contain rounded border border-gray-200 p-1 bg-white"
-                                            />
+                                        <div className="flex flex-col">
+                                            <p className="font-source text-[15px] sm:text-[16px] font-semibold leading-snug tracking-normal text-primary mb-2">
+                                                Certificate Body
+                                            </p>
+                                            <p className="text-secondary text-sm leading-relaxed whitespace-pre-wrap bg-gray-50/70 p-4 rounded-xl border border-gray-100 flex-1">
+                                                {event.certificateContentBody}
+                                            </p>
                                         </div>
                                     )}
                                 </div>
                             </InfoCard>
                         )}
 
-                        {/* Gallery / Posts */}
-                        <div className="md:col-span-2 xl:col-span-3 bg-white p-5 sm:p-6 lg:p-7 rounded-[20px] md:rounded-[24px] shadow-sm border border-gray-100">
-                            <h3 className="text-[18px] sm:text-[20px] font-bold text-[#1a1a1a] mb-5 sm:mb-6">Post</h3>
-                            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4">
+                        {/* Section 6: Posts / Event Posters */}
+                        <InfoCard title="Post" className="w-full">
+                            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
                                 {event.posts?.map((image, index) => (
-                                    <div key={`${image}-${index}`} className="rounded-[18px] overflow-hidden border border-gray-200 bg-gray-50">
+                                    <div key={`${image}-${index}`} className="group relative rounded-[18px] overflow-hidden border border-gray-200 bg-gray-50 shadow-sm transition-all hover:shadow-md">
                                         <img
                                             src={`${BASE_URL}/${image}`}
                                             alt={`Post ${index + 1}`}
-                                            className="w-full aspect-[3/4] object-cover"
+                                            className="w-full aspect-[3/4] object-cover transition-transform duration-300 group-hover:scale-105"
                                             loading="lazy"
                                         />
                                     </div>
@@ -514,7 +571,7 @@ const EventProfile = () => {
                                     <p className="text-secondary text-sm col-span-full">No posts uploaded yet.</p>
                                 )}
                             </div>
-                        </div>
+                        </InfoCard>
                     </div>
                 ) : activeTab === 'applied' ? (
                     <AppliedListSection

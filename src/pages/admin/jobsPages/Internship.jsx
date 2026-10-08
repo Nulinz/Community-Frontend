@@ -4,6 +4,7 @@ import DynamicTable from '../../../common/DynamicTable';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import { getAllInternships } from '../../../services/admin/adminServices';
+import { hasNewRegistrations, markItemAsSeen, setCategoryBadge, hasAnyUnreadInList } from '../../../utils/applicantTracker';
 import { useTitle } from '../../../context/AdminTitle';
 import { useMain } from '../../../context/MainContext';
 
@@ -52,10 +53,12 @@ const Internship = ({ module = 'admin' }) => {
                         ? (item?.paymentAmount ? `₹${item.paymentAmount}` : (item?.salary ? `₹${item.salary}` : 'Paid'))
                         : (item?.salary ? `₹${item.salary}/mo` : '₹0'),
                 location: item?.location || '-',
-                applied: item?.appliedCount,
+                applied: item?.appliedCount || 0,
                 status: item?.isActive ? 'active' : 'inactive',
+                isNewApplicant: hasNewRegistrations(item?._id, item?.appliedCount || 0),
             }));
             setInternships(mappedData);
+            setCategoryBadge("internships", hasAnyUnreadInList(mappedData, ["appliedCount", "applied"]));
         } catch (error) {
             toast.error(error?.response?.data?.message || 'Failed to fetch internships');
             setInternships([]);
@@ -63,6 +66,22 @@ const Internship = ({ module = 'admin' }) => {
             setIsLoading(false);
         }
     };
+
+    // Re-check seen status when notification storage updates
+    useEffect(() => {
+        const handleSync = () => {
+            setInternships((prev) => {
+                const updated = prev.map((item) => ({
+                    ...item,
+                    isNewApplicant: hasNewRegistrations(item.id || item._id, item.applied || item.appliedCount || 0),
+                }));
+                setCategoryBadge("internships", hasAnyUnreadInList(updated, ["appliedCount", "applied"]));
+                return updated;
+            });
+        };
+        window.addEventListener("nulinz_seen_updated", handleSync);
+        return () => window.removeEventListener("nulinz_seen_updated", handleSync);
+    }, []);
 
     const handleTabChange = (value) => {
         setActiveTab(value);
@@ -75,9 +94,24 @@ const Internship = ({ module = 'admin' }) => {
             title: '#',
             dataIndex: 'index',
             key: 'index',
-            render: (_text, _record, index) => index + 1
+            render: (_text, _record, index) => (currentPage - 1) * 10 + index + 1
         },
-        { title: 'Job Title', dataIndex: 'jobTitle', key: 'jobTitle' },
+        {
+            title: 'Job Title',
+            dataIndex: 'jobTitle',
+            key: 'jobTitle',
+            render: (text, record) => (
+                <div className="flex items-center gap-2">
+                    <span className="font-semibold text-[#101828]">{text}</span>
+                    {record.isNewApplicant && (
+                        <span className="relative flex h-2 w-2 flex-shrink-0" title="New applicant arrived">
+                            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-blue-400 opacity-75"></span>
+                            <span className="relative inline-flex rounded-full h-2 w-2 bg-blue-600"></span>
+                        </span>
+                    )}
+                </div>
+            )
+        },
         { title: 'Date', dataIndex: 'date', key: 'date' },
         { title: 'Job Type', dataIndex: 'jobType', key: 'jobType' },
         { title: 'Salary', dataIndex: 'salary', key: 'salary' },
@@ -149,7 +183,10 @@ const Internship = ({ module = 'admin' }) => {
                 currentPage={currentPage}
                 pageSize={10}
                 onPageChange={setCurrentPage}
-                onRowClick={(record) => navigate(`/${module}/jobs/internship-profile/${record._id}`)}
+                onRowClick={(record) => {
+                    markItemAsSeen(record._id || record.id, record.applied || record.appliedCount || 0);
+                    navigate(`/${module}/jobs/internship-profile/${record._id}`);
+                }}
             />
         </div>
     );

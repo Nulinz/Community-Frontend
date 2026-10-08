@@ -1,6 +1,10 @@
 import React from 'react';
 import { Search, Plus, ChevronDown, ChevronLeft, ChevronRight, Download } from 'lucide-react';
-
+/**
+ * Reusable dynamic data table providing integrated search, actions, 
+ * responsive layouts, and automatic internal pagination with accurate 
+ * continuous row numbering and visible record range boundaries across pages.
+ */
 const DynamicTable = ({
   columns = [],
   dataSource = [],
@@ -32,6 +36,8 @@ const DynamicTable = ({
   const endIndex = startIndex + pageSize;
   const displayData = showPagination ? dataSource.slice(startIndex, endIndex) : dataSource;
   const totalPages = Math.ceil(totalItems / pageSize);
+  const fromRecord = totalItems === 0 ? 0 : startIndex + 1;
+  const toRecord = totalItems === 0 ? 0 : Math.min(startIndex + displayData.length, totalItems);
 
   // Table Heading Style
   const headerStyle = {
@@ -151,7 +157,9 @@ const DynamicTable = ({
                     >
                       {col.render
                         ? col.render(record[col.dataIndex], record, index)
-                        : record[col.dataIndex]}
+                        : (col.title === '#' || col.dataIndex === 'index' || col.dataIndex === 'sNo') && record[col.dataIndex] === undefined
+                          ? (showPagination ? startIndex + index + 1 : index + 1)
+                          : record[col.dataIndex]}
                     </td>
                   ))}
                 </tr>
@@ -165,9 +173,9 @@ const DynamicTable = ({
 
       {/* 3. Pagination Footer */}
       {showPagination && (
-        <div className="p-6 flex items-center justify-between border-t border-gray-100 bg-white">
-          <p className="text-[20px] text-gray-500 font-medium">
-            Showing <span className="text-gray-900 text-[22px] font-bold">{displayData.length} Out of {totalItems}</span>
+        <div className="p-4 sm:p-6 flex flex-wrap items-center justify-between gap-4 border-t border-gray-100 bg-white">
+          <p className="text-base sm:text-[20px] text-gray-500 font-medium">
+            Showing <span className="text-gray-900 text-lg sm:text-[22px] font-bold">{displayData.length} Out of {totalItems}</span>
           </p>
 
           <div className="flex items-center gap-2">

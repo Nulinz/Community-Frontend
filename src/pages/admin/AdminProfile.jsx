@@ -1,10 +1,10 @@
 import React, { useRef, useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { BriefcaseBusiness, Clock3, LockKeyhole, MapPin, Plus, SquarePen, Upload, X, Loader2 } from 'lucide-react';
+import { BriefcaseBusiness, Clock3, LockKeyhole, MapPin, Plus, SquarePen, Upload, X, Loader2, Trash2 } from 'lucide-react';
 import { assets } from '../../../assets/assets';
 import DynamicTable from '../../../common/DynamicTable';
 import PageLoader from '../../../common/PageLoader';
-import { getCompanyById, addCompanyPost, setCompanyPassword, getMyCompany, toggleCompanyStatus } from '../../../services/admin/adminServices';
+import { getCompanyById, addCompanyPost, deleteCompanyPost, setCompanyPassword, getMyCompany, toggleCompanyStatus } from '../../../services/admin/adminServices';
 import { toast } from 'react-toastify';
 import setFileName from '../../../utils/setFileName';
 
@@ -39,6 +39,8 @@ const CompanyProfile = ({ module }) => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState(null);
   const [isAboutExpanded, setIsAboutExpanded] = useState(false);
+  const [postToDelete, setPostToDelete] = useState(null);
+  const [isDeletingPost, setIsDeletingPost] = useState(false);
   const fileInputRef = useRef(null);
   const { user, setUser } = useMain()
   const BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
@@ -232,6 +234,35 @@ const CompanyProfile = ({ module }) => {
       console.error(err);
     } finally {
       setIsSubmitting(false);
+    }
+  };
+
+  const handleConfirmDeletePost = async () => {
+    if (!postToDelete) return;
+    const targetCompanyId = id || company?._id || company?.id;
+    if (!targetCompanyId) {
+      toast.error("Company ID not found");
+      return;
+    }
+
+    try {
+      setIsDeletingPost(true);
+      const res = await deleteCompanyPost(targetCompanyId, postToDelete);
+      if (res?.success) {
+        toast.success(res.message || "Post deleted successfully");
+        setCompany((prev) => ({
+          ...prev,
+          posts: Array.isArray(res.data) ? res.data : prev.posts.filter((p) => p !== postToDelete),
+        }));
+        setPostToDelete(null);
+      } else {
+        toast.error(res?.message || "Failed to delete post");
+      }
+    } catch (err) {
+      toast.error(err?.response?.data?.message || err?.message || "Failed to delete post");
+      console.error(err);
+    } finally {
+      setIsDeletingPost(false);
     }
   };
 
@@ -469,6 +500,19 @@ const CompanyProfile = ({ module }) => {
                         className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
                       />
                       <div className="absolute inset-0 bg-black/20 opacity-0 group-hover:opacity-100 transition-opacity" />
+
+                      {/* Delete Post Button */}
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setPostToDelete(path);
+                        }}
+                        className="absolute top-2.5 right-2.5 p-2 bg-white/90 hover:bg-red-500 text-gray-700 hover:text-white rounded-full shadow-md transition-all duration-200 opacity-0 group-hover:opacity-100 cursor-pointer z-10 hover:scale-110 active:scale-95"
+                        title="Delete post"
+                      >
+                        <Trash2 size={16} />
+                      </button>
                     </div>
                   ))
                 ) : (
@@ -695,6 +739,41 @@ const CompanyProfile = ({ module }) => {
                 className="h-11 rounded-[10px] bg-[#171717] text-white text-[15px] font-bold disabled:bg-gray-400 flex items-center justify-center gap-2"
               >
                 {isSubmitting ? <Loader2 size={18} className="animate-spin" /> : 'Confirm'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ── DELETE POST CONFIRMATION MODAL ── */}
+      {postToDelete && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-xs animate-in fade-in duration-200">
+          <div className="bg-white rounded-[24px] shadow-2xl w-full max-w-sm p-6 border border-[#EAECF0] text-center space-y-4">
+            <div className="w-12 h-12 rounded-full bg-red-100 text-red-600 flex items-center justify-center mx-auto">
+              <Trash2 size={24} />
+            </div>
+            <div>
+              <h3 className="text-[18px] font-bold text-[#171717]">Delete Post Image?</h3>
+              <p className="text-[14px] text-gray-500 mt-1">
+                Are you sure you want to permanently delete this post image? This action cannot be undone.
+              </p>
+            </div>
+            <div className="flex items-center gap-3 pt-2">
+              <button
+                type="button"
+                disabled={isDeletingPost}
+                onClick={() => setPostToDelete(null)}
+                className="flex-1 py-2.5 px-4 rounded-full border border-gray-300 text-gray-700 font-semibold text-sm hover:bg-gray-50 transition cursor-pointer"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                disabled={isDeletingPost}
+                onClick={handleConfirmDeletePost}
+                className="flex-1 py-2.5 px-4 rounded-full bg-red-600 text-white font-semibold text-sm hover:bg-red-700 transition flex items-center justify-center gap-2 cursor-pointer shadow-md active:scale-95 disabled:opacity-50"
+              >
+                {isDeletingPost ? <Loader2 size={16} className="animate-spin" /> : "Delete"}
               </button>
             </div>
           </div>

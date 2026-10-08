@@ -8,6 +8,7 @@ import setFileName from "../utils/setFileName";
 import { toast } from "react-toastify";
 import { useTitle } from "../context/AdminTitle";
 import PageLoader from "../common/PageLoader";
+import { getCategoryBadges, syncAllCategoryBadges } from "../utils/applicantTracker";
 
 /**
  * ProfileMenu Component
@@ -379,6 +380,23 @@ const AppLayout = ({
 
   const mainRef = useRef(null);
   const [isOutletLoading, setIsOutletLoading] = useState(false);
+  const [categoryBadges, setCategoryBadges] = useState(getCategoryBadges);
+
+  // Sync category badges whenever any item is marked seen or data is fetched
+  useEffect(() => {
+    const handleSync = () => {
+      setCategoryBadges(getCategoryBadges());
+    };
+    window.addEventListener("nulinz_seen_updated", handleSync);
+    return () => window.removeEventListener("nulinz_seen_updated", handleSync);
+  }, []);
+
+  // Check categories on layout mount (admin role checks envy/freelance as well)
+  useEffect(() => {
+    if (user?.role) {
+      syncAllCategoryBadges(user.role);
+    }
+  }, [user?.role]);
 
   // Close sidebar, trigger content outlet loader, and reset scroll on navigation change
   useEffect(() => {
@@ -444,6 +462,23 @@ const AppLayout = ({
       : React.createElement(icon, { size: 20, className: "flex-shrink-0" });
   };
 
+  const getBadgeForPath = (path) => {
+    if (!path) return false;
+    if (path.includes("/jobs/job")) return Boolean(categoryBadges.jobs);
+    if (path.includes("/jobs/internship")) return Boolean(categoryBadges.internships);
+    if (path.includes("/jobs/freelance")) return user?.role === "admin" && Boolean(categoryBadges.freelance);
+    if (path.includes("/competition")) return Boolean(categoryBadges.competition);
+    if (path.includes("/conference")) return Boolean(categoryBadges.conference);
+    if (path.includes("/events")) return Boolean(categoryBadges.events);
+    if (path.includes("/seminar")) return Boolean(categoryBadges.seminar);
+    return false;
+  };
+
+  const hasSubItemBadge = (item) => {
+    if (!item.subItems) return false;
+    return item.subItems.some((sub) => getBadgeForPath(sub.path));
+  };
+
   const NavItems = ({ onLinkClick }) => (
     <nav className="space-y-1 px-3">
       {menuItems.map((item) => {
@@ -467,6 +502,12 @@ const AppLayout = ({
                   <div className="flex items-center gap-3">
                     {renderIcon(item.icon, item.name)}
                     <span>{item.name}</span>
+                    {hasSubItemBadge(item) && (
+                      <span className="relative flex h-2 w-2 flex-shrink-0" title="New updates arrived">
+                        <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-blue-400 opacity-75"></span>
+                        <span className="relative inline-flex rounded-full h-2 w-2 bg-blue-600"></span>
+                      </span>
+                    )}
                   </div>
                   <div className="flex items-center gap-1">
                     <ChevronDown
@@ -482,26 +523,37 @@ const AppLayout = ({
                 {/* ── Sub-items with connector ── */}
                 {isExpanded && (
                   <div className="ml-7 sm:ml-9 mt-1 space-y-1 border-l border-gray-200 relative">
-                    {item.subItems.map((sub) => (
-                      <NavLink
-                        key={sub.name}
-                        to={sub.path}
-                        onClick={onLinkClick}
-                        className={({ isActive }) =>
-                          `flex items-center px-5 sm:px-6 py-2 sm:py-2.5 text-xs sm:text-[14px] font-medium transition-colors relative
-                          ${isActive ? "text-[#171717] font-semibold" : "text-gray-600 hover:text-[#171717]"}`
-                        }
-                      >
-                        {({ isActive }) => (
-                          <>
-                            <div className={`absolute -left-[1px] top-0 bottom-0 w-[1px] ${isActive ? "bg-[#171717]" : "bg-transparent"}`}>
-                              <div className="absolute rounded top-1/2 left-0 w-2.5 sm:w-3 h-[1px] bg-gray-200" />
-                            </div>
-                            <span>{sub.name}</span>
-                          </>
-                        )}
-                      </NavLink>
-                    ))}
+                    {item.subItems.map((sub) => {
+                      const showSubDot = getBadgeForPath(sub.path);
+                      return (
+                        <NavLink
+                          key={sub.name}
+                          to={sub.path}
+                          onClick={onLinkClick}
+                          className={({ isActive }) =>
+                            `flex items-center justify-between px-5 sm:px-6 py-2 sm:py-2.5 text-xs sm:text-[14px] font-medium transition-colors relative
+                            ${isActive ? "text-[#171717] font-semibold" : "text-gray-600 hover:text-[#171717]"}`
+                          }
+                        >
+                          {({ isActive }) => (
+                            <>
+                              <div className={`absolute -left-[1px] top-0 bottom-0 w-[1px] ${isActive ? "bg-[#171717]" : "bg-transparent"}`}>
+                                <div className="absolute rounded top-1/2 left-0 w-2.5 sm:w-3 h-[1px] bg-gray-200" />
+                              </div>
+                              <div className="flex items-center gap-2">
+                                <span>{sub.name}</span>
+                                {showSubDot && (
+                                  <span className="relative flex h-2 w-2 flex-shrink-0" title="New applicants arrived">
+                                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-blue-400 opacity-75"></span>
+                                    <span className="relative inline-flex rounded-full h-2 w-2 bg-blue-600"></span>
+                                  </span>
+                                )}
+                              </div>
+                            </>
+                          )}
+                        </NavLink>
+                      );
+                    })}
                   </div>
                 )}
               </>
@@ -511,16 +563,27 @@ const AppLayout = ({
                 to={item.path}
                 onClick={onLinkClick}
                 className={({ isActive }) =>
-                  `flex items-center gap-3 px-3.5 sm:px-4 py-2.5 sm:py-3 rounded-lg text-sm sm:text-[15px] font-medium transition-all duration-200
+                  `flex items-center justify-between px-3.5 sm:px-4 py-2.5 sm:py-3 rounded-lg text-sm sm:text-[15px] font-medium transition-all duration-200
                   ${isActive ? "bg-blue-50 text-[#171717] font-semibold" : "text-gray-700 hover:bg-gray-50 hover:text-[#171717]"}`
                 }
               >
-                {({ isActive }) => (
-                  <>
-                    {renderIcon(item.icon, item.name)}
-                    <span>{item.name}</span>
-                  </>
-                )}
+                {({ isActive }) => {
+                  const showItemDot = getBadgeForPath(item.path);
+                  return (
+                    <>
+                      <div className="flex items-center gap-3">
+                        {renderIcon(item.icon, item.name)}
+                        <span>{item.name}</span>
+                      </div>
+                      {showItemDot && (
+                        <span className="relative flex h-2 w-2 flex-shrink-0" title="New updates arrived">
+                          <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-blue-400 opacity-75"></span>
+                          <span className="relative inline-flex rounded-full h-2 w-2 bg-blue-600"></span>
+                        </span>
+                      )}
+                    </>
+                  );
+                }}
               </NavLink>
             )}
           </div>

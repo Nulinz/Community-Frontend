@@ -4,6 +4,7 @@ import { Download, FileText, ArrowLeft, Plus, X, Award, CheckCircle, ExternalLin
 import { toast } from 'react-toastify';
 import { generateCertificate } from '../services/admin/adminServices';
 import { getCurrentUser } from '../services/auth/authServices';
+import { copyToClipboard } from '../utils/clipboardUtils';
 
 const CandidateProfileSection = ({
   candidate = {},
@@ -144,6 +145,37 @@ const CandidateProfileSection = ({
     ugModeOfStudy: candidate.ugModeOfStudy || '',
     academicAchievement: candidate.academicAchievement || '',
     status: candidate.status || 'applied',
+    portfolios: (() => {
+      const rawList =
+        candidate.portfolios ||
+        candidate.portfolio ||
+        candidate.application?.portfolios ||
+        candidate.application?.portfolio;
+
+      if (Array.isArray(rawList)) {
+        return rawList
+          .map((item) => {
+            if (typeof item === "object" && item !== null) {
+              const u = item.portfolio || item.url || item.link || "";
+              const n = item.field_name || item.name || "Portfolio";
+              return u && typeof u === "string" && u.trim()
+                ? { field_name: String(n).trim() || "Portfolio", portfolio: u.trim() }
+                : null;
+            }
+            if (typeof item === "string" && item.trim()) {
+              return { field_name: "Portfolio", portfolio: item.trim() };
+            }
+            return null;
+          })
+          .filter(Boolean);
+      }
+
+      if (typeof rawList === "string" && rawList.trim()) {
+        return [{ field_name: "Portfolio", portfolio: rawList.trim() }];
+      }
+
+      return [];
+    })(),
     resumeUrl:
       candidate.resumeUrl ||
       candidate.resume ||
@@ -307,9 +339,43 @@ const CandidateProfileSection = ({
         <div className="lg:col-span-5 bg-white rounded-[22px] border border-gray-200 p-5 md:p-6 shadow-xs flex flex-col justify-between">
           <div>
             <h3 className="text-[16px] md:text-[18px] font-bold text-[#101828] mb-3">Personal Information</h3>
-            <div className="space-y-1">
-              <p className="text-[14px] font-bold text-[#344054]">Address</p>
-              <p className="text-[14px] font-medium text-[#475467] leading-relaxed">{profileData.address}</p>
+            <div className="space-y-3">
+              <div className="space-y-1">
+                <p className="text-[14px] font-bold text-[#344054]">Address</p>
+                <p className="text-[14px] font-medium text-[#475467] leading-relaxed">{profileData.address || '-'}</p>
+              </div>
+              <div className="space-y-1.5">
+                <p className="text-[14px] font-bold text-[#344054]">
+                  {profileData.portfolios && profileData.portfolios.length > 1 ? "Portfolio Links" : "Portfolio"}
+                </p>
+                {profileData.portfolios && profileData.portfolios.length > 0 ? (
+                  <div className="space-y-2">
+                    {profileData.portfolios.map((item, idx) => {
+                      const u = item.portfolio;
+                      const href = u.startsWith("http://") || u.startsWith("https://") ? u : `https://${u}`;
+                      const label = item.field_name || "Portfolio";
+                      return (
+                        <div key={idx} className="flex flex-wrap items-center gap-2 text-[14px]">
+                          <span className="font-semibold text-[#344054] text-[12px] bg-gray-100 px-2 py-0.5 rounded-[6px]">
+                            {label}
+                          </span>
+                          <a
+                            href={href}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="font-medium text-blue-600 hover:text-blue-700 hover:underline inline-flex items-center gap-1.5 break-all transition-colors"
+                          >
+                            <span>{u}</span>
+                            <ExternalLink size={13} className="shrink-0" />
+                          </a>
+                        </div>
+                      );
+                    })}
+                  </div>
+                ) : (
+                  <p className="text-[14px] font-medium text-[#475467]">-</p>
+                )}
+              </div>
             </div>
           </div>
         </div>
@@ -421,10 +487,14 @@ const CandidateProfileSection = ({
                     </a>
                     <button
                       type="button"
-                      onClick={() => {
+                      onClick={async () => {
                         const targetUrl = getFullUrl(generatedCert.fileUrl);
-                        navigator.clipboard.writeText(targetUrl);
-                        toast.success("Certificate link copied to clipboard!");
+                        const success = await copyToClipboard(targetUrl);
+                        if (success) {
+                          toast.success("Certificate link copied to clipboard!");
+                        } else {
+                          toast.error("Failed to copy link. Please copy manually.");
+                        }
                       }}
                       className="w-full py-2.5 px-4 border border-gray-300 hover:bg-gray-50 text-[#344054] text-[14px] font-semibold rounded-[12px] flex items-center justify-center gap-2 transition-all active:scale-95"
                     >

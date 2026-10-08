@@ -53,7 +53,7 @@ setTitle("Company")
             title: '#', 
             dataIndex: 'index', 
             key: 'index',
-            render: (_text, _record, index) => index + 1
+            render: (_text, _record, index) => (currentPage - 1) * 10 + index + 1
         },
         { title: 'Company Name', dataIndex: 'companyName', key: 'companyName' },
         { 

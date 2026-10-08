@@ -489,8 +489,8 @@ const CollegeProfile = () => {
 
             <div className="space-y-4">
               <div>
-                <p className="text-[16px] font-semibold text-secondary mb-1">Mobile Number</p>
-                <p className="text-[15px] text-primary">{college.phone}</p>
+                <p className="text-[16px] font-semibold text-secondary mb-1">Email Address</p>
+                <p className="text-[15px] text-primary">{college.email}</p>
               </div>
 
               <div>

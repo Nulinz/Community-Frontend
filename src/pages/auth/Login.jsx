@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { IoCallOutline, IoLockClosedOutline } from 'react-icons/io5'; // Using Ionicons
+import { IoCallOutline, IoLockClosedOutline, IoMailOutline } from 'react-icons/io5'; // Using Ionicons
 import { assets } from '../../assets/assets';
 import { useMain } from '../../context/MainContext';
 import AuthBase from '../../layout/AuthBase';
@@ -66,7 +66,7 @@ const Login = () => {
   const [searchParams] = useSearchParams();
   const loginType = searchParams.get('type'); // "company" | "college" | null
 
-  const [mobileNumber, setMobileNumber] = useState('');
+  const [identifier, setIdentifier] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
 
@@ -82,31 +82,34 @@ const Login = () => {
 
 
   const handleLogin = async (e) => {
-    setLoading(true)
+    setLoading(true);
     e.preventDefault();
     try {
+      const cleanIdentifier = identifier.trim();
+      const isEmail = cleanIdentifier.includes('@');
+
       const res = await login({
-        phone: mobileNumber.trim(),
+        identifier: cleanIdentifier,
+        email: isEmail ? cleanIdentifier : undefined,
+        phone: !isEmail ? cleanIdentifier : undefined,
         password,
       });
-      console.log(res)
+
       if (res?.status) {
         let role = res?.data?.user?.role;
         if (role === "admin" || role === "college" || role === "company" || role === "influencer" || role === "") {
           toast.success(res?.message || "Login successfully");
         }
         await fetchCurrentUser();
-      }
-      else {
-        toast.error(res.message || "Login Failed")
+      } else {
+        toast.error(res?.message || "Login Failed");
       }
 
     } catch (error) {
-      toast.error(error.message || "Login Failed")
+      toast.error(error.message || "Login Failed");
       console.error("Login failed", error);
-    }
-    finally {
-      setLoading(false)
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -137,14 +140,13 @@ const Login = () => {
 
         <div className="space-y-5">
           <InputField
-            label="Enter your Mobile Number"
-            id="mobileNumber"
-            type="tel"
-            placeholder="Enter Mobile Number"
-            maxLength={10}
-            icon={IoCallOutline}
-            value={mobileNumber}
-            onChange={(e) => setMobileNumber(e.target.value)}
+            label="Enter your Email or Mobile Number"
+            id="identifier"
+            type="text"
+            placeholder="Enter Email or Mobile Number"
+            icon={identifier.includes('@') ? IoMailOutline : IoCallOutline}
+            value={identifier}
+            onChange={(e) => setIdentifier(e.target.value)}
             required
           />
 
