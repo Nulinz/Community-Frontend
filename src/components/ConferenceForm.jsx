@@ -12,6 +12,9 @@ import {
 import { usePayoutValidation } from "../utils/usePayoutValidation";
 import PayoutNoticeModal from "./PayoutNoticeModal";
 
+const departments = ["All", "CS", "IT", "ECE", "EEE", "AI / DS", "Mechanical", "Civil", "BME / Biotech", " Medical / Health", "Pharma", "Science", "Commerce / Finance", "Management", "Arts / Humanities", "Law", "Agri / Veterinary", "Architecture / Design", "Media / Communication", "Education / Social Sciences", "Graduates", "Professionals"]
+
+
 const conferenceFormConfig = [
   {
     title: "Basic Details",
@@ -167,7 +170,7 @@ const conferenceFormConfig = [
     title: "Target Audience / Eligibility ",
     type: "static",
     fields: [
-      { name: "allowedDepartments", label: "Allowed Departments", type: "multiselect", options: ["All", "CS", "IT", "ECE", "EEE"], required: false },
+      { name: "allowedDepartments", label: "Allowed Departments", type: "multiselect", options: departments, required: false },
     ],
   },
   {

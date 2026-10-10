@@ -117,6 +117,10 @@ export const validateEventFieldChange = (
       toast.warning("Please select Event Date first");
       return { registrationStartDate: "" };
     }
+    if (!isEdit && value < todayStr) {
+      toast.error("Registration start date cannot be in the past");
+      return { registrationStartDate: "" };
+    }
     if (currentData.registrationEndDate && value > currentData.registrationEndDate) {
       toast.error("Registration start date cannot be after registration end date");
       return { registrationStartDate: "" };
@@ -131,6 +135,10 @@ export const validateEventFieldChange = (
   if (fieldName === "registrationEndDate") {
     if (!currentData.eventDate) {
       toast.warning("Please select Event Date first");
+      return { registrationEndDate: "" };
+    }
+    if (!isEdit && value < todayStr) {
+      toast.error("Registration end date cannot be in the past");
       return { registrationEndDate: "" };
     }
     if (currentData.registrationStartDate && value < currentData.registrationStartDate) {
@@ -212,6 +220,11 @@ export const validateEventSubmission = (
 
   if (registrationStartDate && registrationEndDate && registrationStartDate > registrationEndDate) {
     toast.error("Registration start date cannot be after registration end date");
+    return false;
+  }
+
+  if (!isEdit && registrationStartDate && registrationStartDate < todayStr) {
+    toast.error("Registration start date cannot be in the past");
     return false;
   }
 

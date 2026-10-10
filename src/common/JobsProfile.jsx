@@ -563,7 +563,10 @@ const JobsProfile = ({ module = 'admin', jobType = 'Internship' }) => {
                       ? 'Job start date'
                       : 'intern start date'}
                   </p>
-                    <p className="text-[18px] md:text-[26px] leading-none font-bold">{formatDate(internship.jobStartDate)}</p>
+                  <p className="text-[18px] md:text-[26px] leading-none font-bold">
+                    {(location.pathname.includes('/admin/jobs') && location.pathname.includes('/job-profile')) || isJob
+                      ? formatDate(internship.jobStartDate) : formatDate(internship.internStartDate)}
+                  </p>
                 </div>
 
                 <div className="rounded-[18px] bg-white border border-gray-200 text-[#0C5F94] p-4 md:p-5 min-h-[100px] md:min-h-[130px] flex flex-col justify-center sm:min-w-[150px]">
@@ -877,10 +880,32 @@ const JobsProfile = ({ module = 'admin', jobType = 'Internship' }) => {
             }}
             onSaveAttendance={async () => {
               if (!id) return;
+
+              // Guard against empty candidate lists where marking attendance is not applicable
+              if (!selectedCandidatesList || selectedCandidatesList.length === 0) {
+                toast.error("No candidates available to mark attendance.");
+                return;
+              }
+
+              // Require that every candidate has an explicit status (Present or Absent) marked
+              const unmarkedCandidates = selectedCandidatesList.filter((cand) => {
+                const candId = cand._id || cand.id || cand.userId;
+                const status = candidateStatuses[candId] || candidateStatuses[cand.id] || candidateStatuses[cand.userId];
+                return !status || (status !== 'Present' && status !== 'Absent');
+              });
+
+              if (unmarkedCandidates.length > 0) {
+                const remaining = unmarkedCandidates.length;
+                toast.error(
+                  `Please mark attendance for all candidates before saving (${remaining} candidate${remaining > 1 ? 's' : ''} remaining)`
+                );
+                return;
+              }
+
               const currentDateISO = new Date().toISOString().split('T')[0];
               const records = selectedCandidatesList.map((cand) => {
                 const candId = cand._id || cand.id || cand.userId;
-                const st = candidateStatuses[candId] || 'Present';
+                const st = candidateStatuses[candId] || candidateStatuses[cand.id] || candidateStatuses[cand.userId];
                 return {
                   userId: cand.userId || cand._id || cand.id,
                   status: st.toLowerCase(),
@@ -892,9 +917,11 @@ const JobsProfile = ({ module = 'admin', jobType = 'Internship' }) => {
                   date: currentDateISO,
                   records,
                 });
-                if (res.success) {
+                if (res.success || res.status) {
                   toast.success(res.message || "Attendance saved successfully!");
                   setAttendanceSubView('list');
+                } else {
+                  toast.error(res.message || "Failed to save attendance");
                 }
               } catch (err) {
                 toast.error(err?.message || "Failed to save attendance");

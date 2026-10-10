@@ -1,8 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Plus } from 'lucide-react';
+import { Plus, Trash2 } from 'lucide-react';
 import DynamicTable from '../../../common/DynamicTable';
+import DeleteConfirmModal from '../../../common/DeleteConfirmModal';
 import { getAllCpmpanies } from '../../../services/admin/adminServices';
+import { deleteModuleItem } from '../../../services/commonServices';
+import { toast } from 'react-toastify';
 import { useTitle } from '../../../context/AdminTitle';
 
 const Company = ({ module }) => {
@@ -11,10 +14,14 @@ const Company = ({ module }) => {
     const [isLoading, setIsLoading] = useState(true);
     const [search, setSearch] = useState('');
     const [currentPage, setCurrentPage] = useState(1);
-  const {setTitle}=useTitle()
-  useEffect(()=>{
-setTitle("Company")
-  },[])
+    const [deleteTarget, setDeleteTarget] = useState(null);
+    const [isDeleting, setIsDeleting] = useState(false);
+    const { setTitle } = useTitle();
+
+    useEffect(() => {
+        setTitle("Company");
+    }, []);
+
     useEffect(() => {
         fetchCompanies();
     }, []);
@@ -34,6 +41,28 @@ setTitle("Company")
             console.error("Failed to fetch companies:", error);
         } finally {
             setIsLoading(false);
+        }
+    };
+
+    /**
+     * Handles confirmed company deletion through the unified deletion service.
+     * Removes the company document and its uploaded assets, then updates local state.
+     */
+    const handleConfirmDelete = async () => {
+        if (!deleteTarget) return;
+
+        try {
+            setIsDeleting(true);
+            const targetId = deleteTarget._id || deleteTarget.id;
+            await deleteModuleItem('company', targetId);
+            setCompanies((prev) => prev.filter((item) => (item._id || item.id) !== targetId));
+            toast.success("Company deleted successfully");
+            setDeleteTarget(null);
+        } catch (error) {
+            console.error("Failed to delete company:", error);
+            toast.error(error?.response?.data?.message || "Failed to delete company");
+        } finally {
+            setIsDeleting(false);
         }
     };
 
@@ -81,7 +110,25 @@ setTitle("Company")
                     </span>
                 );
             },
-        }
+        },
+        {
+            title: 'Action',
+            key: 'action',
+            render: (_, record) => (
+                <button
+                    type="button"
+                    onClick={(e) => {
+                        e.stopPropagation();
+                        setDeleteTarget(record);
+                    }}
+                    className="p-1.5 text-[#F04438] hover:text-[#D92D20] hover:bg-red-50 rounded-lg transition-colors cursor-pointer"
+                    title="Delete Company"
+                    aria-label="Delete Company"
+                >
+                    <Trash2 size={18} />
+                </button>
+            ),
+        },
     ];
 
     return (
@@ -102,14 +149,20 @@ setTitle("Company")
                 currentPage={currentPage}
                 pageSize={10}
                 onPageChange={setCurrentPage}
-
                 onRowClick={(record) => navigate(`/${module}/company-profile/${record.id}`)}
+            />
+
+            {/* Reusable Delete Confirmation Modal */}
+            <DeleteConfirmModal
+                isOpen={!!deleteTarget}
+                onClose={() => setDeleteTarget(null)}
+                onConfirm={handleConfirmDelete}
+                title="Delete Company"
+                itemName={deleteTarget?.companyName}
+                isSubmitting={isDeleting}
             />
         </div>
     );
 };
-
-
-
 
 export default Company;

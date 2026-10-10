@@ -10,13 +10,20 @@ const MobileJobRedirect = () => {
     const jobId = params.get("job_id");
     const web = params.get("web");
 
-    // Play Store deep link with job_id
-    const playStoreUrl =
-      `https://play.google.com/store/apps/details?id=com.dacdiag.app&referrer=${encodeURIComponent(
-        `job_id=${jobId}${web ? `&web=${web}` : ""}`
-      )}`;
+    const userAgent = navigator.userAgent || navigator.vendor || window.opera || "";
+    const isIOS = /iPad|iPhone|iPod/.test(userAgent) && !window.MSStream;
 
-    window.location.replace(playStoreUrl);
+    if (isIOS) {
+      window.location.replace("https://apps.apple.com/us/app/gradenvy/id6820358213");
+    } else {
+      // Play Store deep link with job_id for Android
+      const playStoreUrl =
+        `https://play.google.com/store/apps/details?id=com.grad.envy&referrer=${encodeURIComponent(
+          `job_id=${jobId}${web ? `&web=${web}` : ""}`
+        )}`;
+
+      window.location.replace(playStoreUrl);
+    }
   }, [location]);
 
   return <div>Redirecting to app...</div>;

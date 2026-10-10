@@ -22,32 +22,20 @@
       }
     },
     {
-      "route": "/referral/assets/*",
-      "serve": "/referral/assets/*"
-    },
-    {
-      "route": "/share/assets/*",
-      "serve": "/share/assets/*"
-    },
-    {
       "route": "/share",
-      "serve": "/share/index.html",
-      "statusCode": 200
+      "rewrite": "/share/index.html"
     },
     {
       "route": "/share/*",
-      "serve": "/share/index.html",
-      "statusCode": 200
+      "rewrite": "/share/index.html"
     },
     {
       "route": "/referral",
-      "serve": "/referral/index.html",
-      "statusCode": 200
+      "rewrite": "/referral/index.html"
     },
     {
       "route": "/referral/*",
-      "serve": "/referral/index.html",
-      "statusCode": 200
+      "rewrite": "/referral/index.html"
     }
   ],
   "navigationFallback": {

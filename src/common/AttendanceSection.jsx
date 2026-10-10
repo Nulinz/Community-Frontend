@@ -220,13 +220,40 @@ const AttendanceSection = ({
         showPagination={false}
       />
 
-      {/* Bottom Save Button */}
+      {/* Bottom Save Button & Candidate Marking Status */}
       {mode === 'mark' && (
-        <div className="flex items-center justify-end pt-4 border-t border-gray-100">
+        <div className="flex flex-col sm:flex-row items-center justify-between gap-3 pt-4 border-t border-gray-100">
+          <p className="text-sm text-[#667085]">
+            {candidateList.length > 0 ? (
+              (() => {
+                const markedCount = candidateList.filter((c) => {
+                  const s = candidateStatuses[c.id];
+                  return s === 'Present' || s === 'Absent';
+                }).length;
+                const remaining = candidateList.length - markedCount;
+
+                if (remaining === 0) {
+                  return (
+                    <span className="text-emerald-600 font-medium">
+                      All {candidateList.length} candidates marked
+                    </span>
+                  );
+                }
+
+                return (
+                  <span>
+                    <span className="font-semibold text-gray-900">{markedCount}</span> of{' '}
+                    <span className="font-semibold text-gray-900">{candidateList.length}</span> candidates marked
+                    <span className="text-amber-600 ml-1.5 font-medium">({remaining} remaining)</span>
+                  </span>
+                );
+              })()
+            ) : null}
+          </p>
           <button
             type="button"
             onClick={onSaveAttendance}
-            className="px-8 py-2.5 bg-[#171717] text-white rounded-full text-[15px] font-bold hover:bg-[#171717] transition-all shadow-md shadow-blue-100 active:scale-95 cursor-pointer"
+            className="w-full sm:w-auto px-8 py-2.5 bg-[#171717] text-white rounded-full text-[15px] font-bold hover:bg-neutral-800 transition-all shadow-md active:scale-95 cursor-pointer"
           >
             Save
           </button>

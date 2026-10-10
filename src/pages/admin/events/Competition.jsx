@@ -1,9 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import { Plus } from 'lucide-react';
+import { Plus, Trash2 } from 'lucide-react';
 import DynamicTable from "../../../common/DynamicTable";
 import PageLoader from "../../../common/PageLoader";
+import DeleteConfirmModal from "../../../common/DeleteConfirmModal";
 import { useNavigate } from 'react-router-dom';
 import { getAllCompetitions } from '../../../services/admin/adminServices';
+import { deleteModuleItem } from '../../../services/commonServices';
 import { hasNewRegistrations, markItemAsSeen, setCategoryBadge, hasAnyUnreadInList } from '../../../utils/applicantTracker';
 import { toast } from 'react-toastify';
 import { useMain } from '../../../context/MainContext';
@@ -22,10 +24,29 @@ const Competition = () => {
   const [competitions, setCompetitions] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [activeTab, setActiveTab] = useState("community");
+  const [deleteTarget, setDeleteTarget] = useState(null);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   const { user, dynamicPath } = useMain();
   const navigate = useNavigate();
   const { setTitle } = useTitle();
+
+  const handleConfirmDelete = async () => {
+    if (!deleteTarget) return;
+    const targetId = deleteTarget._id || deleteTarget.id;
+    try {
+      setIsDeleting(true);
+      await deleteModuleItem("competition", targetId);
+      toast.success("Competition deleted successfully");
+      setCompetitions((prev) => prev.filter((item) => (item._id || item.id) !== targetId));
+      setDeleteTarget(null);
+    } catch (error) {
+      console.error("Delete competition error:", error);
+      toast.error(error?.response?.data?.message || "Failed to delete competition");
+    } finally {
+      setIsDeleting(false);
+    }
+  };
 
   useEffect(() => { setTitle("Competitions / Hackathon"); }, []);
 
@@ -130,6 +151,24 @@ const Competition = () => {
         );
       },
     },
+    {
+      title: 'Action',
+      key: 'action',
+      render: (_, record) => (
+        <button
+          type="button"
+          onClick={(e) => {
+            e.stopPropagation();
+            setDeleteTarget(record);
+          }}
+          className="p-1.5 text-[#F04438] hover:text-[#D92D20] hover:bg-red-50 rounded-lg transition-colors cursor-pointer"
+          title="Delete Competition"
+          aria-label="Delete Competition"
+        >
+          <Trash2 size={18} />
+        </button>
+      ),
+    },
   ];
 
   const filteredData = competitions.filter((item) =>
@@ -187,6 +226,16 @@ const Competition = () => {
           markItemAsSeen(record._id || record.id, record.registeredCount || 0);
           navigate(dynamicPath(`competition-profile/${record._id}`));
         }}
+      />
+
+      {/* Reusable Delete Confirmation Modal */}
+      <DeleteConfirmModal
+        isOpen={!!deleteTarget}
+        onClose={() => setDeleteTarget(null)}
+        onConfirm={handleConfirmDelete}
+        title="Delete Competition"
+        itemName={deleteTarget?.eventName}
+        isSubmitting={isDeleting}
       />
     </div>
   );

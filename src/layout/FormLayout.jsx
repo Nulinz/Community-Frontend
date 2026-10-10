@@ -409,7 +409,6 @@ const MultiSelectInput = ({ field, value, onChange, hasError = false }) => {
   }, [open]);
 
   const allOptions = Array.isArray(field.options) ? field.options : [];
-  const nonAllOptions = allOptions.filter((opt) => opt !== "All" && opt !== "All Departments");
 
   // Determine if search input should be visible (searchable prop, searchable-multiselect type, or lists > 5 items)
   const isSearchable = field.searchable !== false && (field.searchable === true || field.type === "searchable-multiselect" || allOptions.length > 5);
@@ -419,36 +418,18 @@ const MultiSelectInput = ({ field, value, onChange, hasError = false }) => {
     : allOptions;
 
   const toggleValue = (opt) => {
-    if (opt === "All" || opt === "All Departments") {
-      const isAllSelected = selectedValues.includes(opt) || (nonAllOptions.length > 0 && nonAllOptions.every((o) => selectedValues.includes(o)));
-      if (isAllSelected) {
-        onChange([]);
-      } else {
-        onChange([...allOptions]);
-      }
-      return;
-    }
-
     let newSelected;
     if (selectedValues.includes(opt)) {
-      newSelected = selectedValues.filter((i) => i !== opt && i !== "All" && i !== "All Departments");
+      newSelected = selectedValues.filter((i) => i !== opt);
     } else {
-      const withoutAll = selectedValues.filter((i) => i !== "All" && i !== "All Departments");
-      newSelected = [...withoutAll, opt];
-      if (nonAllOptions.length > 0 && nonAllOptions.every((o) => newSelected.includes(o))) {
-        newSelected = [...allOptions];
-      }
+      newSelected = [...selectedValues, opt];
     }
     onChange(newSelected);
   };
 
   const removeValue = (val, e) => {
     e.stopPropagation();
-    if (val === "All" || val === "All Departments") {
-      onChange([]);
-    } else {
-      onChange(selectedValues.filter((i) => i !== val && i !== "All" && i !== "All Departments"));
-    }
+    onChange(selectedValues.filter((i) => i !== val));
   };
 
   return (
@@ -466,22 +447,32 @@ const MultiSelectInput = ({ field, value, onChange, hasError = false }) => {
             {field.placeholder || "Select options"}
           </span>
         ) : (
-          selectedValues.map((val) => (
-            <span
-              key={val}
-              className="bg-blue-50 border border-blue-200 text-blue-700 px-2 py-0.5 rounded text-xs font-medium flex items-center gap-1 shrink-0"
-            >
-              <span>{val}</span>
-              <button
-                type="button"
-                onClick={(e) => removeValue(val, e)}
-                className="cursor-pointer text-blue-500 hover:text-red-500 font-bold leading-none p-0.5 ml-0.5"
-                title={`Remove ${val}`}
+          <>
+            {selectedValues.slice(0, 2).map((val) => (
+              <span
+                key={val}
+                className="bg-blue-50 border border-blue-200 text-blue-700 px-2 py-0.5 rounded text-xs font-medium flex items-center gap-1 shrink-0"
               >
-                ×
-              </button>
-            </span>
-          ))
+                <span className="max-w-[120px] truncate" title={val}>{val}</span>
+                <button
+                  type="button"
+                  onClick={(e) => removeValue(val, e)}
+                  className="cursor-pointer text-blue-500 hover:text-red-500 font-bold leading-none p-0.5 ml-0.5"
+                  title={`Remove ${val}`}
+                >
+                  ×
+                </button>
+              </span>
+            ))}
+            {selectedValues.length > 2 && (
+              <span
+                className="bg-blue-50 border border-blue-200 text-blue-700 px-2 py-0.5 rounded text-xs font-semibold flex items-center shrink-0"
+                title={selectedValues.slice(2).join(", ")}
+              >
+                +{selectedValues.length - 2}
+              </span>
+            )}
+          </>
         )}
 
         {/* Custom chevron icon */}
@@ -532,10 +523,7 @@ const MultiSelectInput = ({ field, value, onChange, hasError = false }) => {
               </div>
             ) : (
               filteredOptions.map((opt) => {
-                const isAllOpt = opt === "All" || opt === "All Departments";
-                const isSelected = isAllOpt
-                  ? selectedValues.includes(opt) || (nonAllOptions.length > 0 && nonAllOptions.every((o) => selectedValues.includes(o)))
-                  : selectedValues.includes(opt);
+                const isSelected = selectedValues.includes(opt);
                 return (
                   <label
                     key={opt}

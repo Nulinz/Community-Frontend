@@ -1,9 +1,11 @@
 import React, { useEffect, useState } from 'react';
-import { Plus } from 'lucide-react';
+import { Plus, Trash2 } from 'lucide-react';
 import DynamicTable from '../../../common/DynamicTable';
+import DeleteConfirmModal from '../../../common/DeleteConfirmModal';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import { getAllJobs } from '../../../services/admin/adminServices';
+import { deleteModuleItem } from '../../../services/commonServices';
 import { hasNewRegistrations, markItemAsSeen, setCategoryBadge, hasAnyUnreadInList } from '../../../utils/applicantTracker';
 import { useTitle } from '../../../context/AdminTitle';
 import { useMain } from '../../../context/MainContext';
@@ -21,9 +23,28 @@ const Job = ({ module = 'admin' }) => {
     const [jobs, setJobs] = useState([]);
     const [isLoading, setIsLoading] = useState(true);
     const [activeTab, setActiveTab] = useState("community");
+    const [deleteTarget, setDeleteTarget] = useState(null);
+    const [isDeleting, setIsDeleting] = useState(false);
     const navigate = useNavigate();
     const { setTitle } = useTitle();
     const { user } = useMain();
+
+    const handleConfirmDelete = async () => {
+        if (!deleteTarget) return;
+        const targetId = deleteTarget._id || deleteTarget.id;
+        try {
+            setIsDeleting(true);
+            await deleteModuleItem("job", targetId);
+            toast.success("Job deleted successfully");
+            setJobs((prev) => prev.filter((item) => (item._id || item.id) !== targetId));
+            setDeleteTarget(null);
+        } catch (error) {
+            console.error("Delete job error:", error);
+            toast.error(error?.response?.data?.message || "Failed to delete job");
+        } finally {
+            setIsDeleting(false);
+        }
+    };
 
     useEffect(() => { setTitle("Jobs / Hiring"); }, [setTitle]);
 
@@ -129,6 +150,24 @@ const Job = ({ module = 'admin' }) => {
                 );
             },
         },
+        {
+            title: 'Action',
+            key: 'action',
+            render: (_, record) => (
+                <button
+                    type="button"
+                    onClick={(e) => {
+                        e.stopPropagation();
+                        setDeleteTarget(record);
+                    }}
+                    className="p-1.5 text-[#F04438] hover:text-[#D92D20] hover:bg-red-50 rounded-lg transition-colors cursor-pointer"
+                    title="Delete Job"
+                    aria-label="Delete Job"
+                >
+                    <Trash2 size={18} />
+                </button>
+            ),
+        },
     ];
 
     const filteredData = jobs.filter(
@@ -183,6 +222,16 @@ const Job = ({ module = 'admin' }) => {
                     markItemAsSeen(record._id || record.id, record.applied || record.appliedCount || 0);
                     navigate(`/${module}/jobs/job-profile/${record._id}`);
                 }}
+            />
+
+            {/* Reusable Delete Confirmation Modal */}
+            <DeleteConfirmModal
+                isOpen={!!deleteTarget}
+                onClose={() => setDeleteTarget(null)}
+                onConfirm={handleConfirmDelete}
+                title="Delete Job"
+                itemName={deleteTarget?.jobTitle}
+                isSubmitting={isDeleting}
             />
         </div>
     );

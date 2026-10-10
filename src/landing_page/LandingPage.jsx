@@ -362,8 +362,9 @@ const LandingPage = () => {
             <div className="flex flex-nowrap items-center gap-2.5 sm:gap-4 pt-1 w-full max-w-md sm:max-w-none">
               {/* Google Play Store Badge */}
               <a
-                href="#"
-                onClick={(e) => e.preventDefault()}
+                href="https://play.google.com/store/apps/details?id=com.grad.envy"
+                target="_blank"
+                rel="noopener noreferrer"
                 className="flex-1 sm:flex-none bg-[#1E293B]/90 hover:bg-[#1E293B] border border-white/15 px-3 py-2 sm:px-5 sm:py-3 rounded-xl sm:rounded-[12px] flex items-center justify-center sm:justify-start gap-2 sm:gap-3.5 transition-all duration-300 hover:scale-105 shadow-xl group cursor-pointer min-w-0"
               >
                 <img
@@ -383,8 +384,9 @@ const LandingPage = () => {
 
               {/* Apple App Store Badge */}
               <a
-                href="#"
-                onClick={(e) => e.preventDefault()}
+                href="https://apps.apple.com/us/app/gradenvy/id6820358213"
+                target="_blank"
+                rel="noopener noreferrer"
                 className="flex-1 sm:flex-none bg-[#1E293B]/90 hover:bg-[#1E293B] border border-white/15 px-3 py-2 sm:px-5 sm:py-3 rounded-xl sm:rounded-[12px] flex items-center justify-center sm:justify-start gap-2 sm:gap-3.5 transition-all duration-300 hover:scale-105 shadow-xl group cursor-pointer min-w-0"
               >
                 <img

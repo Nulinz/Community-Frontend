@@ -1,9 +1,11 @@
 import React, { useEffect, useState } from 'react';
-import { Plus } from 'lucide-react';
+import { Plus, Trash2 } from 'lucide-react';
 import DynamicTable from '../../../common/DynamicTable';
+import DeleteConfirmModal from '../../../common/DeleteConfirmModal';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import { getAllInternships } from '../../../services/admin/adminServices';
+import { deleteModuleItem } from '../../../services/commonServices';
 import { hasNewRegistrations, markItemAsSeen, setCategoryBadge, hasAnyUnreadInList } from '../../../utils/applicantTracker';
 import { useTitle } from '../../../context/AdminTitle';
 import { useMain } from '../../../context/MainContext';
@@ -21,9 +23,28 @@ const Internship = ({ module = 'admin' }) => {
     const [internships, setInternships] = useState([]);
     const [isLoading, setIsLoading] = useState(true);
     const [activeTab, setActiveTab] = useState("community");
+    const [deleteTarget, setDeleteTarget] = useState(null);
+    const [isDeleting, setIsDeleting] = useState(false);
     const navigate = useNavigate();
     const { setTitle } = useTitle();
     const { user, dynamicPath } = useMain();
+
+    const handleConfirmDelete = async () => {
+        if (!deleteTarget) return;
+        const targetId = deleteTarget._id || deleteTarget.id;
+        try {
+            setIsDeleting(true);
+            await deleteModuleItem("internship", targetId);
+            toast.success("Internship deleted successfully");
+            setInternships((prev) => prev.filter((item) => (item._id || item.id) !== targetId));
+            setDeleteTarget(null);
+        } catch (error) {
+            console.error("Delete internship error:", error);
+            toast.error(error?.response?.data?.message || "Failed to delete internship");
+        } finally {
+            setIsDeleting(false);
+        }
+    };
     useEffect(() => { setTitle("Internships"); }, []);
 
     useEffect(() => {
@@ -131,6 +152,24 @@ const Internship = ({ module = 'admin' }) => {
                 );
             },
         },
+        {
+            title: 'Action',
+            key: 'action',
+            render: (_, record) => (
+                <button
+                    type="button"
+                    onClick={(e) => {
+                        e.stopPropagation();
+                        setDeleteTarget(record);
+                    }}
+                    className="p-1.5 text-[#F04438] hover:text-[#D92D20] hover:bg-red-50 rounded-lg transition-colors cursor-pointer"
+                    title="Delete Internship"
+                    aria-label="Delete Internship"
+                >
+                    <Trash2 size={18} />
+                </button>
+            ),
+        },
     ];
 
     const filteredData = internships.filter(
@@ -187,6 +226,16 @@ const Internship = ({ module = 'admin' }) => {
                     markItemAsSeen(record._id || record.id, record.applied || record.appliedCount || 0);
                     navigate(`/${module}/jobs/internship-profile/${record._id}`);
                 }}
+            />
+
+            {/* Reusable Delete Confirmation Modal */}
+            <DeleteConfirmModal
+                isOpen={!!deleteTarget}
+                onClose={() => setDeleteTarget(null)}
+                onConfirm={handleConfirmDelete}
+                title="Delete Internship"
+                itemName={deleteTarget?.jobTitle}
+                isSubmitting={isDeleting}
             />
         </div>
     );

@@ -13,6 +13,9 @@ import {
 import { usePayoutValidation } from "../utils/usePayoutValidation";
 import PayoutNoticeModal from "./PayoutNoticeModal";
 
+
+const departments = ["All", "CS", "IT", "ECE", "EEE", "AI / DS", "Mechanical", "Civil", "BME / Biotech", "Medical / Health", "Pharma", "Science", "Commerce / Finance", "Management", "Arts / Humanities", "Law", "Agri / Veterinary", "Architecture / Design", "Media / Communication", "Education / Social Sciences", "Graduates", "Professionals"];
+
 const competitionFormConfig = [
   {
     title: "Basic Details",
@@ -43,13 +46,14 @@ const competitionFormConfig = [
         name: "registrationStartDate",
         label: "Registration Start Date",
         type: "date",
+        min: "today",
         max: (data) => data.eventDate || undefined,
       },
       {
         name: "registrationEndDate",
         label: "Registration End Date",
         type: "date",
-        min: (data) => data.registrationStartDate || undefined,
+        min: (data) => data.registrationStartDate || "today",
         max: (data) => data.eventDate || undefined,
       },
       { name: "totalSeats", label: "Total Seats", type: "number", required: true },
@@ -214,7 +218,7 @@ const competitionFormConfig = [
     type: "static",
     fields: [
       { name: "eligibilityDetails", label: "Eligibility Details", type: "text" },
-      { name: "allowedDepartments", label: "Allowed Departments", type: "multiselect", options: ["All", "CS", "IT", "ECE", "EEE"], required: false },
+      { name: "allowedDepartments", label: "Allowed Departments", type: "multiselect", options: departments, required: false },
       { name: "teamOrIndividualEvent", label: "Team Or Individual Event", type: "radio", options: ["Team", "Individual", "Both"] },
       {
         name: "teamSizeMinimum",
