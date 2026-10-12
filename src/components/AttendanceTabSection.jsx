@@ -172,7 +172,7 @@ const AttendanceTabSection = ({ eventId, eventType = "Event", eventTitle = "", o
               </button>
             ) : null}
 
-            <button
+            {/* <button
               onClick={(e) => {
                 e?.stopPropagation();
                 handleToggleAttendance(record);
@@ -187,7 +187,7 @@ const AttendanceTabSection = ({ eventId, eventType = "Event", eventTitle = "", o
             >
               <Check size={12} />
               {isCurrentToggling ? "Updating..." : isPresent ? "Mark Absent" : "Mark Present"}
-            </button>
+            </button> */}
           </div>
         );
       },

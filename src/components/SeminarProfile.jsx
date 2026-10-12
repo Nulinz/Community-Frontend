@@ -188,6 +188,8 @@ const SeminarProfile = () => {
         { title: 'Name', dataIndex: 'fullName', key: 'fullName' },
         { title: 'College', dataIndex: 'college', key: 'college' },
         { title: 'Department', dataIndex: 'department', key: 'department' },
+        { title: 'Email', dataIndex: 'mailId', key: 'mailId' },
+        { title: 'Phone Number', dataIndex: 'phoneNumber', key: 'phoneNumber' },
         { title: 'Year', dataIndex: 'year', key: 'year' },
     ];
 
