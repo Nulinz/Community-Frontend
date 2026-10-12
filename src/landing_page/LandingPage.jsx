@@ -1290,6 +1290,7 @@ const LandingPage = () => {
                   </svg>
                 </a>
               </div>
+                <p className="text-gray-300 text-md mb-0!">Group of Nulinz Education Private Limited</p>
             </div>
 
             {/* Nav Right Columns */}
@@ -1371,7 +1372,7 @@ const LandingPage = () => {
           </div>
 
           {/* Bottom Copyright Row */}
-          <div className="mt-12 sm:mt-16 pt-6 sm:pt-8 border-t border-white/10 flex items-center justify-center text-center text-xs text-slate-400">
+          <div className="mt-10 sm:mt-16 pt-6 sm:pt-8 border-t border-white/10 flex items-center justify-center text-center text-xs text-slate-400">
             <p className="text-center">
               © {new Date().getFullYear()} GradEnvy. All rights reserved.
             </p>
