@@ -196,7 +196,7 @@ const RefundPolicy = ({ showLayout = true }) => {
           </h2>
           <p>
             To request a cancellation or refund, contact us at{" "}
-            <a href="mailto:info@nulinz.com">info@nulinz.com</a> or call{" "}
+            <a href="mailto:Info@gradenvy.com">Info@gradenvy.com</a> or call{" "}
             <a href="tel:+919080408749">+91 90804 08749</a> with your registered mobile number, order/payment
             details, and reason for the request. See our{" "}
             <a
@@ -233,7 +233,7 @@ const RefundPolicy = ({ showLayout = true }) => {
           </h2>
           <p>
             Questions about this policy can be sent to{" "}
-            <a href="mailto:info@nulinz.com">info@nulinz.com</a>.
+            <a href="mailto:info@gradenvy.com">info@gradenvy.com</a>.
           </p>
         </div>
       </section>

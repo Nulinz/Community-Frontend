@@ -269,7 +269,7 @@ const Terms = ({ showLayout = true }) => {
           </h2>
           <p>
             Questions about these Terms can be sent to{" "}
-            <a href="mailto:info@nulinz.com">info@nulinz.com</a> or call{" "}
+            <a href="mailto:info@gradenvy.com">info@gradenvy.com</a> or call{" "}
             <a href="tel:+919080408749">+91 90804 08749</a>. See our{" "}
             <a
               href="/contact"

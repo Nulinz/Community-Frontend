@@ -269,7 +269,7 @@ const ContactUs = ({ showLayout = true }) => {
                 </div>
                 <div className="pt-1">
                   <div className="text-base sm:text-lg font-bold text-[#1e2532] break-all tracking-tight">
-                    nulinz.official@gmail.com
+                    support@gradenvy.com
                   </div>
                   <p className="text-xs text-slate-500 mt-1">
                     Typical response within 2–4 business hours.
@@ -279,14 +279,14 @@ const ContactUs = ({ showLayout = true }) => {
 
               <div className="pt-5 flex flex-wrap gap-2">
                 <a
-                  href="mailto:nulinz.official@gmail.com?subject=GradEnvy%20Inquiry"
+                  href="mailto:support@gradenvy.com?subject=GradEnvy%20Inquiry"
                   className="inline-flex items-center justify-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-semibold bg-[#0052ea] !text-white hover:bg-[#0038a8] transition-colors shadow-sm"
                 >
                   <Mail className="w-3.5 h-3.5" /> Send Email
                 </a>
                 <button
                   type="button"
-                  onClick={() => handleCopy("nulinz.official@gmail.com", "Email Address")}
+                  onClick={() => handleCopy("support@gradenvy.com", "Email Address")}
                   className="inline-flex items-center justify-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-semibold bg-slate-100 text-slate-700 hover:bg-slate-200 transition-colors"
                   title="Copy Email"
                 >

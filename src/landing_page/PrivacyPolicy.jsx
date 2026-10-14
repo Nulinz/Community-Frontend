@@ -247,10 +247,10 @@ const PrivacyPolicy = () => {
                             <p className="pt-2">
                                 Questions or concerns? Reading this privacy notice will help you understand your privacy rights and choices. If you do not agree with our policies and practices, please do not use our Services. If you still have any questions or concerns, please contact us at{" "}
                                 <a
-                                    href="mailto:nulinz.official@gmail.com"
+                                    href="mailto:support@gradenvy.com"
                                     className="text-[#0070F3] font-medium hover:underline break-all"
                                 >
-                                    nulinz.official@gmail.com
+                                    support@gradenvy.com
                                 </a>.
                             </p>
                         </div>
@@ -495,10 +495,10 @@ const PrivacyPolicy = () => {
                                 <p className="text-slate-600 text-xs sm:text-sm leading-relaxed">
                                     If you have questions or comments about this notice, you may email us at{" "}
                                     <a
-                                        href="mailto:nulinz.official@gmail.com"
+                                        href="mailto:support@gradenvy.com"
                                         className="text-[#0070F3] font-medium hover:underline"
                                     >
-                                        nulinz.official@gmail.com
+                                        support@gradenvy.com
                                     </a>.
                                 </p>
                             </section>
@@ -533,10 +533,10 @@ const PrivacyPolicy = () => {
                                 <p className="text-slate-600 text-xs sm:text-sm leading-relaxed">
                                     Based on the applicable laws of your country, you may have the right to request access to the personal information we collect from you, change that information, or delete it. To request to review, update, or delete your personal information, please submit a data subject access request by emailing us at{" "}
                                     <a
-                                        href="mailto:nulinz.official@gmail.com"
+                                        href="mailto:support@gradenvy.com"
                                         className="text-[#0070F3] font-medium hover:underline"
                                     >
-                                        nulinz.official@gmail.com
+                                        support@gradenvy.com
                                     </a>.
                                 </p>
                             </section>
