@@ -10,7 +10,7 @@ export const useOrganizerDisplayName = () => {
   const role = String(user?.role || "").trim().toLowerCase();
 
   if (role === "admin") {
-    return "nulinz community";
+    return "Gradenvy";
   }
 
   return String(user?.collegeName || user?.companyName || user?.name || "").trim();

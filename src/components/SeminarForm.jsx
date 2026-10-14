@@ -323,6 +323,7 @@ const SeminarForm = () => {
         staticOverrides={{ organizer: organizerName }}
         dateFields={["eventDate", "registrationStartDate", "registrationEndDate"]}
         onFieldChange={handleFieldChange}
+        isAdmin={userRole === "admin"}
       />
       <PayoutNoticeModal
         isOpen={showPayoutModal}

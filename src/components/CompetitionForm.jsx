@@ -375,6 +375,7 @@ const CompetitionForm = () => {
         staticOverrides={{ organizer: organizerName }}
         dateFields={["eventDate", "eventEndDate", "registrationStartDate", "registrationEndDate"]}
         onFieldChange={handleFieldChange}
+        isAdmin={userRole === "admin"}
       />
       <PayoutNoticeModal
         isOpen={showPayoutModal}

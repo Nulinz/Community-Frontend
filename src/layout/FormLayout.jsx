@@ -10,6 +10,12 @@ import ImageCropperModal from "../components/ImageCropperModal";
 const toCleanString = (value) => String(value || "").trim();
 
 /**
+ * Core identity fields that must always remain mandatory across all roles, including Admin.
+ * All other event form fields become optional when the user is an Admin.
+ */
+const ADMIN_MANDATORY_FIELDS = ["eventName", "organizer", "eventType", "eventCategory"];
+
+/**
  * Returns today's local date string formatted as YYYY-MM-DD.
  * Used for date input min constraints to prevent selecting past dates.
  */
@@ -1125,6 +1131,7 @@ const FormLayout = ({
   dateFields,
   onFieldChange,
   errors: externalErrors = {},
+  isAdmin = false,
 }) => {
   const navigate = useNavigate();
 
@@ -1415,7 +1422,9 @@ const FormLayout = ({
               : currentValue !== value;
             if (isHidden) continue;
           }
-          const isFieldRequired = field.required !== false;
+          const isFieldRequired = isAdmin
+            ? ADMIN_MANDATORY_FIELDS.includes(field.name)
+            : field.required !== false;
           const value = staticData[field.name];
           if (field.type === "file" && isEdit && typeof value === "string" && value.trim() !== "") continue;
           if (!isFieldRequired && !hasMeaningfulValue(value)) continue;
@@ -1492,7 +1501,8 @@ const FormLayout = ({
           }
           if (field.conditionalInput) {
             const isCondActive = staticData[field.name] === (field.conditionalInput.showWhen || "Yes");
-            if (isCondActive && field.conditionalInput.required === true) {
+            const isCondRequired = isAdmin ? false : (field.conditionalInput.required === true);
+            if (isCondActive && isCondRequired) {
               const condValue = staticData[field.conditionalInput.name];
               if (!hasMeaningfulValue(condValue)) {
                 toast.error(`Please enter details for ${field.label}`);
@@ -1514,7 +1524,7 @@ const FormLayout = ({
           if (!isRowRequired && !hasAnyValue) continue;
 
           for (const field of section.fields) {
-            const fieldRequired = isRowRequired && field.required !== false;
+            const fieldRequired = isAdmin ? false : (isRowRequired && field.required !== false);
             const value = row.values[field.name];
             
             if (fieldRequired && !hasMeaningfulValue(value)) {
@@ -1659,7 +1669,7 @@ const FormLayout = ({
                         <div key={fieldIndex} className={`${field.span === 2 ? "md:col-span-2" : ""} min-w-0 flex flex-col justify-start`}>
                           <Label
                             text={field.label}
-                            required={field.required !== false}
+                            required={isAdmin ? ADMIN_MANDATORY_FIELDS.includes(field.name) : field.required !== false}
                             onInfoClick={field.name === "externalRegistrationLink" ? () => handleFieldClick(field, null, true) : undefined}
                           />
                           <FormInput
@@ -1687,7 +1697,7 @@ const FormLayout = ({
                             <div className="mt-3">
                               <Label
                                 text={field.conditionalInput.label || `${field.label.replace(/ Opportunity$/i, "")} Details`}
-                                required={field.conditionalInput.required === true}
+                                required={isAdmin ? false : (field.conditionalInput.required === true)}
                               />
                               <FormInput
                                 field={{
@@ -1738,7 +1748,7 @@ const FormLayout = ({
                           return (
                             <div key={rowData.id} className="relative min-w-0">
                               <div className="flex items-center justify-between mb-1.5 min-h-[22px]">
-                                <Label text={`${itemLabelText} ${index + 1}`} required={baseField?.required !== false} className="mb-0" />
+                                <Label text={`${itemLabelText} ${index + 1}`} required={isAdmin ? false : (baseField?.required !== false)} className="mb-0" />
                                 {totalItems > 1 && (
                                   <button
                                     type="button"
@@ -1784,9 +1794,11 @@ const FormLayout = ({
                       (dynamicData[section.key] || []).map((rowData, rowIndex) => (
                         <div key={rowData.id} className={`grid grid-cols-1 ${section.fields.length >= 4 ? "md:grid-cols-2 lg:grid-cols-[repeat(4,minmax(0,1fr))_auto]" : "md:grid-cols-2 lg:grid-cols-[repeat(3,minmax(0,1fr))_auto]"} gap-4 items-end`}>
                           {section.fields.map((field, fieldIndex) => {
-                            const isFieldRequired = section.onlyFirstRowRequired
-                              ? rowIndex === 0 && field.required !== false
-                              : field.required !== false;
+                            const isFieldRequired = isAdmin
+                              ? false
+                              : (section.onlyFirstRowRequired
+                                  ? rowIndex === 0 && field.required !== false
+                                  : field.required !== false);
                             return (
                               <div key={fieldIndex}>
                                 <Label text={field.label} required={isFieldRequired} />
@@ -1824,7 +1836,7 @@ const FormLayout = ({
                         <div key={rowData.id} className="grid grid-cols-1 md:grid-cols-12 gap-4 items-end">
                           {section.fields.map((field, fieldIndex) => (
                             <div key={fieldIndex} className={field.colSpan}>
-                              <Label text={field.label} required={field.required !== false} />
+                              <Label text={field.label} required={isAdmin ? false : (field.required !== false)} />
                               <FormInput
                                 field={field}
                                 value={rowData.values[field.name]}
