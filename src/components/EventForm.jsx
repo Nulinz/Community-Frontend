@@ -14,7 +14,32 @@ import {
 import { usePayoutValidation } from "../utils/usePayoutValidation";
 import PayoutNoticeModal from "./PayoutNoticeModal";
 
-const departments = ["All", "CS", "IT", "ECE", "EEE", "AI / DS", "Mechanical", "Civil", "BME / Biotech", " Medical / Health", "Pharma", "Science", "Commerce / Finance", "Management", "Arts / Humanities", "Law", "Agri / Veterinary", "Architecture / Design", "Media / Communication", "Education / Social Sciences", "Graduates", "Professionals"]
+const departments = [
+  "All",
+  "CS",
+  "IT",
+  "ECE",
+  "EEE",
+  "AI / DS",
+  "Mechanical",
+  "Civil",
+  "BME / Biotech",
+  "Medical / Health",
+  "Pharma",
+  "Science",
+  "Commerce / Finance",
+  "Management",
+  "Arts / Humanities",
+  "Law",
+  "Agri / Veterinary",
+  "Architecture / Design",
+  "Media / Communication",
+  "Education / Social Sciences",
+  "Graduates",
+  "Post Graduates",
+  "Professionals",
+  "Other Related Departments",
+];
 
 
 const eventFormConfig = [
@@ -39,6 +64,9 @@ const eventFormConfig = [
           "Symposium",
           "Cultural",
           "Sports",
+          "Training Program",
+          "FDP",
+          "Paper Presentation",
         ],
       },
       { name: "eventName", label: "Event Name", type: "text" },
@@ -53,7 +81,14 @@ const eventFormConfig = [
       },
       { name: "eventDate", label: "Event Date", type: "date", min: "today" },
       { name: "eventStartTime", label: "Event Start Time", type: "time" },
-      { name: "eventEndTime", label: "Event End Time", type: "time" },
+      {
+        name: "eventEndDate",
+        label: "Event End Date",
+        type: "date",
+        required: false,
+        min: (data) => data.eventDate || "today",
+      },
+      { name: "eventEndTime", label: "Event End Time", type: "time", required: false },
       { name: "registrationType", label: "Registration Type", type: "radio", options: ["Free", "Paid"] },
       {
         name: "registrationStartDate",
@@ -81,8 +116,8 @@ const eventFormConfig = [
         name: "coverImage",
         label: "Cover Image",
         type: "file",
-        dimensions: { width: 350, height: 290 },
-        hint: "Required dimensions: 350 × 290 px (W × H).",
+        dimensions: { width: 1200, height: 400 },
+        hint: "Recommended dimensions: 1200 × 400 px (Banner format).",
       },
     ],
   },
@@ -100,6 +135,10 @@ const eventFormConfig = [
     title: "Event Schedule",
     type: "dynamic",
     key: "schedule",
+    dynamicStyle: "row-action",
+    initialRows: 1,
+    onlyFirstRowRequired: true,
+    itemLabel: "Schedule Item",
     fields: [
       { name: "name", label: "Name", type: "text", colSpan: "md:col-span-4" },
       { name: "startTime", label: "Start Time", type: "time", colSpan: "md:col-span-3" },
@@ -124,7 +163,7 @@ const eventFormConfig = [
       { showWhen: { field: "prizesAvailable", value: "Yes" }, name: "firstPrize", label: "1st Prize", type: "text", required: true },
       { showWhen: { field: "prizesAvailable", value: "Yes" }, name: "secondPrize", label: "2nd Prize", type: "text", required: false },
       { showWhen: { field: "prizesAvailable", value: "Yes" }, name: "thirdPrize", label: "3rd Prize", type: "text", required: false },
-      { showWhen: { field: "prizesAvailable", value: "Yes" }, name: "participationPrize", label: "Participation Prize", type: "text", required: false },
+      { name: "participationPrize", label: "Participation Certificate", type: "radio", options: ["Yes", "No"], defaultValue: "No", required: false },
     ],
   },
   // {
@@ -157,7 +196,7 @@ const eventFormConfig = [
     fields: [
       { name: "foodProvide", label: "Food Provide", type: "radio", options: ["Yes", "No"] },
       { showWhen: { field: "foodProvide", value: "Yes" }, name: "vegNonVeg", label: "Veg / Non-Veg", type: "radio", options: ["Veg", "Non-veg", "Both"] },
-      { showWhen: { field: "foodProvide", value: "Yes" }, name: "midnightSnacks", label: "Snacks", type: "radio", options: ["Yes", "No"] },
+      { name: "midnightSnacks", label: "Snacks", type: "radio", options: ["Yes", "No"] },
     ],
   },
   {
@@ -213,6 +252,44 @@ const eventFormConfig = [
       { name: "individualFees", label: "Individual Fees", type: "number", min: 0, step: "1", allowDecimals: false },
       { showWhen: { field: "teamOrIndividualEvent", value: ["Team", "Both"] }, name: "teamFees", label: "Team Fees", type: "number", min: 0, step: "1", allowDecimals: false },
       { name: "lateFees", label: "Late Fees", type: "number", min: 0, step: "1", allowDecimals: false },
+      {
+        name: "gst",
+        label: "GST",
+        type: "radio",
+        options: ["Yes", "No"],
+        defaultValue: "No",
+        required: false,
+      },
+    ],
+  },
+  {
+    title: "Additional Fees Details",
+    subtitle: "Optionally add custom fee categories (e.g. External Participant Fees, Spot Entry)",
+    type: "dynamic",
+    key: "customFees",
+    dynamicStyle: "row-action",
+    itemLabel: "Fee Category",
+    showWhen: { field: "registrationType", value: "Paid" },
+    initialRows: 0,
+    onlyFirstRowRequired: false,
+    fields: [
+      {
+        name: "feeLabel",
+        label: "Fee Name / Description",
+        type: "text",
+        placeholder: "e.g. External Participant Fees",
+        colSpan: "md:col-span-7",
+      },
+      {
+        name: "feeAmount",
+        label: "Amount (₹)",
+        type: "number",
+        min: 0,
+        step: "1",
+        allowDecimals: false,
+        placeholder: "e.g. 500",
+        colSpan: "md:col-span-4",
+      },
     ],
   },
   {
@@ -288,7 +365,7 @@ const EventForm = () => {
       value,
       currentData,
       !!editData?._id,
-      false
+      true
     );
     if (dateValidationOverride) {
       return dateValidationOverride;
@@ -303,7 +380,7 @@ const EventForm = () => {
       }
 
       // Final boundary validation check prior to submission
-      if (!validateEventSubmission(payload, !!editData?._id, false)) {
+      if (!validateEventSubmission(payload, !!editData?._id, true)) {
         return;
       }
 
@@ -336,7 +413,7 @@ const EventForm = () => {
         editData={editData}
         onSubmit={handleSubmit}
         staticOverrides={{ organizer: organizerName }}
-        dateFields={["eventDate", "registrationStartDate", "registrationEndDate"]}
+        dateFields={["eventDate", "eventEndDate", "registrationStartDate", "registrationEndDate"]}
         onFieldChange={handleFieldChange}
         isAdmin={userRole === "admin"}
       />

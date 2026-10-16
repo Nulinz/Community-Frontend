@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from "react";
-import { Trash2, Plus, ChevronDown, Calendar, ChevronDown as MultiIcon, ChevronLeft, ChevronRight, Search, X, Check, Info, AlertCircle } from "lucide-react";
+import { Trash2, Plus, ChevronDown, Calendar, ChevronDown as MultiIcon, ChevronLeft, ChevronRight, Search, X, Check, Info, AlertCircle, Clock } from "lucide-react";
+import countryCodes from "country-codes-list";
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 import setFileName from "../utils/setFileName";
@@ -150,6 +151,10 @@ const createInitialStaticData = (config, overrides = {}) => {
   config.filter((s) => s.type === "static").forEach((section) => {
     section.fields.forEach((field) => {
       data[field.name] = getInitialFieldValue(field);
+      if (field.type === "tel") {
+        const codeKey = field.name === "phoneNumber" ? "countryCode" : `${field.name}CountryCode`;
+        data[codeKey] = "+91";
+      }
       if (field.conditionalInput) {
         data[field.conditionalInput.name] = field.conditionalInput.defaultValue !== undefined ? field.conditionalInput.defaultValue : "";
       }
@@ -166,6 +171,9 @@ const createEmptyDynamicRow = (section, existingRowsCount = 0) => {
       values[field.name] = `Round ${existingRowsCount + 1}`;
     }
   });
+  if (section.fields.some((f) => f.type === "tel")) {
+    values.countryCode = "+91";
+  }
   return { id: `${Date.now()}-${Math.random()}`, values };
 };
 
@@ -204,6 +212,403 @@ const Label = ({ text, required = true, className = "mb-2", onInfoClick }) => (
 
 // ─── Action Button (fixed width) ────────────────────────────
 const ACTION_BTN_CLASS = "h-10 w-20 inline-flex items-center justify-center rounded-md text-sm font-bold transition shrink-0";
+
+// ─── Country Calling Codes Configuration ───────────────────
+/**
+ * Cached list of international dialing codes extracted from country-codes-list.
+ * India (+91) is explicitly prioritized at the top for domestic user convenience,
+ * followed by all other countries sorted alphabetically.
+ */
+const rawCountries = (() => {
+  try {
+    return countryCodes.all() || [];
+  } catch (_e) {
+    return [];
+  }
+})();
+
+const indiaCountryEntry = rawCountries.find((c) => c.countryCode === "IN");
+const otherCountryEntries = rawCountries
+  .filter((c) => c.countryCode !== "IN")
+  .sort((a, b) => (a.countryNameEn || "").localeCompare(b.countryNameEn || ""));
+
+const COUNTRY_OPTIONS = [
+  ...(indiaCountryEntry
+    ? [
+        {
+          name: indiaCountryEntry.countryNameEn,
+          code: `+${indiaCountryEntry.countryCallingCode}`,
+          flag: indiaCountryEntry.flag,
+          iso: indiaCountryEntry.countryCode,
+        },
+      ]
+    : [{ name: "India", code: "+91", flag: "🇮🇳", iso: "IN" }]),
+  ...otherCountryEntries.map((c) => ({
+    name: c.countryNameEn,
+    code: `+${c.countryCallingCode}`,
+    flag: c.flag,
+    iso: c.countryCode,
+  })),
+];
+
+// ─── CountryCodeSelect (Searchable Calling Code Popover) ──────
+/**
+ * Reusable country code picker for phone number inputs across all application forms.
+ * Solves international calling code selection while keeping the country code completely
+ * decoupled from the 10-digit national number. This architecture avoids breakages in SMS
+ * gateways, third-party validation, backend Schemas, and mobile apps.
+ */
+const CountryCodeSelect = ({ value = "+91", onChange, readOnly = false }) => {
+  const [isOpen, setIsOpen] = useState(false);
+  const [search, setSearch] = useState("");
+  const containerRef = useRef(null);
+  const searchInputRef = useRef(null);
+
+  // Close dropdown on outside click
+  useEffect(() => {
+    const handleClickOutside = (e) => {
+      if (containerRef.current && !containerRef.current.contains(e.target)) {
+        setIsOpen(false);
+        setSearch("");
+      }
+    };
+    if (isOpen) {
+      document.addEventListener("mousedown", handleClickOutside);
+    }
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, [isOpen]);
+
+  // Focus search input on open
+  useEffect(() => {
+    if (isOpen && searchInputRef.current) {
+      searchInputRef.current.focus();
+    }
+  }, [isOpen]);
+
+  const normalizedValue = value ? (value.startsWith("+") ? value : `+${value}`) : "+91";
+  const selectedCountry = COUNTRY_OPTIONS.find((c) => c.code === normalizedValue) || COUNTRY_OPTIONS[0];
+
+  const filteredCountries = search.trim()
+    ? COUNTRY_OPTIONS.filter((c) => {
+        const q = search.toLowerCase().trim();
+        return (
+          c.name.toLowerCase().includes(q) ||
+          c.code.includes(q) ||
+          c.iso.toLowerCase().includes(q)
+        );
+      })
+    : COUNTRY_OPTIONS;
+
+  return (
+    <div className="relative shrink-0 h-full" ref={containerRef}>
+      <button
+        type="button"
+        disabled={readOnly}
+        onClick={() => !readOnly && setIsOpen(!isOpen)}
+        className="h-full px-2.5 flex items-center gap-1 text-xs md:text-sm font-medium text-gray-700 bg-gray-50 border-r border-gray-200 hover:bg-gray-100 rounded-l transition-colors cursor-pointer select-none"
+        title="Select Country Code"
+      >
+        <span className="text-base leading-none select-none">{selectedCountry?.flag || "🌐"}</span>
+        <span className="font-semibold text-gray-800 text-xs md:text-sm">{selectedCountry?.code || "+91"}</span>
+        <ChevronDown size={14} className={`text-gray-400 transition-transform duration-200 ${isOpen ? "rotate-180" : ""}`} />
+      </button>
+
+      {isOpen && (
+        <div className="absolute top-full left-0 mt-1.5 z-50 w-72 bg-white border border-gray-200 rounded-xl shadow-xl overflow-hidden flex flex-col animate-in fade-in zoom-in-95 duration-150">
+          <div className="p-2 border-b border-gray-100 bg-gray-50 flex items-center gap-2">
+            <Search size={14} className="text-gray-400 shrink-0" />
+            <input
+              ref={searchInputRef}
+              type="text"
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              placeholder="Search country or code..."
+              className="w-full bg-transparent text-xs md:text-sm outline-none text-gray-800 placeholder-gray-400"
+            />
+            {search && (
+              <button
+                type="button"
+                onClick={() => setSearch("")}
+                className="text-gray-400 hover:text-gray-600 p-0.5"
+                title="Clear search"
+              >
+                <X size={14} />
+              </button>
+            )}
+          </div>
+
+          <div className="max-h-60 overflow-y-auto divide-y divide-gray-50">
+            {filteredCountries.length === 0 ? (
+              <div className="p-3 text-center text-xs text-gray-400">No countries found</div>
+            ) : (
+              filteredCountries.map((c) => {
+                const isSelected = c.code === normalizedValue && c.iso === selectedCountry?.iso;
+                return (
+                  <button
+                    key={`${c.iso}-${c.code}`}
+                    type="button"
+                    onClick={() => {
+                      onChange?.(c.code);
+                      setIsOpen(false);
+                      setSearch("");
+                    }}
+                    className={`w-full flex items-center justify-between px-3 py-2 text-left hover:bg-gray-50 transition-colors cursor-pointer ${
+                      isSelected ? "bg-blue-50/70 font-semibold" : ""
+                    }`}
+                  >
+                    <div className="flex items-center gap-2 truncate">
+                      <span className="text-base leading-none shrink-0">{c.flag}</span>
+                      <span className="text-xs md:text-sm text-gray-700 truncate">{c.name}</span>
+                    </div>
+                    <span className="text-xs font-mono font-medium text-gray-500 ml-2 shrink-0">{c.code}</span>
+                  </button>
+                );
+              })
+            )}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+};
+
+// ─── TimePickerInput (12-hour AM/PM Interactive Popover) ───────────
+/**
+ * Reusable custom time picker component for FormLayout.
+ * Replaces the native browser `<input type="time">` with an intuitive,
+ * 12-hour AM/PM column selector popover matching the project's design system.
+ * Emits values strictly in standard 24-hour "HH:mm" format (e.g. "09:30", "14:45")
+ * preserving complete backward compatibility with backend, mobile, and validators.
+ */
+const TimePickerInput = ({ field, value, onChange, hasError = false }) => {
+  const [isOpen, setIsOpen] = useState(false);
+  const containerRef = useRef(null);
+
+  // Parse standard "HH:mm" 24h string into 12-hour components
+  const parseTime = (timeStr) => {
+    if (!timeStr || typeof timeStr !== "string") {
+      return { hour12: 9, minute: "00", period: "AM" };
+    }
+    const parts = timeStr.split(":");
+    if (parts.length < 2) return { hour12: 9, minute: "00", period: "AM" };
+    const h24 = parseInt(parts[0], 10);
+    const m = parseInt(parts[1], 10);
+    if (isNaN(h24) || isNaN(m)) return { hour12: 9, minute: "00", period: "AM" };
+
+    const period = h24 >= 12 ? "PM" : "AM";
+    let hour12 = h24 % 12;
+    if (hour12 === 0) hour12 = 12;
+    const minute = String(m).padStart(2, "0");
+    return { hour12, minute, period };
+  };
+
+  const { hour12, minute, period } = parseTime(value);
+
+  // Close on outside click
+  useEffect(() => {
+    const handleClickOutside = (e) => {
+      if (containerRef.current && !containerRef.current.contains(e.target)) {
+        setIsOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
+  // Enter key commits the selection and closes the popover, Escape closes
+  useEffect(() => {
+    if (!isOpen) return;
+    const handleKeyDown = (e) => {
+      if (e.key === "Enter") {
+        e.preventDefault();
+        e.stopPropagation();
+        handleSelectTime(hour12, minute, period);
+        setIsOpen(false);
+      } else if (e.key === "Escape") {
+        e.preventDefault();
+        e.stopPropagation();
+        setIsOpen(false);
+      }
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [isOpen, hour12, minute, period]);
+
+  const hoursList = [12, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11];
+  const minutesList = ["00", "05", "10", "15", "20", "25", "30", "35", "40", "45", "50", "55"];
+
+  const handleSelectTime = (newH12, newMin, newPeriod) => {
+    let h24 = newH12 % 12;
+    if (newPeriod === "PM") h24 += 12;
+    const finalH = String(h24).padStart(2, "0");
+    const finalM = String(newMin).padStart(2, "0");
+    onChange(`${finalH}:${finalM}`);
+  };
+
+  // Formatted display string for the user (e.g. "09:30 AM")
+  const displayLabel = value
+    ? `${String(hour12).padStart(2, "0")}:${minute} ${period}`
+    : "";
+
+  return (
+    <div className="relative w-full" ref={containerRef}>
+      <div
+        role="button"
+        tabIndex={field.readOnly ? -1 : 0}
+        aria-haspopup="dialog"
+        aria-expanded={isOpen}
+        onClick={() => !field.readOnly && setIsOpen(!isOpen)}
+        onKeyDown={(e) => {
+          if (field.readOnly) return;
+          if (e.key === "Enter") {
+            e.preventDefault();
+            if (isOpen) {
+              handleSelectTime(hour12, minute, period);
+              setIsOpen(false);
+            } else {
+              setIsOpen(true);
+            }
+          } else if (e.key === " " && !isOpen) {
+            e.preventDefault();
+            setIsOpen(true);
+          } else if (e.key === "Escape" && isOpen) {
+            e.preventDefault();
+            setIsOpen(false);
+          }
+        }}
+        className={`w-full h-10 px-3 pr-9 border rounded-lg bg-[#fcfcfc] hover:bg-white flex items-center cursor-pointer relative transition-colors shadow-sm outline-none focus:ring-1 focus:ring-blue-400 focus:border-blue-400 ${
+          hasError
+            ? "border-red-400 focus-within:border-red-500 ring-1 ring-red-400"
+            : "border-gray-200 hover:border-gray-300"
+        } ${field.readOnly ? "opacity-70 cursor-not-allowed" : ""}`}
+      >
+        {displayLabel ? (
+          <span className="text-gray-800 text-sm font-medium">
+            {displayLabel}
+          </span>
+        ) : (
+          <span className="text-gray-400 text-sm select-none">
+            {field.placeholder || "Select Time (e.g. 09:30 AM)"}
+          </span>
+        )}
+
+        <span className="pointer-events-none absolute right-2.5 top-1/2 -translate-y-1/2 text-gray-400">
+          <Clock size={16} />
+        </span>
+      </div>
+
+      {isOpen && (
+        <div className="absolute top-full left-0 z-50 mt-1.5 w-72 bg-white rounded-xl shadow-xl border border-gray-200 p-3 animate-in fade-in zoom-in-95 duration-150">
+          {/* Header */}
+          <div className="flex items-center justify-between pb-2 mb-2 border-b border-gray-100">
+            <span className="text-xs font-bold text-gray-700 tracking-wide uppercase">Select Time</span>
+            {value && (
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onChange("");
+                }}
+                className="text-[11px] text-red-500 hover:text-red-700 font-semibold cursor-pointer"
+              >
+                Clear
+              </button>
+            )}
+          </div>
+
+          {/* AM / PM Toggle */}
+          <div className="grid grid-cols-2 gap-1.5 p-1 bg-gray-100 rounded-lg mb-3">
+            <button
+              type="button"
+              onClick={() => handleSelectTime(hour12, minute, "AM")}
+              className={`py-1 text-xs font-bold rounded-md transition-all cursor-pointer ${
+                period === "AM" ? "bg-[#171717] text-white shadow-xs" : "text-gray-600 hover:text-gray-900"
+              }`}
+            >
+              AM
+            </button>
+            <button
+              type="button"
+              onClick={() => handleSelectTime(hour12, minute, "PM")}
+              className={`py-1 text-xs font-bold rounded-md transition-all cursor-pointer ${
+                period === "PM" ? "bg-[#171717] text-white shadow-xs" : "text-gray-600 hover:text-gray-900"
+              }`}
+            >
+              PM
+            </button>
+          </div>
+
+          {/* Columns for Hour and Minute */}
+          <div className="grid grid-cols-2 gap-2 text-center">
+            {/* Hours Column */}
+            <div>
+              <span className="block text-[11px] font-semibold text-gray-400 mb-1">Hour</span>
+              <div className="max-h-44 overflow-y-auto space-y-1 pr-1">
+                {hoursList.map((h) => {
+                  const isSelected = hour12 === h;
+                  return (
+                    <button
+                      key={h}
+                      type="button"
+                      onClick={() => handleSelectTime(h, minute, period)}
+                      className={`w-full py-1.5 rounded-lg text-xs font-semibold transition-colors cursor-pointer ${
+                        isSelected
+                          ? "bg-[#171717] text-white"
+                          : "text-gray-700 hover:bg-gray-100"
+                      }`}
+                    >
+                      {String(h).padStart(2, "0")}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* Minutes Column */}
+            <div>
+              <span className="block text-[11px] font-semibold text-gray-400 mb-1">Minute</span>
+              <div className="max-h-44 overflow-y-auto space-y-1 pr-1">
+                {minutesList.map((m) => {
+                  const isSelected = minute === m;
+                  return (
+                    <button
+                      key={m}
+                      type="button"
+                      onClick={() => handleSelectTime(hour12, m, period)}
+                      className={`w-full py-1.5 rounded-lg text-xs font-semibold transition-colors cursor-pointer ${
+                        isSelected
+                          ? "bg-[#171717] text-white"
+                          : "text-gray-700 hover:bg-gray-100"
+                      }`}
+                    >
+                      {m}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          </div>
+
+          {/* Done Button */}
+          <div className="pt-3 mt-3 border-t border-gray-100">
+            <button
+              type="button"
+              onClick={() => {
+                if (!value) {
+                  handleSelectTime(hour12, minute, period);
+                }
+                setIsOpen(false);
+              }}
+              className="w-full py-1.5 bg-[#171717] hover:bg-[#2b2b2b] text-white text-xs font-bold rounded-lg transition-colors cursor-pointer"
+            >
+              Done
+            </button>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+};
 
 // ─── YearPickerInput (Interactive Popover Grid + Direct Typing) ────
 const YearPickerInput = ({ field, value, onChange }) => {
@@ -854,7 +1259,17 @@ const FileInput = ({ field, value, onChange, hasError }) => {
 };
 
 // ─── FormInput ──────────────────────────────────────────────
-const FormInput = ({ field, value, onChange, inputName, staticData, hasError = false, onFieldClick }) => {
+const FormInput = ({
+  field,
+  value,
+  onChange,
+  inputName,
+  staticData,
+  hasError = false,
+  onFieldClick,
+  countryCode,
+  onCountryCodeChange,
+}) => {
   if (field.type === "checkbox") {
     const selectedValues = Array.isArray(value) ? value : [];
     return (
@@ -949,7 +1364,7 @@ const FormInput = ({ field, value, onChange, inputName, staticData, hasError = f
     return (
       <textarea
         rows={4}
-        value={value}
+        value={value ?? ""}
         placeholder={typeof field.placeholder === "function" ? field.placeholder(staticData) : field.placeholder}
         onChange={(e) => onChange(e.target.value)}
         className={`w-full p-3 border rounded bg-[#fcfcfc] outline-none text-sm resize-none transition-colors ${
@@ -964,6 +1379,11 @@ const FormInput = ({ field, value, onChange, inputName, staticData, hasError = f
   // ── interactive year picker ───────────────────────────────
   if (field.type === "year") {
     return <YearPickerInput field={field} value={value} onChange={onChange} />;
+  }
+
+  // ── interactive custom time picker ────────────────────────
+  if (field.type === "time") {
+    return <TimePickerInput field={field} value={value} onChange={onChange} hasError={hasError} />;
   }
 
   // ── date with custom calendar icon ────────────────────────
@@ -1038,23 +1458,58 @@ const FormInput = ({ field, value, onChange, inputName, staticData, hasError = f
     );
   }
 
+  // ── tel (interactive Country Code dropdown + 10-digit phone) ─
+  if (field.type === "tel") {
+    return (
+      <div
+        className={`flex items-center w-full h-10 border rounded bg-[#fcfcfc] transition-colors focus-within:ring-1 ${
+          hasError
+            ? "border-red-400 focus-within:border-red-500 focus-within:ring-red-400"
+            : "border-gray-200 focus-within:border-blue-400 focus-within:ring-blue-400"
+        }`}
+      >
+        <CountryCodeSelect
+          value={countryCode || "+91"}
+          onChange={onCountryCodeChange}
+          readOnly={field.readOnly}
+        />
+        <input
+          type="tel"
+          value={value || ""}
+          readOnly={field.readOnly}
+          placeholder={typeof field.placeholder === "function" ? field.placeholder(staticData) : (field.placeholder || "Enter 10-digit number")}
+          maxLength={10}
+          inputMode="numeric"
+          onChange={(e) => {
+            if (field.readOnly) return;
+            const digitsOnly = e.target.value.replace(/\D/g, "").slice(0, 10);
+            onChange(digitsOnly);
+          }}
+          className="flex-1 h-full px-3 bg-transparent outline-none text-sm text-gray-800 placeholder-gray-400 min-w-0"
+        />
+      </div>
+    );
+  }
+
   const isExternalReg = field.name === "externalRegistrationLink";
-  const isFeeField = field.name?.toLowerCase().includes("fee") || field.sanitize === "integer" || (field.type === "number" && field.allowDecimals === false);
-  const disallowNegative = field.allowNegative !== true;
-  const disallowDecimals = isFeeField || field.allowDecimals === false;
+  // Only treat as a fee/integer numeric input if the field is actually numeric or explicitly marked integer
+  const isNumericField = field.type === "number" || field.sanitize === "integer";
+  const isFeeField = isNumericField && (field.name?.toLowerCase().includes("fee") || field.sanitize === "integer" || field.allowDecimals === false);
+  const disallowNegative = isNumericField && field.allowNegative !== true;
+  const disallowDecimals = isFeeField || (isNumericField && field.allowDecimals === false);
 
   const inputElem = (
     <input
       type={field.type}
-      value={value}
+      value={value ?? ""}
       readOnly={field.readOnly}
       placeholder={typeof field.placeholder === "function" ? field.placeholder(staticData) : field.placeholder}
-      min={field.min !== undefined ? field.min : (field.type === "number" || isFeeField ? 0 : undefined)}
-      step={field.step || (field.type === "number" ? (disallowDecimals ? "1" : "any") : undefined)}
+      min={field.min !== undefined ? field.min : (isNumericField ? 0 : undefined)}
+      step={field.step || (isNumericField ? (disallowDecimals ? "1" : "any") : undefined)}
       onClick={(e) => onFieldClick?.(field, e)}
       onFocus={(e) => onFieldClick?.(field, e)}
       onKeyDown={(e) => {
-        if (field.type === "number" || isFeeField) {
+        if (isNumericField) {
           // Disallow negative sign, plus sign, and scientific notation
           if (disallowNegative && (e.key === "-" || e.key === "+" || e.key === "e" || e.key === "E")) {
             e.preventDefault();
@@ -1069,7 +1524,7 @@ const FormInput = ({ field, value, onChange, inputName, staticData, hasError = f
         if (field.readOnly) return;
         let nextValue = e.target.value;
         if (field.type === "tel") nextValue = nextValue.replace(/\D/g, "").slice(0, 10);
-        if (field.type === "number" || isFeeField) {
+        if (isNumericField) {
           if (disallowDecimals) {
             // Strip any non-digit characters including decimal points and negative signs
             nextValue = nextValue.replace(/\D/g, "");
@@ -1092,8 +1547,7 @@ const FormInput = ({ field, value, onChange, inputName, staticData, hasError = f
       }}
       inputMode={
         field.type === "tel" ||
-        field.type === "number" ||
-        isFeeField ||
+        isNumericField ||
         field.name === "accountNumber" ||
         field.sanitize === "accountNumber" ||
         field.sanitize === "noAlphabets"
@@ -1177,6 +1631,12 @@ const FormLayout = ({
             } else {
               data[field.name] = "";
             }
+          } else if (field.type === "tel") {
+            const codeKey = field.name === "phoneNumber" ? "countryCode" : `${field.name}CountryCode`;
+            data[codeKey] = editData[codeKey] || editData.countryCode || "+91";
+            data[field.name] = editData[field.name] !== undefined && editData[field.name] !== null
+              ? editData[field.name]
+              : getInitialFieldValue(field);
           } else {
             const val = editData[field.name];
             data[field.name] = val !== undefined && val !== null
@@ -1215,6 +1675,9 @@ const FormLayout = ({
               }
             } else {
               values = { [section.fields[0].name]: item };
+            }
+            if (section.fields.some((f) => f.type === "tel")) {
+              values.countryCode = item.countryCode || "+91";
             }
             return {
               id: item?._id || `${Date.now()}-${Math.random()}`,
@@ -1336,6 +1799,10 @@ const FormLayout = ({
           }
 
           const rawValue = sanitizedData[field.name];
+          if (field.type === "tel") {
+            const codeKey = field.name === "phoneNumber" ? "countryCode" : `${field.name}CountryCode`;
+            payload[codeKey] = sanitizedData[codeKey] || "+91";
+          }
           if (field.type === "file") {
             payload[payloadKey] = rawValue;
           } else if (field.type === "multiselect" || field.type === "searchable-multiselect" || Array.isArray(rawValue)) {
@@ -1371,6 +1838,9 @@ const FormLayout = ({
                 rowPayload[rowKey] = Array.isArray(rawValue) ? rawValue : [];
               else rowPayload[rowKey] = toCleanString(rawValue);
             });
+            if (section.fields.some((f) => f.type === "tel")) {
+              rowPayload.countryCode = row?.values?.countryCode || "+91";
+            }
             return rowPayload;
           })
           .filter((rowPayload) => Object.values(rowPayload).some(hasMeaningfulValue));
@@ -1430,6 +1900,10 @@ const FormLayout = ({
           if (!isFieldRequired && !hasMeaningfulValue(value)) continue;
           if (!hasMeaningfulValue(value)) {
             toast.error(`${field.label} is required`);
+            return false;
+          }
+          if (field.type === "tel" && hasMeaningfulValue(value) && value.length !== 10) {
+            toast.error(`${field.label} must be exactly 10 digits`);
             return false;
           }
           const isEmailField = field.sanitize === "validMail" || field.name === "mailId" || field.type === "email";
@@ -1680,6 +2154,11 @@ const FormLayout = ({
                             staticData={staticData}
                             hasError={!!activeErrors[field.name]}
                             onFieldClick={handleFieldClick}
+                            countryCode={staticData[field.name === "phoneNumber" ? "countryCode" : `${field.name}CountryCode`] || "+91"}
+                            onCountryCodeChange={(code) => {
+                              const codeKey = field.name === "phoneNumber" ? "countryCode" : `${field.name}CountryCode`;
+                              updateStaticField(codeKey, code);
+                            }}
                           />
                           {activeErrors[field.name] ? (
                             <p className="text-[12px] text-red-500 mt-1 font-medium flex items-center gap-1.5 animate-in fade-in duration-150">
@@ -1765,6 +2244,8 @@ const FormLayout = ({
                                 value={rowData.values[baseField.name]}
                                 onChange={(value) => updateDynamicField(section.key, rowData.id, baseField.name, value)}
                                 inputName={`${section.key}_${rowData.id}_${baseField.name}`}
+                                countryCode={rowData.values.countryCode || "+91"}
+                                onCountryCodeChange={(code) => updateDynamicField(section.key, rowData.id, "countryCode", code)}
                               />
                             </div>
                           );
@@ -1807,6 +2288,8 @@ const FormLayout = ({
                                   value={rowData.values[field.name]}
                                   onChange={(value) => updateDynamicField(section.key, rowData.id, field.name, value)}
                                   inputName={`${section.key}_${rowData.id}_${field.name}`}
+                                  countryCode={rowData.values.countryCode || "+91"}
+                                  onCountryCodeChange={(code) => updateDynamicField(section.key, rowData.id, "countryCode", code)}
                                 />
                               </div>
                             );
@@ -1842,12 +2325,14 @@ const FormLayout = ({
                                 value={rowData.values[field.name]}
                                 onChange={(value) => updateDynamicField(section.key, rowData.id, field.name, value)}
                                 inputName={`${section.key}_${rowData.id}_${field.name}`}
+                                countryCode={rowData.values.countryCode || "+91"}
+                                onCountryCodeChange={(code) => updateDynamicField(section.key, rowData.id, "countryCode", code)}
                               />
                             </div>
                           ))}
-                          {/* spacer col always present; icon only on last row */}
+                          {/* spacer col always present; delete icon available whenever more than 1 row */}
                           <div className="md:col-span-1 flex justify-center pb-2 h-10 items-center">
-                            {isLastRow && rowIndex > 0 && (
+                            {rows.length > 1 && (
                               <Trash2
                                 size={18}
                                 className="text-red-500 cursor-pointer hover:scale-110 transition"

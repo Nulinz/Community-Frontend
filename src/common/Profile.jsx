@@ -229,7 +229,7 @@ const GlobalAISummit = () => {
                                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                                     <DataItem label="Food Provide" value="Yes" />
                                     <DataItem label="Veg / Non-Veg" value="Both" />
-                                    <DataItem label="Midnight Snacks" value="Yes" />
+                                    <DataItem label="Snacks" value="Yes" />
                                 </div>
                             </InfoCard>
 

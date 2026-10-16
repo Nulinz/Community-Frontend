@@ -1,15 +1,17 @@
 import React, { useRef, useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import {
-    MapPin, Briefcase, CalendarDays, Download, Plus, X, Upload, Loader2, SquarePen,
-    DollarSign, IndianRupee, QrCode
+    MapPin, Briefcase, CalendarDays, Clock, Download, Plus, X, Upload, Loader2, SquarePen,
+    DollarSign, IndianRupee, QrCode, Trash2
 } from 'lucide-react';
+import { calculateEventDuration } from '../utils/dateTimeValidation';
 import { assets } from '../assets/assets';
 import AppliedListSection from '../common/AppliedListSection';
 import AttendanceTabSection from './AttendanceTabSection';
 import EventQRCodeModal from './EventQRCodeModal';
 import { downloadCSVFromAPI } from '../utils/exportUtils';
 import { getCompetitionById, toggleCompetitionStatus, addCompetitionPost, updateEventStatus } from '../services/admin/adminServices';
+import { deleteModulePost } from '../services/commonServices';
 import { toast } from 'react-toastify';
 import { useMain } from '../context/MainContext';
 import { formatAddress } from '../utils/formatAddress';
@@ -34,6 +36,8 @@ const CompetitionProfile = () => {
     const [registrations, setRegistrations] = useState({ count: 0, list: [], revenue: null }); // ✅ add
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState(null);
+    const [postToDelete, setPostToDelete] = useState(null);
+    const [isDeletingPost, setIsDeletingPost] = useState(false);
     const fileInputRef = useRef(null);
     const { user, dynamicPath } = useMain()
     const BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
@@ -167,6 +171,39 @@ const CompetitionProfile = () => {
         }
     };
 
+    /**
+     * Dispatches unified post image deletion to common services.
+     * Updates state optimistically upon success and cleans up modal state.
+     */
+    const handleConfirmDeletePost = async () => {
+        if (!postToDelete) return;
+        const targetCompetitionId = id || competition?._id || competition?.id;
+        if (!targetCompetitionId) {
+            toast.error("Competition ID not found");
+            return;
+        }
+
+        try {
+            setIsDeletingPost(true);
+            const res = await deleteModulePost('competition', targetCompetitionId, postToDelete);
+            if (res?.success) {
+                toast.success(res.message || "Post deleted successfully");
+                setCompetition(prev => ({
+                    ...prev,
+                    posts: Array.isArray(res.data) ? res.data : prev.posts.filter(p => p !== postToDelete),
+                }));
+                setPostToDelete(null);
+            } else {
+                toast.error(res?.message || "Failed to delete post");
+            }
+        } catch (err) {
+            toast.error(err?.response?.data?.message || err?.message || "Failed to delete post");
+            console.error(err);
+        } finally {
+            setIsDeletingPost(false);
+        }
+    };
+
     const appliedListColumns = [
         { title: '#', dataIndex: 'sNo', key: 'sNo' },
         { title: 'Name', dataIndex: 'name', key: 'name' },
@@ -199,7 +236,8 @@ const CompetitionProfile = () => {
                                 <span className="flex items-center gap-2 "><MapPin size={16} /> {formatAddress(competition)}</span>
                             )}
                             <span className="flex items-center gap-2 "><Briefcase size={16} /> {competition.mode}</span>
-                            <span className="flex items-center gap-2 "><CalendarDays size={16} /> {competition.eventDate ? new Date(competition.eventDate).toLocaleDateString() : 'N/A'}</span>
+                            <span className="flex items-center gap-2 "><CalendarDays size={16} /> {competition.eventDate ? (competition.eventEndDate ? `${new Date(competition.eventDate).toLocaleDateString()} - ${new Date(competition.eventEndDate).toLocaleDateString()}` : new Date(competition.eventDate).toLocaleDateString()) : 'N/A'}</span>
+                            <span className="flex items-center gap-2 "><Clock size={16} /> {calculateEventDuration(competition.eventDate, competition.eventEndDate, competition.eventStartTime, competition.eventEndTime)}</span>
                         </div>
                     </div>
 
@@ -329,6 +367,7 @@ const CompetitionProfile = () => {
                                     <DataItem label="Reg End Date" value={competition.registrationEndDate ? new Date(competition.registrationEndDate).toLocaleDateString() : 'N/A'} />
                                     <DataItem label="Event Date" value={competition.eventEndDate ? `${new Date(competition.eventDate).toLocaleDateString()} - ${new Date(competition.eventEndDate).toLocaleDateString()}` : (competition.eventDate ? new Date(competition.eventDate).toLocaleDateString() : 'N/A')} />
                                     <DataItem label="Event Time" value={competition.eventStartTime ? `${competition.eventStartTime}${competition.eventEndTime ? ` - ${competition.eventEndTime}` : ''}` : 'N/A'} />
+                                    <DataItem label="Duration" value={calculateEventDuration(competition.eventDate, competition.eventEndDate, competition.eventStartTime, competition.eventEndTime)} />
                                     <DataItem label="Total Seats" value={competition.totalSeats ? competition.totalSeats : 'Unlimited / Not specified'} />
                                     <DataItem label="Event Mode" value={competition.mode} />
                                     {competition.mode !== "Offline" && competition.onlinePlatformLink && (
@@ -351,10 +390,18 @@ const CompetitionProfile = () => {
 
                             {String(competition.registrationType || '').trim().toLowerCase() === 'paid' && (
                                 <InfoCard title="Fees Details">
-                                    <div className="grid grid-cols-2 xl:grid-cols-3 gap-6">
+                                    <div className="grid grid-cols-2 xl:grid-cols-4 gap-6">
                                         <DataItem label="Individual Fees" value={`₹${competition.individualFees || 0}`} />
                                         <DataItem label="Team Fees" value={`₹${competition.teamFees || 0}`} />
                                         <DataItem label="Late Fees" value={`₹${competition.lateFees || 0}`} />
+                                        <DataItem label="GST" value={competition.gst || 'No'} />
+                                        {competition.customFees?.map((fee, idx) => (
+                                            <DataItem
+                                                key={fee._id || idx}
+                                                label={fee.feeLabel}
+                                                value={`₹${fee.feeAmount || 0}`}
+                                            />
+                                        ))}
                                     </div>
                                 </InfoCard>
                             )}
@@ -454,8 +501,8 @@ const CompetitionProfile = () => {
                                     <div className="grid grid-cols-1 gap-6">
                                         {competition.incharges.map((person, index) => (
                                             <div key={index} className="space-y-1">
-                                                <p className="font-bold text-primary">{person.type}: {person.name}</p>
-                                                <p className="text-sm text-secondary">Call: {person.phoneNumber}</p>
+                                                <p className="font-bold text-primary">{person.name}</p>
+                                                <p className="text-sm text-secondary">Call: {person.countryCode ? `${person.countryCode} ` : ''}{person.phoneNumber}</p>
                                                 <p className="text-sm text-secondary">Mail: {person.mailId}</p>
                                             </div>
                                         ))}
@@ -502,13 +549,27 @@ const CompetitionProfile = () => {
                             <h3 className="text-[18px] sm:text-[20px] font-bold text-[#1a1a1a] mb-5 sm:mb-6">Post</h3>
                             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4">
                                 {competition.posts?.map((image, index) => (
-                                    <div key={`${image}-${index}`} className="rounded-[18px] overflow-hidden border border-gray-200 bg-gray-50">
+                                    <div key={`${image}-${index}`} className="group relative rounded-[18px] overflow-hidden border border-gray-200 bg-gray-50 shadow-sm transition-all hover:shadow-md">
                                         <img
                                             src={`${STATIC_URL}/${image}`}
                                             alt={`Post ${index + 1}`}
-                                            className="w-full aspect-[3/4] object-cover"
+                                            className="w-full aspect-[3/4] object-cover transition-transform duration-300 group-hover:scale-105"
                                             loading="lazy"
                                         />
+                                        <div className="absolute inset-0 bg-black/20 opacity-0 group-hover:opacity-100 transition-opacity" />
+
+                                        {/* Delete Post Button */}
+                                        <button
+                                            type="button"
+                                            onClick={(e) => {
+                                                e.stopPropagation();
+                                                setPostToDelete(image);
+                                            }}
+                                            className="absolute top-2.5 right-2.5 p-2 bg-white/90 hover:bg-red-500 text-gray-700 hover:text-white rounded-full shadow-md transition-all duration-200 opacity-0 group-hover:opacity-100 cursor-pointer z-10 hover:scale-110 active:scale-95"
+                                            title="Delete post"
+                                        >
+                                            <Trash2 size={16} />
+                                        </button>
                                     </div>
                                 ))}
                                 {(!competition.posts || competition.posts.length === 0) && (
@@ -667,6 +728,41 @@ const CompetitionProfile = () => {
                                 className="h-11 rounded-[10px] bg-[#171717] text-white text-[15px] font-semibold"
                             >
                                 Done
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* Delete Post Confirmation Modal */}
+            {postToDelete && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-xs animate-in fade-in duration-200">
+                    <div className="bg-white rounded-[24px] shadow-2xl w-full max-w-sm p-6 border border-[#EAECF0] text-center space-y-4">
+                        <div className="w-12 h-12 rounded-full bg-red-100 text-red-600 flex items-center justify-center mx-auto">
+                            <Trash2 size={24} />
+                        </div>
+                        <div>
+                            <h3 className="text-[18px] font-bold text-[#171717]">Delete Post Image?</h3>
+                            <p className="text-[14px] text-gray-500 mt-1">
+                                Are you sure you want to permanently delete this post image? This action cannot be undone.
+                            </p>
+                        </div>
+                        <div className="flex items-center gap-3 pt-2">
+                            <button
+                                type="button"
+                                disabled={isDeletingPost}
+                                onClick={() => setPostToDelete(null)}
+                                className="flex-1 py-2.5 px-4 rounded-full border border-gray-300 text-gray-700 font-semibold text-sm hover:bg-gray-50 transition cursor-pointer"
+                            >
+                                Cancel
+                            </button>
+                            <button
+                                type="button"
+                                disabled={isDeletingPost}
+                                onClick={handleConfirmDeletePost}
+                                className="flex-1 py-2.5 px-4 rounded-full bg-red-600 text-white font-semibold text-sm hover:bg-red-700 transition flex items-center justify-center gap-2 cursor-pointer shadow-md active:scale-95 disabled:opacity-50"
+                            >
+                                {isDeletingPost ? <Loader2 size={16} className="animate-spin" /> : "Delete"}
                             </button>
                         </div>
                     </div>

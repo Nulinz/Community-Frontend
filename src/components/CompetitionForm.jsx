@@ -14,7 +14,32 @@ import { usePayoutValidation } from "../utils/usePayoutValidation";
 import PayoutNoticeModal from "./PayoutNoticeModal";
 
 
-const departments = ["All", "CS", "IT", "ECE", "EEE", "AI / DS", "Mechanical", "Civil", "BME / Biotech", "Medical / Health", "Pharma", "Science", "Commerce / Finance", "Management", "Arts / Humanities", "Law", "Agri / Veterinary", "Architecture / Design", "Media / Communication", "Education / Social Sciences", "Graduates", "Professionals"];
+const departments = [
+  "All",
+  "CS",
+  "IT",
+  "ECE",
+  "EEE",
+  "AI / DS",
+  "Mechanical",
+  "Civil",
+  "BME / Biotech",
+  "Medical / Health",
+  "Pharma",
+  "Science",
+  "Commerce / Finance",
+  "Management",
+  "Arts / Humanities",
+  "Law",
+  "Agri / Veterinary",
+  "Architecture / Design",
+  "Media / Communication",
+  "Education / Social Sciences",
+  "Graduates",
+  "Post Graduates",
+  "Professionals",
+  "Other Related Departments",
+];
 
 const competitionFormConfig = [
   {
@@ -69,8 +94,8 @@ const competitionFormConfig = [
         name: "coverImage",
         label: "Cover Image",
         type: "file",
-        dimensions: { width: 350, height: 290 },
-        hint: "Required dimensions: 350 × 290 px (W × H).",
+        dimensions: { width: 1200, height: 400 },
+        hint: "Recommended dimensions: 1200 × 400 px (Banner format).",
       },
     ],
   },
@@ -164,7 +189,7 @@ const competitionFormConfig = [
       { showWhen: { field: "prizesAvailable", value: "Yes" }, name: "firstPrize", label: "1st Prize", type: "text", required: false },
       { showWhen: { field: "prizesAvailable", value: "Yes" }, name: "secondPrize", label: "2nd Prize", type: "text", required: false },
       { showWhen: { field: "prizesAvailable", value: "Yes" }, name: "thirdPrize", label: "3rd Prize", type: "text", required: false },
-      { showWhen: { field: "prizesAvailable", value: "Yes" }, name: "participationPrize", label: "Participation Prize", type: "text", required: false },
+      { name: "participationPrize", label: "Participation Certificate", type: "radio", options: ["Yes", "No"], defaultValue: "No", required: false },
     ],
   },
   {
@@ -187,7 +212,7 @@ const competitionFormConfig = [
     fields: [
       { name: "foodProvide", label: "Food Provide", type: "radio", options: ["Yes", "No"] },
       { showWhen: { field: "foodProvide", value: "Yes" }, name: "vegNonVeg", label: "Veg / Non-Veg", type: "radio", options: ["Veg", "Non-veg", "Both"] },
-      { showWhen: { field: "foodProvide", value: "Yes" }, name: "midnightSnacks", label: "Snacks", type: "radio", options: ["Yes", "No"] },
+      { name: "midnightSnacks", label: "Snacks", type: "radio", options: ["Yes", "No"] },
     ],
   },
   {
@@ -242,6 +267,46 @@ const competitionFormConfig = [
       { name: "individualFees", label: "Individual Fees", type: "number", min: 0, step: "1", allowDecimals: false },
       { showWhen: { field: "teamOrIndividualEvent", value: ["Team", "Both"] }, name: "teamFees", label: "Team Fees", type: "number", min: 0, step: "1", allowDecimals: false },
       { name: "lateFees", label: "Late Fees", type: "number", min: 0, step: "1", allowDecimals: false },
+      {
+        name: "gst",
+        label: "GST",
+        type: "radio",
+        options: ["Yes", "No"],
+        defaultValue: "No",
+        required: false,
+      },
+    ],
+  },
+  {
+    title: "Additional Fees Details",
+    subtitle: "Optionally add custom fee categories (e.g. External Participant Fees, Spot Entry)",
+    type: "dynamic",
+    key: "customFees",
+    dynamicStyle: "row-action",
+    itemLabel: "Fee Category",
+    showWhen: { field: "registrationType", value: "Paid" },
+    initialRows: 0,
+    onlyFirstRowRequired: false,
+    fields: [
+      {
+        name: "feeLabel",
+        label: "Fee Name / Description",
+        type: "text",
+        placeholder: "e.g. External Participant Fees",
+        colSpan: "md:col-span-7",
+        required: true,
+      },
+      {
+        name: "feeAmount",
+        label: "Amount (₹)",
+        type: "number",
+        min: 0,
+        step: "1",
+        allowDecimals: false,
+        placeholder: "e.g. 500",
+        colSpan: "md:col-span-4",
+        required: true,
+      },
     ],
   },
   {

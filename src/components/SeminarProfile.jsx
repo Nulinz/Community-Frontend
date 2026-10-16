@@ -1,14 +1,16 @@
 import React, { useRef, useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import {
-    MapPin, Briefcase, CalendarDays, Plus, X, Upload, Loader2, SquarePen,
-    IndianRupee, QrCode
+    MapPin, Briefcase, CalendarDays, Clock, Plus, X, Upload, Loader2, SquarePen,
+    IndianRupee, QrCode, Trash2
 } from 'lucide-react';
+import { calculateEventDuration } from '../utils/dateTimeValidation';
 import AppliedListSection from '../common/AppliedListSection';
 import AttendanceTabSection from './AttendanceTabSection';
 import EventQRCodeModal from './EventQRCodeModal';
 import { downloadCSVFromAPI } from '../utils/exportUtils';
 import { getSeminarById, toggleSeminarStatus, addSeminarPost, updateEventStatus } from '../services/admin/adminServices';
+import { deleteModulePost } from '../services/commonServices';
 import { toast } from 'react-toastify';
 import { useMain } from '../context/MainContext';
 import { formatAddress } from '../utils/formatAddress';
@@ -32,6 +34,8 @@ const SeminarProfile = () => {
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState(null);
     const [selectedFiles, setSelectedFiles] = useState([]);
+    const [postToDelete, setPostToDelete] = useState(null);
+    const [isDeletingPost, setIsDeletingPost] = useState(false);
     const fileInputRef = useRef(null);
     const { user, dynamicPath } = useMain()
     const BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
@@ -183,6 +187,39 @@ const SeminarProfile = () => {
         }
     };
 
+    /**
+     * Dispatches unified post image deletion to common services.
+     * Updates state optimistically upon success and cleans up modal state.
+     */
+    const handleConfirmDeletePost = async () => {
+        if (!postToDelete) return;
+        const targetSeminarId = id || seminar?._id || seminar?.id;
+        if (!targetSeminarId) {
+            toast.error("Seminar ID not found");
+            return;
+        }
+
+        try {
+            setIsDeletingPost(true);
+            const res = await deleteModulePost('seminar', targetSeminarId, postToDelete);
+            if (res?.success) {
+                toast.success(res.message || "Post deleted successfully");
+                setSeminar(prev => ({
+                    ...prev,
+                    posts: Array.isArray(res.data) ? res.data : prev.posts.filter(p => p !== postToDelete),
+                }));
+                setPostToDelete(null);
+            } else {
+                toast.error(res?.message || "Failed to delete post");
+            }
+        } catch (err) {
+            toast.error(err?.response?.data?.message || err?.message || "Failed to delete post");
+            console.error(err);
+        } finally {
+            setIsDeletingPost(false);
+        }
+    };
+
     const appliedListColumns = [
         { title: '#', dataIndex: 'sNo', key: 'sNo' },
         { title: 'Name', dataIndex: 'fullName', key: 'fullName' },
@@ -215,7 +252,8 @@ const SeminarProfile = () => {
                                 <span className="flex items-center gap-2"><MapPin size={16} /> {formatAddress(seminar)}</span>
                             )}
                             <span className="flex items-center gap-2"><Briefcase size={16} /> {seminar.mode}</span>
-                            <span className="flex items-center gap-2"><CalendarDays size={16} /> {seminar.eventDate ? new Date(seminar.eventDate).toLocaleDateString() : 'N/A'}</span>
+                            <span className="flex items-center gap-2"><CalendarDays size={16} /> {seminar.eventDate ? (seminar.eventEndDate ? `${new Date(seminar.eventDate).toLocaleDateString()} - ${new Date(seminar.eventEndDate).toLocaleDateString()}` : new Date(seminar.eventDate).toLocaleDateString()) : 'N/A'}</span>
+                            <span className="flex items-center gap-2"><Clock size={16} /> {calculateEventDuration(seminar.eventDate, seminar.eventEndDate, seminar.eventStartTime, seminar.eventEndTime)}</span>
                         </div>
                     </div>
 
@@ -336,7 +374,7 @@ const SeminarProfile = () => {
                             <InfoCard title="Basic Details">
                                 <div className="grid grid-cols-2 xl:grid-cols-3 gap-6">
                                     <DataItem label="Event Type" value={seminar.eventType} />
-                                    <DataItem label="Event Date" value={seminar.eventDate ? new Date(seminar.eventDate).toLocaleDateString() : 'N/A'} />
+                                    <DataItem label="Event Date" value={seminar.eventEndDate ? `${new Date(seminar.eventDate).toLocaleDateString()} - ${new Date(seminar.eventEndDate).toLocaleDateString()}` : (seminar.eventDate ? new Date(seminar.eventDate).toLocaleDateString() : 'N/A')} />
                                     <DataItem
                                         label="Event Time"
                                         value={
@@ -345,6 +383,7 @@ const SeminarProfile = () => {
                                                 : seminar.eventStartTime || seminar.eventEndTime || '-'
                                         }
                                     />
+                                    <DataItem label="Duration" value={calculateEventDuration(seminar.eventDate, seminar.eventEndDate, seminar.eventStartTime, seminar.eventEndTime)} />
                                     <DataItem label="Registration Type" value={seminar.registrationType} />
                                     <DataItem label="Reg Start Date" value={seminar.registrationStartDate ? new Date(seminar.registrationStartDate).toLocaleDateString() : 'N/A'} />
                                     <DataItem label="Reg End Date" value={seminar.registrationEndDate ? new Date(seminar.registrationEndDate).toLocaleDateString() : 'N/A'} />
@@ -374,6 +413,14 @@ const SeminarProfile = () => {
                                         <DataItem label="Individual Fees" value={`₹${seminar.individualFees || 0}`} />
                                         {/* <DataItem label="Team Fees" value={`₹${seminar.teamFees || 0}`} /> */}
                                         <DataItem label="Late Fees" value={`₹${seminar.lateFees || 0}`} />
+                                        <DataItem label="GST" value={seminar.gst || 'No'} />
+                                        {seminar.customFees?.map((fee, idx) => (
+                                            <DataItem
+                                                key={fee._id || idx}
+                                                label={fee.feeLabel}
+                                                value={`₹${fee.feeAmount || 0}`}
+                                            />
+                                        ))}
                                     </div>
                                 </InfoCard>
                             )}
@@ -449,8 +496,8 @@ const SeminarProfile = () => {
                                     <div className="grid grid-cols-1 gap-6">
                                         {seminar.incharges.map((person, index) => (
                                             <div key={index} className="space-y-1">
-                                                <p className="font-bold text-primary">{person.type}: {person.name}</p>
-                                                <p className="text-sm text-secondary">Call: {person.phoneNumber}</p>
+                                                <p className="font-bold text-primary">{person.name}</p>
+                                                <p className="text-sm text-secondary">Call: {person.countryCode ? `${person.countryCode} ` : ''}{person.phoneNumber}</p>
                                                 <p className="text-sm text-secondary">Mail: {person.mailId}</p>
                                             </div>
                                         ))}
@@ -531,13 +578,27 @@ const SeminarProfile = () => {
                             <h3 className="text-[18px] sm:text-[20px] font-bold text-[#1a1a1a] mb-5 sm:mb-6">Post</h3>
                             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4">
                                 {seminar.posts?.map((image, index) => (
-                                    <div key={`${image}-${index}`} className="rounded-[18px] overflow-hidden border border-gray-200 bg-gray-50">
+                                    <div key={`${image}-${index}`} className="group relative rounded-[18px] overflow-hidden border border-gray-200 bg-gray-50 shadow-sm transition-all hover:shadow-md">
                                         <img
                                             src={`${BASE_URL}/${image}`}
                                             alt={`Post ${index + 1}`}
-                                            className="w-full aspect-[3/4] object-cover"
+                                            className="w-full aspect-[3/4] object-cover transition-transform duration-300 group-hover:scale-105"
                                             loading="lazy"
                                         />
+                                        <div className="absolute inset-0 bg-black/20 opacity-0 group-hover:opacity-100 transition-opacity" />
+
+                                        {/* Delete Post Button */}
+                                        <button
+                                            type="button"
+                                            onClick={(e) => {
+                                                e.stopPropagation();
+                                                setPostToDelete(image);
+                                            }}
+                                            className="absolute top-2.5 right-2.5 p-2 bg-white/90 hover:bg-red-500 text-gray-700 hover:text-white rounded-full shadow-md transition-all duration-200 opacity-0 group-hover:opacity-100 cursor-pointer z-10 hover:scale-110 active:scale-95"
+                                            title="Delete post"
+                                        >
+                                            <Trash2 size={16} />
+                                        </button>
                                     </div>
                                 ))}
                                 {(!seminar.posts || seminar.posts.length === 0) && (
@@ -650,6 +711,41 @@ const SeminarProfile = () => {
                                 className="h-11 rounded-[10px] bg-[#171717] text-white text-[15px] font-semibold hover:bg-[#171717] disabled:opacity-50 disabled:bg-[#171717]/70"
                             >
                                 {isSubmitting ? "Uploading..." : `Confirm ${selectedFiles.length > 0 ? `(${selectedFiles.length})` : ''}`}
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* Delete Post Confirmation Modal */}
+            {postToDelete && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-xs animate-in fade-in duration-200">
+                    <div className="bg-white rounded-[24px] shadow-2xl w-full max-w-sm p-6 border border-[#EAECF0] text-center space-y-4">
+                        <div className="w-12 h-12 rounded-full bg-red-100 text-red-600 flex items-center justify-center mx-auto">
+                            <Trash2 size={24} />
+                        </div>
+                        <div>
+                            <h3 className="text-[18px] font-bold text-[#171717]">Delete Post Image?</h3>
+                            <p className="text-[14px] text-gray-500 mt-1">
+                                Are you sure you want to permanently delete this post image? This action cannot be undone.
+                            </p>
+                        </div>
+                        <div className="flex items-center gap-3 pt-2">
+                            <button
+                                type="button"
+                                disabled={isDeletingPost}
+                                onClick={() => setPostToDelete(null)}
+                                className="flex-1 py-2.5 px-4 rounded-full border border-gray-300 text-gray-700 font-semibold text-sm hover:bg-gray-50 transition cursor-pointer"
+                            >
+                                Cancel
+                            </button>
+                            <button
+                                type="button"
+                                disabled={isDeletingPost}
+                                onClick={handleConfirmDeletePost}
+                                className="flex-1 py-2.5 px-4 rounded-full bg-red-600 text-white font-semibold text-sm hover:bg-red-700 transition flex items-center justify-center gap-2 cursor-pointer shadow-md active:scale-95 disabled:opacity-50"
+                            >
+                                {isDeletingPost ? <Loader2 size={16} className="animate-spin" /> : "Delete"}
                             </button>
                         </div>
                     </div>

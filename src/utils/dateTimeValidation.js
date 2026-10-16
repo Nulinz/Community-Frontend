@@ -441,3 +441,65 @@ export const validateFreelanceSubmission = (payload, isEdit = false) => {
 
   return true;
 };
+
+/**
+ * Dynamically computes event duration based on eventDate, eventEndDate,
+ * eventStartTime, and eventEndTime.
+ *
+ * Rules:
+ * - Multi-day events: computes inclusive calendar day count (e.g., "3 Days" or "3 Days (6 Hours/day)" if times provided).
+ * - Single-day events: computes exact hours and minutes difference between start and end times (e.g., "2 Hours", "1 Hour 30 Mins", "45 Mins").
+ * - Single-day fallback without end time: "1 Day".
+ * - Missing/invalid date: "N/A".
+ */
+export const calculateEventDuration = (eventDate, eventEndDate, eventStartTime, eventEndTime) => {
+  if (!eventDate) return "N/A";
+
+  const d1 = new Date(eventDate);
+  if (isNaN(d1.getTime())) return "N/A";
+
+  let isMultiDay = false;
+  let dayCount = 1;
+
+  if (eventEndDate) {
+    const d2 = new Date(eventEndDate);
+    if (!isNaN(d2.getTime())) {
+      const midnight1 = new Date(d1.getFullYear(), d1.getMonth(), d1.getDate()).getTime();
+      const midnight2 = new Date(d2.getFullYear(), d2.getMonth(), d2.getDate()).getTime();
+      const diffDays = Math.round((midnight2 - midnight1) / (1000 * 60 * 60 * 24));
+      if (diffDays > 0) {
+        isMultiDay = true;
+        dayCount = diffDays + 1;
+      }
+    }
+  }
+
+  // Calculate time difference if both start and end time are available
+  const startMins = timeToMinutes(eventStartTime);
+  const endMins = timeToMinutes(eventEndTime);
+  let timeStr = "";
+
+  if (startMins !== null && endMins !== null && endMins > startMins) {
+    const diffMins = endMins - startMins;
+    const hours = Math.floor(diffMins / 60);
+    const mins = diffMins % 60;
+
+    if (hours > 0 && mins > 0) {
+      timeStr = `${hours} ${hours === 1 ? "Hour" : "Hours"} ${mins} ${mins === 1 ? "Min" : "Mins"}`;
+    } else if (hours > 0) {
+      timeStr = `${hours} ${hours === 1 ? "Hour" : "Hours"}`;
+    } else if (mins > 0) {
+      timeStr = `${mins} ${mins === 1 ? "Min" : "Mins"}`;
+    }
+  }
+
+  if (isMultiDay) {
+    return timeStr ? `${dayCount} Days` : `${dayCount} Days`;
+  }
+
+  if (timeStr) {
+    return timeStr;
+  }
+
+  return "1 Day";
+};
