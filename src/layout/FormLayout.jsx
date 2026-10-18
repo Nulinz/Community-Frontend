@@ -1399,7 +1399,7 @@ const FormInput = ({
     let resolvedMax = resolveDateConstraint(field.max, staticData);
 
     const isRegDateWithoutEvent =
-      (field.name === "registrationEndDate" || field.name === "registrationStartDate") &&
+      field.name === "registrationEndDate" &&
       field.max &&
       !staticData?.eventDate;
 
@@ -1418,8 +1418,8 @@ const FormInput = ({
           ref={inputRef}
           type="date"
           value={value ? (String(value).includes("T") ? String(value).split("T")[0] : String(value)) : ""}
-          min={resolvedMin}
-          max={resolvedMax}
+          min={field.name === "registrationStartDate" ? undefined : resolvedMin}
+          max={field.name === "registrationStartDate" ? undefined : resolvedMax}
           readOnly={field.readOnly}
           onChange={(e) => {
             if (field.readOnly) return;
@@ -1428,19 +1428,21 @@ const FormInput = ({
               toast.warning("Please select Event Date first");
               return;
             }
-            if (resolvedMin && selectedVal && selectedVal < resolvedMin) {
-              const minLabel = resolvedMin === todayStr
-                ? "the current date"
-                : (field.name === "registrationEndDate" && staticData?.registrationStartDate ? "Registration Start Date" : resolvedMin);
-              toast.error(`${field.label || "Date"} cannot be earlier than ${minLabel}`);
-              return;
-            }
-            if (resolvedMax && selectedVal && selectedVal > resolvedMax) {
-              const maxLabel = (field.name === "registrationEndDate" || field.name === "registrationStartDate") && staticData?.eventDate
-                ? "the Event Date"
-                : resolvedMax;
-              toast.error(`${field.label || "Date"} cannot be later than ${maxLabel}`);
-              return;
+            if (field.name !== "registrationStartDate") {
+              if (resolvedMin && selectedVal && selectedVal < resolvedMin) {
+                const minLabel = resolvedMin === todayStr
+                  ? "the current date"
+                  : (field.name === "registrationEndDate" && staticData?.registrationStartDate ? "Registration Start Date" : resolvedMin);
+                toast.error(`${field.label || "Date"} cannot be earlier than ${minLabel}`);
+                return;
+              }
+              if (resolvedMax && selectedVal && selectedVal > resolvedMax) {
+                const maxLabel = field.name === "registrationEndDate" && staticData?.eventDate
+                  ? "the Event Date"
+                  : resolvedMax;
+                toast.error(`${field.label || "Date"} cannot be later than ${maxLabel}`);
+                return;
+              }
             }
             onChange(selectedVal);
           }}
@@ -1951,7 +1953,7 @@ const FormLayout = ({
               return false;
             }
           }
-          if (field.type === "date" && hasMeaningfulValue(value)) {
+          if (field.type === "date" && field.name !== "registrationStartDate" && hasMeaningfulValue(value)) {
             const todayStr = getTodayDateString();
             let resolvedMin = resolveDateConstraint(field.min, staticData);
             if (resolvedMin === undefined && (field.name === "eventDate" || field.name === "eventEndDate") && !field.allowPast) {
@@ -1966,7 +1968,7 @@ const FormLayout = ({
             }
             const resolvedMax = resolveDateConstraint(field.max, staticData);
             if (resolvedMax && value > resolvedMax) {
-              const maxLabel = (field.name === "registrationEndDate" || field.name === "registrationStartDate") && staticData?.eventDate
+              const maxLabel = field.name === "registrationEndDate" && staticData?.eventDate
                 ? "the Event Date"
                 : resolvedMax;
               toast.error(`${field.label} cannot be later than ${maxLabel}`);
@@ -2047,22 +2049,12 @@ const FormLayout = ({
 
     // ── Global Event & Registration Date Relationship Validations ──────────
     if (hasMeaningfulValue(staticData.eventDate)) {
-      if (hasMeaningfulValue(staticData.registrationStartDate) && staticData.registrationStartDate > staticData.eventDate) {
-        toast.error("Registration Start Date cannot be later than Event Date");
-        return false;
-      }
       if (hasMeaningfulValue(staticData.registrationEndDate) && staticData.registrationEndDate > staticData.eventDate) {
         toast.error("Registration End Date cannot be later than Event Date");
         return false;
       }
       if (hasMeaningfulValue(staticData.eventEndDate) && staticData.eventEndDate < staticData.eventDate) {
         toast.error("Event End Date cannot be earlier than Event Date");
-        return false;
-      }
-    }
-    if (hasMeaningfulValue(staticData.registrationStartDate) && hasMeaningfulValue(staticData.registrationEndDate)) {
-      if (staticData.registrationEndDate < staticData.registrationStartDate) {
-        toast.error("Registration End Date cannot be earlier than Registration Start Date");
         return false;
       }
     }

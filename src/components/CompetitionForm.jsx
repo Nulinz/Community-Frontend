@@ -71,8 +71,7 @@ const competitionFormConfig = [
         name: "registrationStartDate",
         label: "Registration Start Date",
         type: "date",
-        min: "today",
-        max: (data) => data.eventDate || undefined,
+        allowPast: true,
       },
       {
         name: "registrationEndDate",

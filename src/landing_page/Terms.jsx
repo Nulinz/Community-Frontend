@@ -141,88 +141,274 @@ const Terms = ({ showLayout = true }) => {
       <section className="legal-body">
         <div className="legal-card">
           <p>
-            These Terms &amp; Conditions ("Terms") govern your use of GradEnvy ("we", "us", "our"), including this
-            website and mobile application (the "Service"). By creating an account
-            or using the Service, you agree to these Terms.
+            Welcome to GradEnvy.
+          </p>
+          <p>
+            GradEnvy is a digital platform operated and managed jointly by <strong>NexGen Nextopia Private Limited</strong> and <strong>Nulinz Technology Private Limited</strong> (collectively referred to as "GradEnvy", "we", "us" or "our").
+          </p>
+          <p>
+            <strong>Correspondence Address:</strong> 1st Floor, NV Arcade Building, Near 5 Road, Salem, Tamil Nadu – 636004, India.<br />
+            <strong>Contact:</strong> <a href="mailto:support@gradenvy.com">support@gradenvy.com</a> | <a href="tel:9080408749">9080408749</a>
+          </p>
+          <p>
+            These Terms and Conditions govern access to and use of the GradEnvy website, Android application, iOS application, and related services.
+          </p>
+          <p>
+            By registering for an account, accessing the platform, or purchasing a subscription, you agree to these Terms and Conditions and the applicable Privacy Policy and Return and Refund Policy. If you do not agree, you must not use the relevant services.
           </p>
 
           <h2>
-            <span className="feature-dot"></span> Eligibility &amp; Account Registration
+            <span className="feature-dot"></span> 2. Eligibility and Age Requirements
           </h2>
           <p>
-            You must be at least 18 years old (or have the consent of a parent or
-            legal guardian) and capable of entering into a binding contract to use
-            the Service. When creating an account, you agree to provide accurate and
-            complete information and keep your credentials secure.
+            2.1. GradEnvy is available to individuals aged 16 years and above, as well as eligible companies, colleges, institutions and their authorised representatives.
+          </p>
+          <p>
+            2.2. Users aged 16 or 17 may use the platform only through the applicable verified parental or lawful guardian consent process. Such users must not misrepresent their age or bypass consent requirements.
+          </p>
+          <p>
+            2.3. Users must provide accurate information during registration and promptly update information that becomes inaccurate.
+          </p>
+          <p>
+            2.4. Companies, colleges and institutional representatives must be legally authorised to act on behalf of their respective organisations.
+          </p>
+          <p>
+            2.5. We may request reasonable information to verify age, identity, institutional affiliation, authority or consent, where necessary and lawful.
+          </p>
+          <p>
+            2.6. Accounts may be restricted or suspended where eligibility, consent or identity requirements are not satisfied.
           </p>
 
           <h2>
-            <span className="feature-dot"></span> Subscriptions &amp; Payments
+            <span className="feature-dot"></span> 3. Nature and Scope of the Platform
           </h2>
           <p>
-            Certain features of the Service may require a paid subscription. All
-            payments are processed in Indian Rupees (INR) through authorized payment
-            gateways. Subscriptions are billed in advance on a recurring or one-time
-            basis depending on the plan you select.
+            GradEnvy provides a digital environment intended to connect students, working professionals, employers, colleges, institutions and other participants with career-related resources and opportunities.
           </p>
-          <p>
-            For details on cancellations and refund eligibility, please review our{" "}
-            <a
-              href="/returnandrefundpolicy"
-              onClick={(e) => {
-                e.preventDefault();
-                navigate("/returnandrefundpolicy");
-              }}
-            >
-              Refund &amp; Cancellation Policy
-            </a>
-            .
-          </p>
-
-          <h2>
-            <span className="feature-dot"></span> Acceptable Use
-          </h2>
-          <p>You agree not to:</p>
+          <p>Features may include:</p>
           <ul>
-            <li>
-              Use the Service for any unlawful purpose or in violation of any
-              applicable regulations.
-            </li>
-            <li>
-              Attempt to reverse engineer, decompile, or extract source code from the
-              app.
-            </li>
-            <li>
-              Scrape, crawl, or harvest data from the Service using automated means
-              without prior written permission.
-            </li>
-            <li>
-              Share account credentials with third parties or allow multiple users to
-              access a single-user license.
-            </li>
-            <li>
-              Interfere with or disrupt the integrity or performance of the Service
-              or its servers.
-            </li>
+            <li>Jobs, hiring opportunities and internships.</li>
+            <li>Freelancing opportunities and project listings.</li>
+            <li>Events, workshops, competitions and related activities.</li>
+            <li>Career Wallet and career-related resources.</li>
+            <li>AI Stations providing links or access pathways to external artificial intelligence services.</li>
+            <li>Resume builder and related career tools.</li>
+            <li>Professional networking, institutional collaborations and other platform features.</li>
+          </ul>
+          <p>
+            Features may vary by account type, subscription status, device, location, availability and applicable eligibility requirements.
+          </p>
+          <p>
+            GradEnvy is primarily a platform for discovery, access and connection. Unless expressly agreed in a separate written agreement, GradEnvy does not guarantee employment, internship selection, project awards, freelance earnings, admissions, event outcomes or any particular career result.
+          </p>
+
+          <h2>
+            <span className="feature-dot"></span> 4. Free Access and GradEnvy Pro
+          </h2>
+          <h3 className="font-bold text-slate-800 text-sm mt-3 mb-1">4.1. Free version</h3>
+          <p>
+            Users may access selected basic features without purchasing a subscription. These may include exploring events, Career Wallet, AI Stations, resume-building functionality and other basic platform features. Free access may be subject to reasonable usage limits, feature availability and changes notified in accordance with applicable law.
+          </p>
+          <h3 className="font-bold text-slate-800 text-sm mt-3 mb-1">4.2. GradEnvy Pro subscription</h3>
+          <p>GradEnvy Pro is the paid platform subscription:</p>
+          <ul>
+            <li><strong>Price:</strong> ₹499, inclusive of applicable taxes.</li>
+            <li><strong>Validity:</strong> 90 days from activation.</li>
+            <li><strong>Payment:</strong> One-time payment through the designated payment gateway.</li>
+            <li><strong>Renewal:</strong> No automatic renewal. Users must make a fresh purchase to obtain another subscription period.</li>
+          </ul>
+          <p>
+            Pro may provide access to additional jobs, internships, exclusive GradEnvy events or event-related access features, freelancing opportunities, and other premium features made available from time to time. The precise features, eligibility conditions and limitations displayed at the time of purchase form part of the applicable subscription offer.
+          </p>
+          <h3 className="font-bold text-slate-800 text-sm mt-3 mb-1">4.3. Subscription limitations</h3>
+          <p>
+            A Pro subscription provides access to the stated platform features for the specified period. It does not guarantee that a particular number of jobs, internships, projects, events, clients or earnings will be available.
+          </p>
+          <p>
+            A subscription does not automatically include event tickets, event registration fees, freelance project payments, third-party services or other separately priced items unless expressly stated.
+          </p>
+          <h3 className="font-bold text-slate-800 text-sm mt-3 mb-1">4.4. Activation and expiry</h3>
+          <p>
+            The subscription generally becomes active after successful payment confirmation. If payment is debited but the subscription is not activated, the user should contact support with the relevant transaction details. Access to Pro features ordinarily expires after 90 days. Any renewal requires a new purchase and fresh payment.
+          </p>
+
+          <h2>
+            <span className="feature-dot"></span> 5. Payments and Third-Party Payment Services
+          </h2>
+          <p>
+            5.1. GradEnvy uses Razorpay as a payment gateway for applicable transactions.
+          </p>
+          <p>
+            5.2. Users must provide accurate payment information and complete the applicable payment authorisation process.
+          </p>
+          <p>
+            5.3. The ₹499 Pro price is inclusive of applicable taxes. No additional subscription tax charge is intended to be added to this displayed price, although separately purchased services may have their own disclosed prices and applicable charges.
+          </p>
+          <p>
+            5.4. Payment processing may be subject to Razorpay's applicable terms, security procedures and payment methods.
+          </p>
+          <p>
+            5.5. GradEnvy does not require users to disclose payment passwords, PINs or one-time passwords to customer support.
+          </p>
+          <p>
+            5.6. Payment disputes, failed transactions, duplicate charges and refunds will be handled in accordance with the Return and Refund Policy and applicable law.
+          </p>
+
+          <h2>
+            <span className="feature-dot"></span> 6. Events and Separately Paid Services
+          </h2>
+          <p>
+            6.1. Events may be organised or listed by GradEnvy, companies, colleges, institutions or other third-party organisers.
+          </p>
+          <p>
+            6.2. Event participation, tickets, registration fees, workshops and other paid event services may be charged separately from GradEnvy Pro.
+          </p>
+          <p>
+            6.3. The relevant event listing or organiser must disclose the applicable price, eligibility requirements, schedule, cancellation terms and other material conditions before purchase, as applicable.
+          </p>
+          <p>
+            6.4. Event-related refunds will be assessed under the applicable event-specific terms, the Return and Refund Policy where relevant, and applicable law.
+          </p>
+          <p>
+            6.5. Where a third-party organiser is responsible for an event, the organiser is responsible for the representations, arrangements and performance within its control. This does not exclude any liability that applicable law places on GradEnvy.
+          </p>
+
+          <h2>
+            <span className="feature-dot"></span> 7. User Accounts and Security
+          </h2>
+          <p>
+            7.1. Users are responsible for maintaining the confidentiality of their account credentials and for activities carried out through their accounts, subject to applicable law.
+          </p>
+          <p>
+            7.2. Users must notify GradEnvy promptly if they suspect unauthorised access, account misuse or a security incident.
+          </p>
+          <p>
+            7.3. Users must not create misleading accounts, impersonate another person, falsify qualifications, misrepresent organisational authority or provide fraudulent information.
+          </p>
+          <p>
+            7.4. GradEnvy may introduce reasonable verification, authentication and account-security procedures.
+          </p>
+          <p>
+            7.5. Users must not share accounts in a manner that bypasses subscription, security or access restrictions.
+          </p>
+
+          <h2>
+            <span className="feature-dot"></span> 8. User-Generated Content and Listings
+          </h2>
+          <p>
+            Users and authorised organisations may submit job listings, internship opportunities, project descriptions, event details, resumes, professional information and other permitted content.
+          </p>
+          <p>By submitting content, you represent that:</p>
+          <ul>
+            <li>You have the right and authority to submit it.</li>
+            <li>It is accurate to the best of your knowledge and does not intentionally mislead others.</li>
+            <li>It does not infringe another person's intellectual property, privacy or other legal rights.</li>
+            <li>It does not contain unlawful, fraudulent, abusive, defamatory, discriminatory or otherwise prohibited material.</li>
+            <li>You have obtained any necessary permission before submitting another person's personal information.</li>
+          </ul>
+          <p>
+            You retain ownership of content that you lawfully own. You grant GradEnvy a limited, non-exclusive permission to host, store, reproduce, display and process that content as reasonably necessary to operate, secure and improve the platform and provide the services you request, subject to the Privacy Policy and applicable law.
+          </p>
+          <p>
+            You must not upload confidential information or another person's personal data unless you have appropriate authority and a lawful basis to do so.
+          </p>
+
+          <h2>
+            <span className="feature-dot"></span> 9. Company, College and Employer Responsibilities
+          </h2>
+          <p>
+            Companies, colleges, recruiters and other opportunity providers are responsible for ensuring that their listings, requirements, representations and communications are lawful and accurate.
+          </p>
+          <p>They must not:</p>
+          <ul>
+            <li>Publish fake, fraudulent or misleading vacancies, internships, projects or events.</li>
+            <li>Request unlawful fees or sensitive personal information from candidates.</li>
+            <li>Discriminate unlawfully or misuse candidate information.</li>
+            <li>Misrepresent compensation, eligibility, working conditions or selection criteria.</li>
+            <li>Use the platform for scams, spam, harassment or unauthorised data collection.</li>
+          </ul>
+          <p>
+            Opportunity providers must handle candidate information only for legitimate, disclosed purposes and in accordance with applicable data-protection law. GradEnvy may review, restrict or remove listings that appear suspicious, unlawful, misleading or inconsistent with these Terms.
+          </p>
+
+          <h2>
+            <span className="feature-dot"></span> 10. Jobs, Internships and Freelancing
+          </h2>
+          <p>
+            10.1. GradEnvy may facilitate discovery of opportunities and communication between candidates and opportunity providers.
+          </p>
+          <p>
+            10.2. The relevant employer or provider generally determines eligibility, shortlisting, interviews, selection, remuneration, contractual terms and the final outcome.
+          </p>
+          <p>
+            10.3. GradEnvy does not guarantee selection, employment, internship placement, freelance work, payment by a third party, or project completion.
+          </p>
+          <p>
+            10.4. Users should independently verify an opportunity provider and carefully review any employment, internship, freelance or project agreement before accepting an offer.
+          </p>
+          <p>
+            10.5. Unless expressly stated otherwise in a separate written agreement, GradEnvy is not the employer, recruitment agent, contracting principal or payment guarantor for transactions between users and third-party opportunity providers.
+          </p>
+          <p>
+            10.6. Nothing in this section excludes any obligation or liability that GradEnvy may have under applicable law.
+          </p>
+
+          <h2>
+            <span className="feature-dot"></span> 11. AI Stations and External Websites
+          </h2>
+          <p>
+            11.1. AI Stations may display links or access pathways to third-party artificial intelligence tools and websites.
+          </p>
+          <p>
+            11.2. Selecting an AI Station may redirect you away from GradEnvy to an external service. That service may have its own terms, privacy policy, account requirements, fees and data-processing practices.
+          </p>
+          <p>
+            11.3. GradEnvy does not control all external AI services and does not guarantee their accuracy, availability, security or suitability.
+          </p>
+          <p>
+            11.4. AI-generated content may be inaccurate, incomplete, outdated or inappropriate for a particular purpose. Users should independently verify important outputs and must not rely on AI outputs as professional, legal, financial, medical or other specialised advice without appropriate verification.
+          </p>
+          <p>
+            11.5. Users should avoid submitting confidential, sensitive or unnecessary personal information to external AI tools. Any information submitted after redirection may be processed by the external provider under its applicable policies.
+          </p>
+
+          <h2>
+            <span className="feature-dot"></span> 12. Intellectual Property
+          </h2>
+          <p>
+            The GradEnvy name, branding, logos, interface, original software, design elements and platform materials are owned by or licensed to the relevant rights holders, subject to applicable law.
+          </p>
+          <p>
+            Users may access and use the platform for its intended lawful purposes. They must not copy, modify, distribute, reverse-engineer, exploit or commercially reproduce protected platform materials except as permitted by law or with written authorisation. Third-party names, logos, content and trademarks remain the property of their respective owners.
+          </p>
+
+          <h2>
+            <span className="feature-dot"></span> 13. Prohibited Conduct
+          </h2>
+          <p>Users must not:</p>
+          <ul>
+            <li>Use GradEnvy for unlawful, fraudulent or deceptive purposes.</li>
+            <li>Upload malicious code or attempt unauthorised access to accounts, systems or data.</li>
+            <li>Interfere with the platform's operation or security.</li>
+            <li>Scrape, harvest or misuse personal information without lawful authority.</li>
+            <li>Publish fake opportunities, impersonate others or manipulate listings.</li>
+            <li>Harass, threaten, exploit or discriminate unlawfully against other users.</li>
+            <li>Circumvent payment requirements or misuse subscriptions.</li>
+            <li>Infringe intellectual property or violate applicable laws.</li>
+            <li>Use the platform to facilitate scams, unlawful recruitment fees or other prohibited activities.</li>
           </ul>
 
           <h2>
-            <span className="feature-dot"></span> Intellectual Property
+            <span className="feature-dot"></span> 14. Moderation, Suspension and Termination
           </h2>
           <p>
-            All software, design, and content that make up the Service are owned by
-            GradEnvy or its licensors and are protected by applicable
-            intellectual property laws. You may use the Service only for your own
-            business purposes, not for resale or redistribution.
+            GradEnvy may investigate suspected violations and remove content, restrict features, suspend accounts or terminate access where reasonably necessary because of fraud, abuse, false listings, security risks, policy violations, legal requirements or other legitimate operational reasons.
           </p>
-
-          <h2>
-            <span className="feature-dot"></span> Termination
-          </h2>
           <p>
-            We may suspend or terminate access to the Service for any account found to
-            be in violation of these Terms. You may stop using the Service, or request
-            deletion of your account, at any time — see our{" "}
+            Where appropriate and practicable, GradEnvy may provide notice and an opportunity to respond. Immediate action may be taken when necessary to protect users, prevent harm, address suspected fraud or comply with law.
+          </p>
+          <p>
+            Users may request account deletion through the available account controls or by contacting support — see our{" "}
             <a
               href="/delete_account"
               onClick={(e) => {
@@ -232,45 +418,100 @@ const Terms = ({ showLayout = true }) => {
             >
               Delete Account
             </a>{" "}
-            page.
+            page. Deletion may be subject to lawful retention requirements, pending transactions, dispute resolution and technical processing. Suspension or termination does not remove rights to refunds or other remedies that applicable law requires.
           </p>
 
           <h2>
-            <span className="feature-dot"></span> Disclaimer &amp; Limitation of Liability
+            <span className="feature-dot"></span> 15. Service Availability and Changes
           </h2>
           <p>
-            The Service is provided "as is" and is intended to help track publicly
-            available tender information; we do not guarantee the accuracy,
-            completeness, or timeliness of any tender data sourced from third-party
-            portals. GradEnvy is not liable for any indirect, incidental,
-            or consequential loss arising from reliance on the Service, to the extent
-            permitted by law.
+            GradEnvy aims to maintain reliable services but does not guarantee uninterrupted or error-free availability. Services may be temporarily unavailable because of maintenance, technical failures, cybersecurity incidents, network outages, third-party service failures, natural disasters, government restrictions or other circumstances beyond reasonable control.
+          </p>
+          <p>
+            GradEnvy may modify or discontinue features for legitimate operational, security, legal or business reasons. Material changes affecting paid subscriptions will be handled consistently with applicable law and the Return and Refund Policy.
           </p>
 
           <h2>
-            <span className="feature-dot"></span> Changes to These Terms
+            <span className="feature-dot"></span> 16. Disclaimers and Limitation of Liability
           </h2>
           <p>
-            We may update these Terms from time to time. Continued use of the Service
-            after changes take effect constitutes acceptance of the revised Terms.
-            Material changes will be reflected by updating the "Last updated" date above.
+            To the extent permitted by law, GradEnvy does not guarantee the accuracy of every third-party listing, the conduct of every user, the availability of every opportunity or the outcome of any recruitment, project, freelance engagement or event.
+          </p>
+          <p>
+            Nothing in these Terms excludes liability for fraud, wilful misconduct, statutory consumer rights, or any liability that cannot lawfully be excluded or limited.
+          </p>
+          <p>
+            Subject to the foregoing, GradEnvy will not be liable for indirect or consequential losses to the extent such exclusion is legally permitted. Any liability limitation will be interpreted consistently with applicable Indian law.
           </p>
 
           <h2>
-            <span className="feature-dot"></span> Governing Law
+            <span className="feature-dot"></span> 17. Privacy and Personal Data
           </h2>
           <p>
-            These Terms are governed by the laws of India, and any disputes shall be
-            subject to the exclusive jurisdiction of the courts at Salem, Tamil Nadu.
+            The GradEnvy{" "}
+            <a
+              href="/privacy_policy"
+              onClick={(e) => {
+                e.preventDefault();
+                navigate("/privacy_policy");
+              }}
+            >
+              Privacy Policy
+            </a>{" "}
+            explains how personal data is collected, used, shared, retained and protected.
+          </p>
+          <p>
+            Users must review that policy before providing personal information. Personal data will be handled in accordance with applicable law, the disclosed purposes of processing and any required consent or other lawful basis.
           </p>
 
           <h2>
-            <span className="feature-dot"></span> Contact Us
+            <span className="feature-dot"></span> 18. Grievances and Customer Support
+          </h2>
+          <p>For questions, complaints, account issues, payment concerns or privacy requests, contact:</p>
+          <p>
+            <strong>Email:</strong> <a href="mailto:support@gradenvy.com">support@gradenvy.com</a><br />
+            <strong>Phone:</strong> <a href="tel:9080408749">9080408749</a><br />
+            <strong>Correspondence Address:</strong> 1st Floor, NV Arcade Building, Near 5 Road, Salem, Tamil Nadu – 636004, India.
+          </p>
+          <p>
+            Complaints will be handled in accordance with applicable legal requirements. Any legally required grievance officer or designated contact details will be published when formally designated.
+          </p>
+
+          <h2>
+            <span className="feature-dot"></span> 19. Governing Law and Jurisdiction
           </h2>
           <p>
-            Questions about these Terms can be sent to{" "}
-            <a href="mailto:info@gradenvy.com">info@gradenvy.com</a> or call{" "}
-            <a href="tel:+919080408749">+91 90804 08749</a>. See our{" "}
+            These Terms are governed by the laws of India.
+          </p>
+          <p>
+            Subject to mandatory consumer-protection laws and the jurisdiction of any competent statutory authority or tribunal, courts of competent jurisdiction in Salem, Tamil Nadu, may hear disputes arising from these Terms where such jurisdiction is legally available.
+          </p>
+          <p>
+            Nothing in these Terms prevents a consumer from exercising any statutory right to approach a competent consumer commission or other legally authorised forum.
+          </p>
+
+          <h2>
+            <span className="feature-dot"></span> 20. Amendments
+          </h2>
+          <p>
+            GradEnvy may update these Terms to reflect changes in its services, business operations or applicable law. Updated Terms will be published on the relevant platform with an updated date.
+          </p>
+          <p>
+            Where required by law, material changes will be notified and additional consent will be obtained. Continued use after an update will constitute acceptance only to the extent legally valid.
+          </p>
+
+          <h2>
+            <span className="feature-dot"></span> 21. Severability
+          </h2>
+          <p>
+            If any provision of these Terms is held invalid or unenforceable, the remaining provisions will continue to apply to the extent permitted by law.
+          </p>
+
+          <h2>
+            <span className="feature-dot"></span> 22. Contact
+          </h2>
+          <p>
+            For questions concerning these Terms, contact <a href="mailto:support@gradenvy.com">support@gradenvy.com</a> or <a href="tel:9080408749">9080408749</a>. See our{" "}
             <a
               href="/contact"
               onClick={(e) => {

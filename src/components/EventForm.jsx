@@ -94,7 +94,7 @@ const eventFormConfig = [
         name: "registrationStartDate",
         label: "Registration Start Date",
         type: "date",
-        max: (data) => data.eventDate || undefined,
+        allowPast: true,
       },
       {
         name: "registrationEndDate",

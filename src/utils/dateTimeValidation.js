@@ -86,10 +86,6 @@ export const validateEventFieldChange = (
       toast.info("Registration end date reset because it cannot be after the new event date");
       overrides.registrationEndDate = "";
     }
-    if (currentData.registrationStartDate && value < currentData.registrationStartDate) {
-      toast.info("Registration start date reset because it cannot be after the new event date");
-      overrides.registrationStartDate = "";
-    }
     if (Object.keys(overrides).length > 0) {
       return overrides;
     }
@@ -111,24 +107,9 @@ export const validateEventFieldChange = (
     }
   }
 
-  // ── Registration Start Date ───────────────────────────────────
+  // ── Registration Start Date (No validations required) ─────────
   if (fieldName === "registrationStartDate") {
-    if (!currentData.eventDate) {
-      toast.warning("Please select Event Date first");
-      return { registrationStartDate: "" };
-    }
-    if (!isEdit && value < todayStr) {
-      toast.error("Registration start date cannot be in the past");
-      return { registrationStartDate: "" };
-    }
-    if (currentData.registrationEndDate && value > currentData.registrationEndDate) {
-      toast.error("Registration start date cannot be after registration end date");
-      return { registrationStartDate: "" };
-    }
-    if (currentData.eventDate && value > currentData.eventDate) {
-      toast.error("Registration start date cannot be after the event date");
-      return { registrationStartDate: "" };
-    }
+    return null;
   }
 
   // ── Registration End Date ─────────────────────────────────────
@@ -218,23 +199,8 @@ export const validateEventSubmission = (
     }
   }
 
-  if (registrationStartDate && registrationEndDate && registrationStartDate > registrationEndDate) {
-    toast.error("Registration start date cannot be after registration end date");
-    return false;
-  }
-
-  if (!isEdit && registrationStartDate && registrationStartDate < todayStr) {
-    toast.error("Registration start date cannot be in the past");
-    return false;
-  }
-
   if (registrationEndDate && eventDate && registrationEndDate > eventDate) {
     toast.error("Registration end date cannot be after the event date");
-    return false;
-  }
-
-  if (registrationStartDate && eventDate && registrationStartDate > eventDate) {
-    toast.error("Registration start date cannot be after the event date");
     return false;
   }
 

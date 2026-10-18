@@ -14,7 +14,7 @@ const resolveBaseUrl = () => {
   }
 
   // Fallback to Azure production backend
-  return "https://community-backend-bwgcfcbvhfefexan.centralus-01.azurewebsites.net";
+  return "https://gradenvy-backend-awfxg9gahhbeajag.southindia-01.azurewebsites.net";
 };
 
 const BASE_URL = resolveBaseUrl();

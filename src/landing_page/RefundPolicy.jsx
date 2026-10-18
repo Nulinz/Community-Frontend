@@ -141,99 +141,212 @@ const RefundPolicy = ({ showLayout = true }) => {
       <section className="legal-body">
         <div className="legal-card">
           <p>
-            This Refund &amp; Cancellation Policy explains the terms under which subscription purchases made on
-            GradEnvy may be cancelled or refunded.
+            This Return and Refund Policy explains the conditions under which refunds may be requested for GradEnvy Pro subscriptions and other paid services offered through the GradEnvy platform.
+          </p>
+          <p>
+            GradEnvy is jointly operated and managed by <strong>NexGen Nextopia Private Limited</strong> and <strong>Nulinz Technology Private Limited</strong>.
+          </p>
+          <p>
+            <strong>Correspondence Address:</strong> 1st Floor, NV Arcade Building, Near 5 Road, Salem, Tamil Nadu – 636004, India.<br />
+            <strong>Email:</strong> <a href="mailto:support@gradenvy.com">support@gradenvy.com</a> | <strong>Phone:</strong> <a href="tel:9080408749">9080408749</a>
+          </p>
+          <p>
+            This policy applies alongside the Terms and Conditions, applicable service-specific terms, payment-provider requirements and Indian law.
           </p>
 
           <h2>
-            <span className="feature-dot"></span> Subscription Purchases
+            <span className="feature-dot"></span> 2. GradEnvy Pro Subscription
           </h2>
           <p>
-            The GradEnvy annual subscription is priced as displayed at checkout, inclusive of any applicable
-            taxes. Once a payment is successfully verified, access to the Service is activated for 12 months
-            from the date of purchase.
+            GradEnvy Pro is a digital subscription providing access to designated premium platform features.
+          </p>
+          <ul>
+            <li><strong>Subscription price:</strong> ₹499, inclusive of applicable taxes.</li>
+            <li><strong>Subscription period:</strong> 90 days from activation.</li>
+            <li><strong>Payment method:</strong> Razorpay payment gateway.</li>
+            <li><strong>Renewal:</strong> No automatic renewal.</li>
+          </ul>
+          <p>
+            The subscription provides access to the applicable Pro features during the stated period. Separately priced events, third-party services and other independently charged offerings are not included unless expressly stated.
           </p>
 
           <h2>
-            <span className="feature-dot"></span> Cancellation
+            <span className="feature-dot"></span> 3. Seven-Day Cancellation and Refund Review Period
           </h2>
+          <p>
+            Users may submit a cancellation or refund request within <strong>seven calendar days</strong> of the original subscription purchase.
+          </p>
+          <p>
+            A request made within this period will be reviewed individually. Submitting a request does not automatically guarantee a refund.
+          </p>
+          <p>
+            The review will consider the circumstances of the request, the status and availability of the service, the reason for the request, any applicable service-specific terms and the user's rights under applicable law.
+          </p>
+          <p>
+            The seven-day period does not restrict any longer refund period or other remedy that may be mandatory under applicable law.
+          </p>
+
+          <h2>
+            <span className="feature-dot"></span> 4. Circumstances in Which Refunds May Be Granted
+          </h2>
+          <p>Subject to verification and applicable law, refunds may be granted in the following circumstances:</p>
+
+          <h3 className="font-bold text-slate-800 text-sm mt-4 mb-1">4.1. Failed or unsuccessful transactions</h3>
+          <p>
+            Where a payment has been debited but the subscription or service has not been activated, GradEnvy will investigate the transaction and arrange an appropriate refund or payment reversal where applicable.
+          </p>
+
+          <h3 className="font-bold text-slate-800 text-sm mt-4 mb-1">4.2. Duplicate or erroneous payments</h3>
+          <p>
+            Where a user has been charged more than once for the same purchase, or a verified payment error has occurred, the excess or erroneous amount will be refunded as appropriate.
+          </p>
+
+          <h3 className="font-bold text-slate-800 text-sm mt-4 mb-1">4.3. Discontinuation or closure of the platform</h3>
+          <p>
+            If GradEnvy permanently closes, ceases operations, or discontinues the relevant paid service before the promised subscription access has been provided, refunds for affected users will be assessed and provided as required by applicable law and the circumstances.
+          </p>
+          <p>
+            Where a paid service becomes permanently unavailable, GradEnvy will consider the unused subscription period and other relevant factors when determining an appropriate remedy.
+          </p>
+
+          <h3 className="font-bold text-slate-800 text-sm mt-4 mb-1">4.4. Exceptional circumstances beyond reasonable control</h3>
+          <p>
+            If a natural disaster, government restriction, major infrastructure failure or another exceptional circumstance beyond reasonable control prevents GradEnvy from providing the relevant paid service, affected requests will be reviewed individually.
+          </p>
+          <p>
+            Where the service cannot be provided for a material period or is permanently discontinued, GradEnvy will determine the appropriate refund or other remedy in accordance with applicable law and the circumstances.
+          </p>
+
+          <h3 className="font-bold text-slate-800 text-sm mt-4 mb-1">4.5. Refunds required by law</h3>
+          <p>
+            Refunds will be provided wherever required by applicable consumer-protection law, payment regulations, a binding order of a competent authority or another mandatory legal obligation. Nothing in this policy removes or limits a user's statutory rights.
+          </p>
+
+          <h2>
+            <span className="feature-dot"></span> 5. Circumstances That Do Not Automatically Qualify for a Refund
+          </h2>
+          <p>A refund is not automatically guaranteed merely because:</p>
           <ul>
-            <li>
-              You may request cancellation of a subscription purchase within <strong>7 days</strong> of the
-              date of purchase, provided the account has not been substantially used to access tender data or
-              generate reports/bills.
-            </li>
-            <li>
-              Cancellation requests after this period, or after significant use of the Service, will not be
-              accepted.
-            </li>
+            <li>A user changes their mind after purchasing Pro.</li>
+            <li>A user does not use the subscription or access the available features.</li>
+            <li>A user does not receive a job, internship, freelance assignment, project, interview or selection.</li>
+            <li>A user does not achieve a particular career outcome.</li>
+            <li>A user is unable to access a third-party opportunity because of that provider's eligibility requirements.</li>
+            <li>A user chooses not to participate in an event or activity.</li>
+          </ul>
+          <p>
+            These circumstances will be assessed in light of the applicable purchase terms and law. This section does not exclude refunds or remedies required where a service is defective, deficient, materially different from what was promised, or otherwise subject to a legal refund obligation.
+          </p>
+
+          <h2>
+            <span className="feature-dot"></span> 6. Separately Paid Events and Services
+          </h2>
+          <p>
+            Events may be organised by GradEnvy, companies, colleges, institutions or third-party organisers. Event registrations, tickets, workshops and other paid services may carry separate charges.
+          </p>
+          <ul>
+            <li>The applicable event listing or organiser's published cancellation and refund terms will be considered for event-related requests.</li>
+            <li>Where an organiser cancels an event, materially changes its arrangements, or cannot provide the paid event service, refunds or alternative remedies will be handled in accordance with the applicable event terms and law.</li>
+            <li>Where a third-party organiser collects payment directly, the user may need to contact that organiser for the relevant transaction. GradEnvy will provide reasonable assistance where appropriate, without excluding any responsibility imposed on GradEnvy by law.</li>
+            <li>Purchasing GradEnvy Pro does not automatically entitle the subscriber to a refund of separately purchased event fees.</li>
           </ul>
 
           <h2>
-            <span className="feature-dot"></span> Refund Eligibility
+            <span className="feature-dot"></span> 7. How to Request a Refund
           </h2>
+          <p>
+            Users should submit refund requests through the following contact channel:{" "}
+            <a href="mailto:support@gradenvy.com">support@gradenvy.com</a>
+          </p>
+          <p>The request should include, where available:</p>
           <ul>
-            <li>
-              Refunds are considered only where a cancellation request is raised within the 7-day window
-              described above.
-            </li>
-            <li>
-              No refunds will be issued if the account has been used to substantially access tender listings,
-              generate reports, or manage bills/collections during the subscription period.
-            </li>
-            <li>
-              Refunds are not provided for change of mind after the subscription has been used, or for
-              failure to use the subscription within its validity period.
-            </li>
-            <li>
-              In case of duplicate or failed payments where the amount was debited but the subscription was
-              not activated, the full amount will be refunded upon verification.
-            </li>
+            <li>Registered name and email address or mobile number.</li>
+            <li>Transaction ID or Razorpay payment reference.</li>
+            <li>Date and amount of payment.</li>
+            <li>Description of the issue and reason for the request.</li>
+            <li>Relevant supporting information, such as a payment confirmation or error message.</li>
           </ul>
-
-          <h2>
-            <span className="feature-dot"></span> How to Request a Refund or Cancellation
-          </h2>
+          <p className="italic text-xs text-slate-500">
+            Users should not send passwords, payment PINs, one-time passwords or complete payment-card credentials.
+          </p>
           <p>
-            To request a cancellation or refund, contact us at{" "}
-            <a href="mailto:Info@gradenvy.com">Info@gradenvy.com</a> or call{" "}
-            <a href="tel:+919080408749">+91 90804 08749</a> with your registered mobile number, order/payment
-            details, and reason for the request. See our{" "}
-            <a
-              href="/contact"
-              onClick={(e) => {
-                e.preventDefault();
-                navigate("/contact");
-              }}
-            >
-              Contact Us
-            </a>{" "}
-            page for more ways to reach us.
+            GradEnvy may request reasonable additional information to verify the transaction and assess the request.
           </p>
 
           <h2>
-            <span className="feature-dot"></span> Refund Processing
+            <span className="feature-dot"></span> 8. Review and Processing Timeline
           </h2>
           <p>
-            Approved refunds will be processed to the original mode of payment within <strong>7–10 business
-              days</strong> from the date of approval. The actual time for the amount to reflect in your account
-            may vary depending on your bank or payment provider.
+            GradEnvy will review refund requests individually and may verify payment records, subscription activation, service availability and other relevant details.
+          </p>
+          <p>
+            Where a refund is approved, GradEnvy will initiate or arrange the refund within <strong>seven business days</strong> of approval, subject to the applicable payment process and legal requirements.
+          </p>
+          <p>
+            The time taken for the refunded amount to appear in the user's account may depend on Razorpay, the relevant bank, payment method and financial institution.
+          </p>
+          <p>
+            If additional verification is required, GradEnvy will communicate with the user where reasonably practicable. Any mandatory legal refund deadline will prevail over this policy's general processing timeline.
           </p>
 
           <h2>
-            <span className="feature-dot"></span> Changes to This Policy
+            <span className="feature-dot"></span> 9. Refund Method
           </h2>
           <p>
-            We may update this policy from time to time. Material changes will be reflected by updating the
-            "Last updated" date above.
+            Where practicable, approved refunds will be processed through the original payment method used for the transaction. If that method is unavailable or the payment provider requires an alternative procedure, the user may be asked to follow a secure alternative process.
+          </p>
+          <p>
+            GradEnvy will not request a user's payment PIN or one-time password to process a refund.
           </p>
 
           <h2>
-            <span className="feature-dot"></span> Contact Us
+            <span className="feature-dot"></span> 10. Fraudulent or Unauthorised Transactions
           </h2>
           <p>
-            Questions about this policy can be sent to{" "}
-            <a href="mailto:info@gradenvy.com">info@gradenvy.com</a>.
+            Users should promptly report suspected unauthorised transactions or payment fraud to GradEnvy and their payment provider or bank. GradEnvy may investigate suspicious transactions and coordinate with relevant payment providers where appropriate.
+          </p>
+          <p>
+            This section does not restrict any rights users have to raise disputes or seek remedies through their bank, payment provider, consumer commission or other competent authority.
+          </p>
+
+          <h2>
+            <span className="feature-dot"></span> 11. Account Suspension or Termination
+          </h2>
+          <p>
+            Where an account is suspended or terminated because of fraud, abuse, false listings or policy violations, refund eligibility will be assessed under the applicable terms and law.
+          </p>
+          <p>
+            Suspension or termination does not automatically create a right to a refund, but it also does not eliminate any refund or other remedy required by applicable law.
+          </p>
+
+          <h2>
+            <span className="feature-dot"></span> 12. Changes to This Policy
+          </h2>
+          <p>
+            GradEnvy may update this policy to reflect changes in its services, payment procedures or applicable legal requirements. The latest version will be published on the relevant platform with an updated date. Material changes will be notified where required by law.
+          </p>
+          <p>
+            The policy applicable to a purchase will be interpreted consistently with any mandatory consumer rights and legal protections applicable to that transaction.
+          </p>
+
+          <h2>
+            <span className="feature-dot"></span> 13. Contact and Grievances
+          </h2>
+          <p>For refund requests, payment disputes or questions about this policy, contact:</p>
+          <p>
+            <strong>Email:</strong> <a href="mailto:support@gradenvy.com">support@gradenvy.com</a><br />
+            <strong>Phone:</strong> <a href="tel:9080408749">9080408749</a><br />
+            <strong>Correspondence Address:</strong> 1st Floor, NV Arcade Building, Near 5 Road, Salem, Tamil Nadu – 636004, India.
+          </p>
+          <p>
+            Complaints will be handled in accordance with applicable law and any legally required grievance procedures.
+          </p>
+
+          <h2>
+            <span className="feature-dot"></span> 14. Governing Law
+          </h2>
+          <p>
+            This policy is governed by the laws of India, including applicable consumer-protection and payment-related laws. Nothing in this policy prevents a user from exercising a statutory right or approaching a competent consumer commission, court or other authorised forum.
           </p>
         </div>
       </section>
