@@ -414,6 +414,22 @@ const SeminarProfile = () => {
                                         {/* <DataItem label="Team Fees" value={`₹${seminar.teamFees || 0}`} /> */}
                                         <DataItem label="Late Fees" value={`₹${seminar.lateFees || 0}`} />
                                         <DataItem label="GST" value={seminar.gst || 'No'} />
+                                        {String(seminar.gst || '').trim().toLowerCase() === 'yes' && (
+                                            <>
+                                                <DataItem 
+                                                    label="GST Percentage" 
+                                                    value={seminar.gstPercentage !== undefined && seminar.gstPercentage !== null 
+                                                        ? (String(seminar.gstPercentage).includes('%') ? seminar.gstPercentage : `${seminar.gstPercentage}%`)
+                                                        : (seminar.gstPercent ? `${seminar.gstPercent}%` : '-')} 
+                                                />
+                                                <DataItem 
+                                                    label="GST Amount" 
+                                                    value={`₹${seminar.gstAmount !== undefined && seminar.gstAmount !== null 
+                                                        ? seminar.gstAmount 
+                                                        : Math.round(((Number(seminar.individualFees) || Number(seminar.teamFees) || 0) * (Number(String(seminar.gstPercentage || seminar.gstPercent || 0).replace('%', '')) / 100)) * 100) / 100}`} 
+                                                />
+                                            </>
+                                        )}
                                         {seminar.customFees?.map((fee, idx) => (
                                             <DataItem
                                                 key={fee._id || idx}

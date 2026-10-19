@@ -433,6 +433,22 @@ const EventProfile = () => {
                                         {/* <DataItem label="Team Fees" value={`₹${event.teamFees || 0}`} /> */}
                                         <DataItem label="Late Fees" value={`₹${event.lateFees || 0}`} />
                                         <DataItem label="GST" value={event.gst || 'No'} />
+                                        {String(event.gst || '').trim().toLowerCase() === 'yes' && (
+                                            <>
+                                                <DataItem 
+                                                    label="GST Percentage" 
+                                                    value={event.gstPercentage !== undefined && event.gstPercentage !== null 
+                                                        ? (String(event.gstPercentage).includes('%') ? event.gstPercentage : `${event.gstPercentage}%`)
+                                                        : (event.gstPercent ? `${event.gstPercent}%` : '-')} 
+                                                />
+                                                <DataItem 
+                                                    label="GST Amount" 
+                                                    value={`₹${event.gstAmount !== undefined && event.gstAmount !== null 
+                                                        ? event.gstAmount 
+                                                        : Math.round(((Number(event.individualFees) || Number(event.teamFees) || 0) * (Number(String(event.gstPercentage || event.gstPercent || 0).replace('%', '')) / 100)) * 100) / 100}`} 
+                                                />
+                                            </>
+                                        )}
                                         {event.customFees?.map((fee, idx) => (
                                             <DataItem
                                                 key={fee._id || idx}

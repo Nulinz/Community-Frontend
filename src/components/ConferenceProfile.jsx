@@ -411,6 +411,22 @@ const ConferenceProfile = () => {
                                         {/* <DataItem label="Team Fees" value={`₹${conference.teamFees || 0}`} /> */}
                                         <DataItem label="Late Fees" value={`₹${conference.lateFees || 0}`} />
                                         <DataItem label="GST" value={conference.gst || 'No'} />
+                                        {String(conference.gst || '').trim().toLowerCase() === 'yes' && (
+                                            <>
+                                                <DataItem 
+                                                    label="GST Percentage" 
+                                                    value={conference.gstPercentage !== undefined && conference.gstPercentage !== null 
+                                                        ? (String(conference.gstPercentage).includes('%') ? conference.gstPercentage : `${conference.gstPercentage}%`)
+                                                        : (conference.gstPercent ? `${conference.gstPercent}%` : '-')} 
+                                                />
+                                                <DataItem 
+                                                    label="GST Amount" 
+                                                    value={`₹${conference.gstAmount !== undefined && conference.gstAmount !== null 
+                                                        ? conference.gstAmount 
+                                                        : Math.round(((Number(conference.individualFees) || Number(conference.teamFees) || 0) * (Number(String(conference.gstPercentage || conference.gstPercent || 0).replace('%', '')) / 100)) * 100) / 100}`} 
+                                                />
+                                            </>
+                                        )}
                                         {conference.customFees?.map((fee, idx) => (
                                             <DataItem
                                                 key={fee._id || idx}

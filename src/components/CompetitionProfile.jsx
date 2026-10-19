@@ -395,6 +395,22 @@ const CompetitionProfile = () => {
                                         <DataItem label="Team Fees" value={`₹${competition.teamFees || 0}`} />
                                         <DataItem label="Late Fees" value={`₹${competition.lateFees || 0}`} />
                                         <DataItem label="GST" value={competition.gst || 'No'} />
+                                        {String(competition.gst || '').trim().toLowerCase() === 'yes' && (
+                                            <>
+                                                <DataItem 
+                                                    label="GST Percentage" 
+                                                    value={competition.gstPercentage !== undefined && competition.gstPercentage !== null 
+                                                        ? (String(competition.gstPercentage).includes('%') ? competition.gstPercentage : `${competition.gstPercentage}%`)
+                                                        : (competition.gstPercent ? `${competition.gstPercent}%` : '-')} 
+                                                />
+                                                <DataItem 
+                                                    label="GST Amount" 
+                                                    value={`₹${competition.gstAmount !== undefined && competition.gstAmount !== null 
+                                                        ? competition.gstAmount 
+                                                        : Math.round(((Number(competition.individualFees) || Number(competition.teamFees) || 0) * (Number(String(competition.gstPercentage || competition.gstPercent || 0).replace('%', '')) / 100)) * 100) / 100}`} 
+                                                />
+                                            </>
+                                        )}
                                         {competition.customFees?.map((fee, idx) => (
                                             <DataItem
                                                 key={fee._id || idx}

@@ -260,6 +260,15 @@ const eventFormConfig = [
         defaultValue: "No",
         required: false,
       },
+      {
+        showWhen: { field: "gst", value: "Yes" },
+        name: "gstPercentage",
+        label: "GST Percentage",
+        type: "select",
+        options: ["0%", "5%", "12%", "18%", "28%"],
+        defaultValue: "18%",
+        required: false,
+      },
     ],
   },
   {
