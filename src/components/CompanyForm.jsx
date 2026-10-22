@@ -3,7 +3,7 @@ import { toast } from "react-toastify";
 import { createCompany } from "../services/admin/adminServices";
 import FormLayout from "../layout/FormLayout";
 import { useTitle } from "../context/AdminTitle";
-import { useEffect } from "react";
+import { useEffect, useMemo } from "react";
 
 /**
  * Standardized domain options for company specialization.
@@ -131,13 +131,13 @@ const companyFormConfig = [
         placeholder: "https://www.example.com",
         required: false,
       },
-      {
-        name: "linkedinUrl",
-        label: "LinkedIn Company Page",
-        type: "text",
-        placeholder: "https://linkedin.com/company/companyname",
-        required: false,
-      },
+      // {
+      //   name: "linkedinUrl",
+      //   label: "LinkedIn Company Page",
+      //   type: "text",
+      //   placeholder: "https://linkedin.com/company/companyname",
+      //   required: false,
+      // },
       {
         name: "companyLogo",
         label: "Company Logo",
@@ -257,10 +257,34 @@ const CompanyForm = ({ module }) => {
   const location = useLocation();
   const navigate = useNavigate();
   const editData = location.state?.editData;
-  const { setTitle } = useTitle()
+  const isEdit = Boolean(editData?._id || editData?.id || editData);
+  const { setTitle } = useTitle();
+
   useEffect(() => {
-    setTitle("Company Form")
-  }, [])
+    setTitle("Company Form");
+  }, []);
+
+  /**
+   * Dynamically configure field permissions based on operation mode.
+   * When in edit mode, primary contact coordinates (Official Email and Phone Number)
+   * are locked to read-only to prevent unauthorized identity alteration.
+   */
+  const formConfig = useMemo(() => {
+    return companyFormConfig.map((section) => {
+      if (section.title === "Contact Information") {
+        return {
+          ...section,
+          fields: section.fields.map((field) =>
+            field.name === "phoneNumber" || field.name === "mailId"
+              ? { ...field, readOnly: isEdit }
+              : field
+          ),
+        };
+      }
+      return section;
+    });
+  }, [isEdit]);
+
   // ✅ Remap email/phone aliases and domain tags from editData before passing to FormLayout
   const normalizedEditData = editData
     ? {
@@ -301,7 +325,7 @@ const CompanyForm = ({ module }) => {
 
   return (
     <FormLayout
-      config={companyFormConfig}
+      config={formConfig}
       editData={normalizedEditData}
       onSubmit={handleSubmit}
     />

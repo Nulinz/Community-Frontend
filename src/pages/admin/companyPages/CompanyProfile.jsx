@@ -440,7 +440,7 @@ const CompanyProfile = ({ module }) => {
                       ) : 'N/A'
                     }
                   /> */}
-                  <DetailItem
+                  {/* <DetailItem
                     label="LinkedIn Page"
                     value={
                       company.linkedinUrl ? (
@@ -454,7 +454,7 @@ const CompanyProfile = ({ module }) => {
                         </a>
                       ) : 'N/A'
                     }
-                  />
+                  /> */}
                 </div>
                 <div className="pt-2 border-t border-gray-100 mt-2">
                   <DetailItem

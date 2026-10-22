@@ -142,3 +142,18 @@ export const resetPassword = async ({ phone, new_password }) => {
     );
   }
 };
+
+// 🔹 REGISTER COMPANY (Public self-registration)
+export const registerCompanyApi = async (formData) => {
+  try {
+    const res = await API.post("/company/register", formData);
+    return res.data;
+  } catch (error) {
+    throw (
+      error.response?.data || {
+        status: false,
+        message: error.message,
+      }
+    );
+  }
+};

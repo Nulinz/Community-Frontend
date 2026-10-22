@@ -1464,7 +1464,9 @@ const FormInput = ({
   if (field.type === "tel") {
     return (
       <div
-        className={`flex items-center w-full h-10 border rounded bg-[#fcfcfc] transition-colors focus-within:ring-1 ${
+        className={`flex items-center w-full h-10 border rounded transition-colors ${
+          field.readOnly ? "bg-gray-100 cursor-not-allowed opacity-90" : "bg-[#fcfcfc]"
+        } ${
           hasError
             ? "border-red-400 focus-within:border-red-500 focus-within:ring-red-400"
             : "border-gray-200 focus-within:border-blue-400 focus-within:ring-blue-400"
@@ -1487,7 +1489,9 @@ const FormInput = ({
             const digitsOnly = e.target.value.replace(/\D/g, "").slice(0, 10);
             onChange(digitsOnly);
           }}
-          className="flex-1 h-full px-3 bg-transparent outline-none text-sm text-gray-800 placeholder-gray-400 min-w-0"
+          className={`flex-1 h-full px-3 bg-transparent outline-none text-sm text-gray-800 placeholder-gray-400 min-w-0 ${
+            field.readOnly ? "cursor-not-allowed text-gray-500" : ""
+          }`}
         />
       </div>
     );
@@ -1557,7 +1561,9 @@ const FormInput = ({
           : undefined
       }
       maxLength={field.type === "tel" ? 10 : undefined}
-      className={`w-full p-2 ${isExternalReg ? "pr-9" : ""} border rounded bg-[#fcfcfc] outline-none text-sm h-10 transition-colors ${
+      className={`w-full p-2 ${isExternalReg ? "pr-9" : ""} border rounded ${
+        field.readOnly ? "bg-gray-100 cursor-not-allowed text-gray-500" : "bg-[#fcfcfc]"
+      } outline-none text-sm h-10 transition-colors ${
         hasError
           ? "border-red-400 focus:ring-1 focus:ring-red-400 focus:border-red-500"
           : "border-gray-200 focus:ring-1 focus:ring-blue-400"

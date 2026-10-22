@@ -5,7 +5,9 @@ import { getAllInfluencers } from "../../../services/admin/adminServices";
 import { useTitle } from "../../../context/AdminTitle";
 import { toast } from "react-toastify";
 import setFileName from "../../../utils/setFileName";
-import { Plus } from "lucide-react";
+import { Plus, Trash2 } from "lucide-react";
+import DeleteConfirmModal from "../../../common/DeleteConfirmModal";
+import { deleteModuleItem } from "../../../services/commonServices";
 
 const InfluencerList = () => {
   const navigate = useNavigate();
@@ -14,6 +16,8 @@ const InfluencerList = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [search, setSearch] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
+  const [deleteTarget, setDeleteTarget] = useState(null);
+  const [isDeleting, setIsDeleting] = useState(false);
   const { setTitle } = useTitle();
 
   useEffect(() => {
@@ -40,6 +44,28 @@ const InfluencerList = () => {
       toast.error(error.message || "Failed to load influencers");
     } finally { 
       setIsLoading(false);
+    }
+  };
+
+  /**
+   * Handles confirmed influencer deletion through the universal deletion service.
+   * Removes the influencer account and uploaded assets, then updates local state.
+   */
+  const handleConfirmDelete = async () => {
+    if (!deleteTarget) return;
+
+    try {
+      setIsDeleting(true);
+      const targetId = deleteTarget._id || deleteTarget.id;
+      await deleteModuleItem("influencer", targetId);
+      setInfluencers((prev) => prev.filter((item) => (item._id || item.id) !== targetId));
+      toast.success("Influencer deleted successfully");
+      setDeleteTarget(null);
+    } catch (error) {
+      console.error("Failed to delete influencer:", error);
+      toast.error(error?.response?.data?.message || "Failed to delete influencer");
+    } finally {
+      setIsDeleting(false);
     }
   };
 
@@ -119,6 +145,24 @@ const InfluencerList = () => {
             })
           : "N/A",
     },
+    {
+      title: "Actions",
+      key: "actions",
+      render: (_, record) => (
+        <button
+          type="button"
+          onClick={(e) => {
+            e.stopPropagation();
+            setDeleteTarget(record);
+          }}
+          className="p-1.5 text-[#F04438] hover:text-[#D92D20] hover:bg-red-50 rounded-lg transition-colors cursor-pointer"
+          title="Delete Influencer"
+          aria-label="Delete Influencer"
+        >
+          <Trash2 size={18} />
+        </button>
+      ),
+    },
   ];
 
   return (
@@ -142,6 +186,16 @@ const InfluencerList = () => {
         onRowClick={(record) =>
           navigate(`/admin/influencer-profile/${record._id}`, { state: { editData: record } })
         }
+      />
+
+      {/* Reusable Delete Confirmation Modal */}
+      <DeleteConfirmModal
+        isOpen={!!deleteTarget}
+        onClose={() => setDeleteTarget(null)}
+        onConfirm={handleConfirmDelete}
+        title="Delete Influencer"
+        itemName={deleteTarget?.name}
+        isSubmitting={isDeleting}
       />
     </div>
   );

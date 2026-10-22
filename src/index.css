@@ -18,3 +18,21 @@
     font-family: 'Source Sans 3', sans-serif;
   }
 }
+
+/**
+ * Subtle slim scrollbar for dark glassmorphic modals.
+ * Prevents default bulky browser scrollbars from breaking card aesthetics.
+ */
+.custom-auth-scrollbar::-webkit-scrollbar {
+  width: 5px;
+}
+.custom-auth-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+}
+.custom-auth-scrollbar::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 9999px;
+}
+.custom-auth-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.35);
+}

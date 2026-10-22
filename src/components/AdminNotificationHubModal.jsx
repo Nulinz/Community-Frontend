@@ -128,7 +128,7 @@ const AdminNotificationHubModal = ({ isOpen, onClose }) => {
       description:
         "Dispatch a high-value freelance opportunity notification to all active users without an active subscription plan.",
       messagePreview:
-        '"A new Envy project with a Worth of ₹30,000 is currently available and matches the skills or interests you have shown on GradEnvy. View the project to see the requirements and application details."',
+        '"A New Envy project with a Worth of ₹30,000 is currently available and matches the skills or interests you have shown on GradEnvy. View the project to see the requirements and application details."',
       audienceCount: counts.subscriptions,
     },
     {

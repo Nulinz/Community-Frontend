@@ -7,11 +7,13 @@ import loginBg from '../assets/images/loginBg.png';
  * Props:
  *   backgroundImage  {string}  - Full-bleed background image URL or imported asset.
  *   maxWidth         {string}  - Tailwind max-w class for the card (default "max-w-md")
+ *   cardClassName    {string}  - Optional supplementary styling for height, flexbox, or padding overrides.
  *   children         {node}    - Form content rendered inside the glass card.
  */
 export default function AuthBase({
   backgroundImage = loginBg,
   maxWidth = "max-w-md",
+  cardClassName = "",
   children,
 }) {
   return (
@@ -24,7 +26,7 @@ export default function AuthBase({
 
       {/* Glass card */}
       <div
-        className={`relative z-10 w-full ${maxWidth} bg-[#222222]/50 backdrop-blur-md p-8 md:p-10 rounded-[2rem] shadow-2xl border border-white/10`}
+        className={`relative z-10 isolate w-full ${maxWidth} bg-[#222222]/50 backdrop-blur-md p-6 sm:p-8 md:p-10 rounded-[2rem] shadow-2xl border border-white/10 ${cardClassName}`}
       >
         {children}
       </div>
