@@ -3,7 +3,7 @@
     "apps": [],
     "details": [
       {
-        "appID": "4Z5P6SM7H3.com.grad.envy",
+        "appID": "MQN624WGZ7.com.grad.envy.ios",
         "paths": [
           "/referral",
           "/referral/*",
@@ -44,7 +44,7 @@
   },
   "webcredentials": {
     "apps": [
-      "4Z5P6SM7H3.com.grad.envy"
+      "MQN624WGZ7.com.grad.envy.ios"
     ]
   }
 }
